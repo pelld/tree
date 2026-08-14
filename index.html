@@ -19,81 +19,30 @@
 <script type="module">
 import * as THREE from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
-
-// 01 — SCENE. The whole crown is framed first; close inspection comes from zooming in.
-const scene=new THREE.Scene();scene.background=new THREE.Color(0xcbd7c5);scene.fog=new THREE.FogExp2(0xcbd7c5,.0037);
-const camera=new THREE.PerspectiveCamera(42,innerWidth/innerHeight,.02,320);camera.position.set(30,13.5,35);
-const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});renderer.setPixelRatio(Math.min(devicePixelRatio,1.55));renderer.setSize(innerWidth,innerHeight);renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.08;renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;document.body.prepend(renderer.domElement);
-const controls=new OrbitControls(camera,renderer.domElement);controls.target.set(0,7.6,0);controls.enableDamping=true;controls.dampingFactor=.06;controls.minDistance=.12;controls.maxDistance=90;controls.zoomToCursor=true;
-scene.add(new THREE.HemisphereLight(0xeaf2e2,0x554b3b,2.25));const sun=new THREE.DirectionalLight(0xffefd1,2.9);sun.position.set(-17,28,13);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);sun.shadow.camera.left=-24;sun.shadow.camera.right=24;sun.shadow.camera.top=30;sun.shadow.camera.bottom=-8;scene.add(sun);
-const ground=new THREE.Mesh(new THREE.CircleGeometry(58,80),new THREE.MeshStandardMaterial({color:0x788861,roughness:1}));ground.rotation.x=-Math.PI/2;ground.receiveShadow=true;scene.add(ground);
-
-// 02 — ONE REPEATABLE INDIVIDUAL. Variation is deterministic so every pass improves the same tree.
-let seed=88231;const rnd=()=>{seed=(seed*16807)%2147483647;return(seed-1)/2147483646};const j=a=>(rnd()-.5)*a;
-const barkMat=new THREE.MeshStandardMaterial({color:0x493b30,roughness:1,flatShading:true});const oldBranchMat=new THREE.MeshStandardMaterial({color:0x514134,roughness:1,flatShading:true});const youngBranchMat=new THREE.MeshStandardMaterial({color:0x62503a,roughness:.98});const fissureMat=new THREE.MeshStandardMaterial({color:0x2a211b,roughness:1});
-const leafMats=[0x244821,0x2d5326,0x355d2b,0x3d6530,0x315728,0x456d35,0x294d24].map(c=>new THREE.MeshStandardMaterial({color:c,roughness:.88,side:THREE.DoubleSide}));
-
-// 03 — HEAVY WOOD. The bole is substantial but no longer dominates the tree.
-function woodMesh(a,b,r0,r1,material=barkMat,sides=11){const d=new THREE.Vector3().subVectors(b,a),len=d.length(),g=new THREE.CylinderGeometry(r1,r0,len,sides,3,false),pos=g.attributes.position;for(let i=0;i<pos.count;i++){const x=pos.getX(i),z=pos.getZ(i),n=1+j(Math.min(.07,r0*.11));pos.setX(i,x*n);pos.setZ(i,z*n)}g.computeVertexNormals();const m=new THREE.Mesh(g,material);m.position.copy(a).add(b).multiplyScalar(.5);m.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),d.clone().normalize());m.castShadow=m.receiveShadow=true;scene.add(m);return m}
-const trunkR=y=>Math.max(.34,.94-y*.058);let last=new THREE.Vector3(0,0,0);const trunkPoints=[last.clone()];for(let i=1;i<=18;i++){const y=i*.58,p=new THREE.Vector3(.0055*y*y+Math.sin(i*.62)*.035,y,Math.sin(i*.43)*.06);woodMesh(last,p,trunkR((i-1)*.58),trunkR(y),barkMat,12);last=p;trunkPoints.push(p)}
-
-// 04 — ROOT FLARE. Broad buttresses disappear into the soil instead of forming a radial star.
-for(let n=0;n<8;n++){const a=n/8*6.283+j(.25),s=new THREE.Vector3(Math.cos(a)*.72,.33,Math.sin(a)*.72),m=new THREE.Vector3(Math.cos(a+j(.10))*(1.15+rnd()*.35),.12,Math.sin(a+j(.10))*(1.15+rnd()*.35)),e=new THREE.Vector3(Math.cos(a+j(.12))*(1.75+rnd()*.55),.018,Math.sin(a+j(.12))*(1.75+rnd()*.55));woodMesh(s,m,.30+rnd()*.07,.14,barkMat,8);woodMesh(m,e,.14,.035,barkMat,7)}
-
-// 05 — BARK FISSURES ON THE LOWER BOLE.
-for(let n=0;n<46;n++){const a=n/46*6.283+j(.08),y=.2+rnd()*5.2,len=.45+rnd()*1.25,r=trunkR(y)+.014,curve=new THREE.CatmullRomCurve3([new THREE.Vector3(Math.cos(a)*r,y,Math.sin(a)*r),new THREE.Vector3(Math.cos(a+j(.065))*r,y+len*.48,Math.sin(a+j(.065))*r),new THREE.Vector3(Math.cos(a+j(.09))*r,y+len,Math.sin(a+j(.09))*r)]);scene.add(new THREE.Mesh(new THREE.TubeGeometry(curve,4,.014+rnd()*.010,3,false),fissureMat))}
-
-// 06 — INSTANCED BRANCH SEGMENTS. Curves are assembled from short tapered units so limbs bend and twist.
-const branchBuckets=[[],[],[]];const up=new THREE.Vector3(0,1,0),mid=new THREE.Vector3(),delta=new THREE.Vector3(),quat=new THREE.Quaternion(),scaleV=new THREE.Vector3(),matrix=new THREE.Matrix4();
-function queueSegment(a,b,r){const bucket=r>.18?0:r>.055?1:2;branchBuckets[bucket].push({a:a.clone(),b:b.clone(),r})}
-function curvedBranch(a,b,r0,bend=.5,sag=.15,segments=8){const d=new THREE.Vector3().subVectors(b,a),perp=new THREE.Vector3(-d.z,0,d.x);if(perp.lengthSq()<.001)perp.set(1,0,0);perp.normalize();const c1=a.clone().add(d.clone().multiplyScalar(.30)).add(perp.clone().multiplyScalar(bend)).add(new THREE.Vector3(0,-Math.abs(sag),0));const c2=a.clone().add(d.clone().multiplyScalar(.68)).add(perp.clone().multiplyScalar(-bend*.35)).add(new THREE.Vector3(0,Math.abs(sag)*.65,0));const curve=new THREE.CatmullRomCurve3([a,c1,c2,b]),pts=curve.getPoints(segments);for(let i=0;i<segments;i++){const t=i/segments,r=Math.max(.012,r0*(1-t*.72));queueSegment(pts[i],pts[i+1],r)}return b.clone()}
-
-// 07 — CANOPY VOLUMES. The crown is designed first as overlapping, irregular billows.
-//      Branches are then grown into those volumes. This reverses the old branch-first approach.
-const lobes=[
- {c:new THREE.Vector3(-6.3,7.4,-1.4),r:new THREE.Vector3(3.2,2.0,2.8),p:-1},
- {c:new THREE.Vector3(-5.1,9.4, 2.5),r:new THREE.Vector3(3.1,2.3,2.8),p:0},
- {c:new THREE.Vector3(-4.0,10.8,-3.0),r:new THREE.Vector3(3.0,2.2,2.7),p:0},
- {c:new THREE.Vector3(-2.0,12.0,1.2),r:new THREE.Vector3(3.2,2.1,2.8),p:-1},
- {c:new THREE.Vector3( 0.8,12.5,-1.7),r:new THREE.Vector3(3.2,2.1,2.8),p:-1},
- {c:new THREE.Vector3( 3.7,11.2,2.0),r:new THREE.Vector3(3.3,2.2,2.9),p:-1},
- {c:new THREE.Vector3( 5.7,9.3,-1.5),r:new THREE.Vector3(3.2,2.3,2.8),p:5},
- {c:new THREE.Vector3( 6.5,7.3,2.3),r:new THREE.Vector3(3.3,2.1,2.9),p:-1},
- {c:new THREE.Vector3( 4.2,7.0,-3.6),r:new THREE.Vector3(3.1,2.0,2.7),p:7},
- {c:new THREE.Vector3( 0.8,7.8,-4.7),r:new THREE.Vector3(3.1,2.1,2.8),p:-1},
- {c:new THREE.Vector3(-3.4,7.2,-4.1),r:new THREE.Vector3(3.1,2.0,2.7),p:9},
- {c:new THREE.Vector3(-1.6,7.8, 4.6),r:new THREE.Vector3(3.2,2.2,2.9),p:-1},
- {c:new THREE.Vector3( 2.6,7.8, 4.3),r:new THREE.Vector3(3.1,2.1,2.8),p:11},
- {c:new THREE.Vector3( 0.0,9.8, 0.7),r:new THREE.Vector3(3.0,2.2,2.7),p:3},
- {c:new THREE.Vector3(-5.7,6.2, 2.0),r:new THREE.Vector3(2.8,1.8,2.5),p:0},
- {c:new THREE.Vector3( 5.2,6.1, 0.1),r:new THREE.Vector3(2.8,1.8,2.5),p:7}
-];
-const anchors=[];
-function trunkAt(y){return new THREE.Vector3(.0055*y*y,y,Math.sin((y/.58)*.43)*.06)}
-const mainAttachments=[3.0,3.5,4.1,4.6,5.2,5.7,6.2,4.0,5.0,4.6,4.2,4.8,5.5,6.4,3.4,3.8];
-lobes.forEach((l,i)=>{let start;if(l.p<0){start=trunkAt(mainAttachments[i]);}else{start=anchors[l.p].clone()}const outward=new THREE.Vector3(l.c.x,0,l.c.z).normalize();const end=l.c.clone().add(outward.clone().multiplyScalar(-l.r.x*.28)).add(new THREE.Vector3(0,-l.r.y*.30,0));const dist=start.distanceTo(end),radius=l.p<0?.40:Math.max(.16,.28-dist*.010);curvedBranch(start,end,radius,j(1.0),.10+rnd()*.32,l.p<0?10:7);anchors[i]=end.clone()});
-
-// 08 — LOCAL CROWN ARCHITECTURE. Each billow gets a fan of secondary branches and fine shoots.
-lobes.forEach((l,i)=>{const base=anchors[i];const secondary=11+Math.floor(rnd()*6);for(let n=0;n<secondary;n++){const a=rnd()*6.283,u=j(.72),rad=.40+.48*rnd(),target=l.c.clone().add(new THREE.Vector3(Math.cos(a)*l.r.x*rad,u*l.r.y,Math.sin(a)*l.r.z*rad));curvedBranch(base,target,.10+rnd()*.08,j(.34),j(.13),5);const forks=2+Math.floor(rnd()*3);for(let f=0;f<forks;f++){const tip=target.clone().add(new THREE.Vector3(j(l.r.x*.46),j(l.r.y*.34),j(l.r.z*.46)));curvedBranch(target,tip,.035+rnd()*.028,j(.15),j(.05),3)}}});
-
-// 09 — BUILD ALL BRANCHES IN THREE DRAW CALLS.
-const unitGeos=[new THREE.CylinderGeometry(.78,1,1,9,1,false),new THREE.CylinderGeometry(.72,1,1,7,1,false),new THREE.CylinderGeometry(.66,1,1,5,1,false)],branchMats=[oldBranchMat,oldBranchMat,youngBranchMat];
-branchBuckets.forEach((items,b)=>{if(!items.length)return;const inst=new THREE.InstancedMesh(unitGeos[b],branchMats[b],items.length);inst.castShadow=b<2;inst.receiveShadow=b===0;items.forEach((s,k)=>{delta.subVectors(s.b,s.a);mid.copy(s.a).add(s.b).multiplyScalar(.5);quat.setFromUnitVectors(up,delta.clone().normalize());scaleV.set(s.r,delta.length(),s.r);matrix.compose(mid,quat,scaleV);inst.setMatrixAt(k,matrix)});inst.instanceMatrix.needsUpdate=true;scene.add(inst)});
-
-// 10 — TRUE LOBED OAK LEAVES. Thousands of separate leaves form one continuous crown rather than pom-poms.
-function makeLeaf(){const s=new THREE.Shape();s.moveTo(0,-.50);[[.10,-.46],[.23,-.44],[.30,-.34],[.23,-.27],[.42,-.17],[.45,-.05],[.31,.04],[.42,.16],[.37,.27],[.20,.31],[.27,.42],[.13,.51],[0,.60],[-.13,.51],[-.27,.42],[-.20,.31],[-.37,.27],[-.42,.16],[-.31,.04],[-.45,-.05],[-.42,-.17],[-.23,-.27],[-.30,-.34],[-.23,-.44],[-.10,-.46]].forEach(v=>s.lineTo(...v));return new THREE.ShapeGeometry(s)}
-const leafGeo=makeLeaf(),leafSpecs=leafMats.map(()=>[]);let leafCount=0;const MAX_LEAVES=19000;
-function addLeaf(p,size,tiltBias=0){if(leafCount>=MAX_LEAVES)return;const e=new THREE.Euler(Math.PI*.5+j(.85)+tiltBias,rnd()*6.283,j(.70)),q=new THREE.Quaternion().setFromEuler(e);const sx=size*(.72+rnd()*.42),sy=size*(.82+rnd()*.30);leafSpecs[Math.floor(rnd()*leafSpecs.length)].push({p:p.clone(),q,s:new THREE.Vector3(sx,sy,size)});leafCount++}
-lobes.forEach((l,li)=>{const count=820+Math.floor(rnd()*260);for(let n=0;n<count;n++){const theta=rnd()*6.283,z=2*rnd()-1,ring=Math.sqrt(Math.max(0,1-z*z));const shell=.46+.54*Math.pow(rnd(),.26);const p=l.c.clone().add(new THREE.Vector3(Math.cos(theta)*ring*l.r.x*shell,z*l.r.y*shell,Math.sin(theta)*ring*l.r.z*shell));p.x+=j(.20);p.y+=j(.14);p.z+=j(.20);addLeaf(p,.145+rnd()*.075,j(.14))}
- // extra interior sprays prevent large see-through corridors while leaving small natural windows.
- for(let n=0;n<160;n++){const p=l.c.clone().add(new THREE.Vector3(j(l.r.x*1.15),j(l.r.y*.95),j(l.r.z*1.15)));if(((p.x-l.c.x)**2/(l.r.x*l.r.x)+(p.y-l.c.y)**2/(l.r.y*l.r.y)+(p.z-l.c.z)**2/(l.r.z*l.r.z))<1)addLeaf(p,.14+rnd()*.065)}});
-leafSpecs.forEach((items,i)=>{if(!items.length)return;const inst=new THREE.InstancedMesh(leafGeo,leafMats[i],items.length);inst.castShadow=false;items.forEach((v,k)=>{matrix.compose(v.p,v.q,v.s);inst.setMatrixAt(k,matrix)});inst.instanceMatrix.needsUpdate=true;scene.add(inst)});
-
-// 11 — A FEW SMALL SHOOTS AROUND THE OLD BOLE, NOT A FOREST OF SPIKES.
-for(let n=0;n<9;n++){const y=2.7+rnd()*3.7,a=rnd()*6.283,r=trunkR(y),p=new THREE.Vector3(.0055*y*y+Math.cos(a)*r,y,Math.sin(a)*r),d=new THREE.Vector3(Math.cos(a),.35+rnd()*.28,Math.sin(a)).normalize(),q=p.clone().add(d.multiplyScalar(.35+rnd()*.45));woodMesh(p,q,.026,.010,youngBranchMat,5)}
-
-// 12 — RENDER.
-document.querySelector('#status').style.display='none';function animate(){controls.update();renderer.render(scene,camera);requestAnimationFrame(animate)}animate();addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});setTimeout(()=>document.querySelector('#hint').style.opacity=.24,6000);
+const scene=new THREE.Scene();scene.background=new THREE.Color(0xcbd7c5);scene.fog=new THREE.FogExp2(0xcbd7c5,.004);
+const camera=new THREE.PerspectiveCamera(39,innerWidth/innerHeight,.02,300);camera.position.set(28,12.5,32);
+const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});renderer.setPixelRatio(Math.min(devicePixelRatio,1.45));renderer.setSize(innerWidth,innerHeight);renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.05;renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;document.body.prepend(renderer.domElement);
+const controls=new OrbitControls(camera,renderer.domElement);controls.target.set(0,8.2,0);controls.enableDamping=true;controls.dampingFactor=.06;controls.minDistance=.15;controls.maxDistance=80;controls.zoomToCursor=true;
+scene.add(new THREE.HemisphereLight(0xeaf2e2,0x514939,2.2));const sun=new THREE.DirectionalLight(0xffefd0,2.7);sun.position.set(-16,27,11);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);sun.shadow.camera.left=-22;sun.shadow.camera.right=22;sun.shadow.camera.top=28;sun.shadow.camera.bottom=-8;scene.add(sun);
+const ground=new THREE.Mesh(new THREE.CircleGeometry(55,80),new THREE.MeshStandardMaterial({color:0x788861,roughness:1}));ground.rotation.x=-Math.PI/2;ground.receiveShadow=true;scene.add(ground);
+let seed=73019;const rnd=()=>{seed=(seed*16807)%2147483647;return(seed-1)/2147483646};const j=a=>(rnd()-.5)*a;
+const barkMat=new THREE.MeshStandardMaterial({color:0x493d32,roughness:1,flatShading:true});const branchMat=new THREE.MeshStandardMaterial({color:0x564535,roughness:1,flatShading:true});const twigMat=new THREE.MeshStandardMaterial({color:0x65523c,roughness:.98});const fissureMat=new THREE.MeshStandardMaterial({color:0x28211c,roughness:1});
+const leafMats=[0x1d421d,0x234821,0x2b4f25,0x335a29,0x3b642e,0x466f35].map(c=>new THREE.MeshStandardMaterial({color:c,roughness:.92,side:THREE.DoubleSide}));
+function woodMesh(a,b,r0,r1,material=barkMat,sides=10){const d=new THREE.Vector3().subVectors(b,a),len=d.length();const g=new THREE.CylinderGeometry(r1,r0,len,sides,3,false);const pos=g.attributes.position;for(let i=0;i<pos.count;i++){const x=pos.getX(i),z=pos.getZ(i),n=1+j(Math.min(.10,r0*.12));pos.setX(i,x*n);pos.setZ(i,z*n)}g.computeVertexNormals();const m=new THREE.Mesh(g,material);m.position.copy(a).add(b).multiplyScalar(.5);m.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),d.clone().normalize());m.castShadow=m.receiveShadow=true;scene.add(m);return m}
+const trunkRadius=y=>Math.max(.62,1.55-y*.092);let prev=new THREE.Vector3(0,0,0);for(let i=1;i<=13;i++){const y=i*.62,p=new THREE.Vector3(.007*y*y+Math.sin(i*.67)*.045,y,Math.sin(i*.41)*.075);woodMesh(prev,p,trunkRadius((i-1)*.62),trunkRadius(y),barkMat,12);prev=p}
+for(let n=0;n<11;n++){const a=n/11*6.283+j(.16),s=new THREE.Vector3(Math.cos(a)*.76,.40,Math.sin(a)*.76),m=new THREE.Vector3(Math.cos(a+j(.08))*(1.35+rnd()*.55),.13,Math.sin(a+j(.08))*(1.35+rnd()*.55)),e=new THREE.Vector3(Math.cos(a+j(.13))*(2.5+rnd()*1.6),.03,Math.sin(a+j(.13))*(2.5+rnd()*1.6));woodMesh(s,m,.42,.18,barkMat,9);woodMesh(m,e,.18,.03,barkMat,7)}
+for(let n=0;n<58;n++){const a=n/58*6.283+j(.08),y=.18+rnd()*5.8,len=.5+rnd()*1.45,r=trunkRadius(y)+.018,curve=new THREE.CatmullRomCurve3([new THREE.Vector3(Math.cos(a)*r,y,Math.sin(a)*r),new THREE.Vector3(Math.cos(a+j(.065))*r,y+len*.48,Math.sin(a+j(.065))*r),new THREE.Vector3(Math.cos(a+j(.09))*r,y+len,Math.sin(a+j(.09))*r)]);scene.add(new THREE.Mesh(new THREE.TubeGeometry(curve,4,.018+rnd()*.012,3,false),fissureMat))}
+const branchBuckets=[[],[],[]];const MAX_BRANCH_SEGMENTS=15000;let branchCount=0;const foliageCenters=[];const tips=[];
+function queueWood(a,b,r){if(branchCount>=MAX_BRANCH_SEGMENTS)return false;const bucket=r>.15?0:r>.055?1:2;branchBuckets[bucket].push({a:a.clone(),b:b.clone(),r});branchCount++;return true}
+function pushFoliagePoint(p,d,energy){foliageCenters.push({p:p.clone(),d:d.clone(),energy});}
+function grow(start,dir,len,r,order,energy=1){if(branchCount>=MAX_BRANCH_SEGMENTS||len<.08||r<.007)return;let p=start.clone(),d=dir.clone().normalize(),rr=r;const units=order>=4?3:2;for(let s=0;s<units;s++){const nd=d.clone();nd.x+=j(.15);nd.z+=j(.15);nd.y+=j(.09);nd.normalize();const q=p.clone().add(nd.clone().multiplyScalar((len/units)*(.90+rnd()*.18)));if(!queueWood(p,q,rr))return;p=q;d.lerp(nd,.72).normalize();rr*=.88;if(order<=3&&s===units-1)pushFoliagePoint(p,d,energy*.85);if(order<=2&&order>0&&rnd()<.42){const side=d.clone();side.x+=j(1.05);side.z+=j(1.05);side.y+=j(.42)+.07;grow(p,side,len*.27,rr*.42,order-1,energy*.58)}}if(order===0){tips.push({p:p.clone(),d:d.clone(),energy});return}const children=order>=4?3:(rnd()<.54?3:2);for(let k=0;k<children;k++){const c=d.clone(),spread=order>3?.52:order>1?.72:.88;c.x+=j(spread);c.z+=j(spread);c.y+=j(.33)+(order<3?.075:0);const dominant=k===0?1:.72+rnd()*.18;grow(p,c,len*(.50+rnd()*.12)*dominant,rr*(.58+rnd()*.07),order-1,energy*dominant)}}
+const limbs=[[3.0,.16,.18,6.2,.72],[3.55,2.58,.12,5.9,.67],[4.15,4.18,.20,6.0,.64],[4.75,5.52,.17,5.8,.60],[5.25,1.30,.27,5.4,.56],[5.78,3.18,.24,5.2,.53],[6.30,4.78,.33,4.9,.49],[6.82,.48,.38,4.6,.46],[7.28,2.12,.44,4.1,.41],[7.65,3.72,.50,3.8,.37]];limbs.forEach(([y,a,rise,len,r])=>{const p=new THREE.Vector3(.007*y*y,y,Math.sin(y*.41)*.075),d=new THREE.Vector3(Math.cos(a),rise,Math.sin(a)).normalize();grow(p,d,len,r,5,1)});for(let n=0;n<14;n++){const y=3.6+rnd()*4.0,a=rnd()*6.283,rise=.16+rnd()*.48,p=new THREE.Vector3(.007*y*y,y,Math.sin(y*.41)*.075),d=new THREE.Vector3(Math.cos(a),rise,Math.sin(a)).normalize();grow(p,d,2.3+rnd()*1.3,.11+rnd()*.09,3,.74)}
+const unitGeos=[new THREE.CylinderGeometry(.80,1,1,9,1,false),new THREE.CylinderGeometry(.76,1,1,7,1,false),new THREE.CylinderGeometry(.70,1,1,5,1,false)];const mats=[barkMat,branchMat,twigMat];const up=new THREE.Vector3(0,1,0),mid=new THREE.Vector3(),delta=new THREE.Vector3(),quat=new THREE.Quaternion(),scaleV=new THREE.Vector3(),matrix=new THREE.Matrix4();branchBuckets.forEach((items,b)=>{if(!items.length)return;const inst=new THREE.InstancedMesh(unitGeos[b],mats[b],items.length);inst.castShadow=b<2;inst.receiveShadow=b===0;items.forEach((s,i)=>{delta.subVectors(s.b,s.a);const length=delta.length();mid.copy(s.a).add(s.b).multiplyScalar(.5);quat.setFromUnitVectors(up,delta.clone().normalize());scaleV.set(s.r,length,s.r);matrix.compose(mid,quat,scaleV);inst.setMatrixAt(i,matrix)});inst.instanceMatrix.needsUpdate=true;scene.add(inst)});
+function makeLeaf(){const s=new THREE.Shape();s.moveTo(0,-.53);[[.12,-.48],[.26,-.45],[.31,-.34],[.23,-.26],[.43,-.16],[.45,-.04],[.30,.05],[.42,.17],[.36,.29],[.19,.32],[.27,.43],[.13,.52],[0,.62],[-.13,.52],[-.27,.43],[-.19,.32],[-.36,.29],[-.42,.17],[-.30,.05],[-.45,-.04],[-.43,-.16],[-.23,-.26],[-.31,-.34],[-.26,-.45],[-.12,-.48]].forEach(v=>s.lineTo(...v));return new THREE.ShapeGeometry(s)}
+const leafGeo=makeLeaf();const leafSpecs=[[],[],[],[],[],[]];const MAX_LEAVES=42000;let leafCount=0;function addLeafSpec(p,size){if(leafCount>=MAX_LEAVES)return;const e=new THREE.Euler(j(1.25),rnd()*6.283,j(.95)),q=new THREE.Quaternion().setFromEuler(e),sx=size*(.72+rnd()*.45),sy=size*(.84+rnd()*.30);leafSpecs[Math.floor(rnd()*leafSpecs.length)].push({p:p.clone(),q,s:new THREE.Vector3(sx,sy,size)});leafCount++}
+foliageCenters.forEach(c=>{if(leafCount>=MAX_LEAVES)return;const base=10+Math.floor(10*c.energy+rnd()*10),rad=.34+rnd()*.58;for(let i=0;i<base;i++){const a=rnd()*6.283,z=j(rad*.9),r=rad*Math.sqrt(rnd()),p=c.p.clone().add(new THREE.Vector3(Math.cos(a)*r,z,Math.sin(a)*r));addLeafSpec(p,.17+rnd()*.09)}});tips.forEach(t=>{if(leafCount>=MAX_LEAVES)return;const count=18+Math.floor(rnd()*18),rad=.42+rnd()*.62;for(let i=0;i<count;i++){const a=rnd()*6.283,z=j(rad*.8),r=rad*Math.sqrt(rnd()),p=t.p.clone().add(new THREE.Vector3(Math.cos(a)*r,z,Math.sin(a)*r));addLeafSpec(p,.18+rnd()*.10)}});for(let i=0;i<foliageCenters.length&&leafCount<MAX_LEAVES;i+=2){const c=foliageCenters[i];const count=8+Math.floor(rnd()*12),rad=.45+rnd()*.75,center=c.p.clone().add(c.d.clone().multiplyScalar((rnd()-.25)*.6));for(let k=0;k<count;k++){const a=rnd()*6.283,z=j(rad*.7),r=rad*Math.sqrt(rnd()),p=center.clone().add(new THREE.Vector3(Math.cos(a)*r,z,Math.sin(a)*r));addLeafSpec(p,.16+rnd()*.09)}}leafSpecs.forEach((items,i)=>{if(!items.length)return;const inst=new THREE.InstancedMesh(leafGeo,leafMats[i],items.length);items.forEach((v,k)=>{matrix.compose(v.p,v.q,v.s);inst.setMatrixAt(k,matrix)});inst.instanceMatrix.needsUpdate=true;scene.add(inst)});
+for(let n=0;n<14;n++){const y=2.5+rnd()*4.5,a=rnd()*6.283,r=trunkRadius(y),p=new THREE.Vector3(.007*y*y+Math.cos(a)*r,y,Math.sin(a)*r),d=new THREE.Vector3(Math.cos(a),.28+rnd()*.35,Math.sin(a)).normalize(),q=p.clone().add(d.multiplyScalar(.45+rnd()*.5));woodMesh(p,q,.032,.014,twigMat,5)}
+document.querySelector('#status').style.display='none';function animate(){controls.update();renderer.render(scene,camera);requestAnimationFrame(animate)}animate();addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});setTimeout(()=>document.querySelector('#hint').style.opacity=.25,6000);
 </script>
 </body>
 </html>
