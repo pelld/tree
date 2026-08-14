@@ -14,10 +14,10 @@
 </style>
 </head>
 <body>
-<div id="title"><b>English oak</b><span>branch study · fork hierarchy · no leaves</span></div>
+<div id="title"><b>English oak</b><span>branch study · fork-by-fork architecture · no leaves</span></div>
 <div id="status">Growing oak branch…</div><div id="hint">Drag to orbit · pinch / scroll to inspect</div>
 <button id="gear">⚙</button>
-<div id="panel"><label><span>Seed</span><input id="seedInput" type="number" value="88231"></label><label><span>Fine growth</span><input id="densityInput" type="range" min="0.75" max="1.35" step="0.05" value="1"></label><label><span>Randomness</span><input id="randomInput" type="range" min="0.1" max="0.65" step="0.05" value="0.24"></label><div class="buttons"><button id="regen">Regenerate</button><button id="newSeed">New seed</button></div></div>
+<div id="panel"><label><span>Seed</span><input id="seedInput" type="number" value="88231"></label><label><span>Branching</span><input id="densityInput" type="range" min="0.75" max="1.25" step="0.05" value="1"></label><label><span>Randomness</span><input id="randomInput" type="range" min="0.1" max="0.6" step="0.05" value="0.22"></label><div class="buttons"><button id="regen">Regenerate</button><button id="newSeed">New seed</button></div></div>
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.179.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.179.1/examples/jsm/"}}</script>
 <script type="module">
 import * as THREE from 'three';
@@ -26,15 +26,15 @@ import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
 
 // 01 — SCENE
 const scene=new THREE.Scene();scene.background=new THREE.Color(0xcbd7c5);scene.fog=new THREE.FogExp2(0xcbd7c5,.0034);
-const camera=new THREE.PerspectiveCamera(39,innerWidth/innerHeight,.03,220);camera.position.set(10.6,7.6,18.6);
+const camera=new THREE.PerspectiveCamera(39,innerWidth/innerHeight,.03,220);camera.position.set(10.5,7.5,18.4);
 const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});renderer.setPixelRatio(Math.min(devicePixelRatio,1.45));renderer.setSize(innerWidth,innerHeight);renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.06;renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;document.body.prepend(renderer.domElement);
-const controls=new OrbitControls(camera,renderer.domElement);controls.target.set(-4.7,5.2,-.3);controls.enableDamping=true;controls.dampingFactor=.06;controls.minDistance=.18;controls.maxDistance=50;controls.zoomToCursor=true;
+const controls=new OrbitControls(camera,renderer.domElement);controls.target.set(-4.8,5.2,-.35);controls.enableDamping=true;controls.dampingFactor=.06;controls.minDistance=.18;controls.maxDistance=50;controls.zoomToCursor=true;
 scene.add(new THREE.HemisphereLight(0xdce8d5,0x4a4237,1.55));const sun=new THREE.DirectionalLight(0xffefd0,3.0);sun.position.set(-14,24,11);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);sun.shadow.camera.left=-20;sun.shadow.camera.right=20;sun.shadow.camera.top=22;sun.shadow.camera.bottom=-7;scene.add(sun);
 const ground=new THREE.Mesh(new THREE.CircleGeometry(40,72),new THREE.MeshStandardMaterial({color:0x788861,roughness:1}));ground.rotation.x=-Math.PI/2;ground.receiveShadow=true;scene.add(ground);
 
 // 02 — MODEL + SEEDED RANDOMNESS
 const mats=[0x493b30,0x514136,0x554437,0x594838,0x493b2f].map(c=>new THREE.MeshStandardMaterial({color:c,roughness:1}));
-const treeRoot=new THREE.Group();scene.add(treeRoot);let meshes=[];const branches=[];let seed=88231,randomness=.24;
+const treeRoot=new THREE.Group();scene.add(treeRoot);let meshes=[];const branches=[];let seed=88231,randomness=.22;
 function reset(v){seed=Math.max(1,Math.floor(v)||1)%2147483647;if(!seed)seed=1}
 function rnd(){seed=seed*16807%2147483647;return(seed-1)/2147483646}
 function rr(a,b){return a+(b-a)*rnd()}
@@ -42,85 +42,96 @@ function jit(a){return(rnd()-.5)*a*randomness}
 function branch(points,r0,r1,order,parent=null){const curve=new THREE.CatmullRomCurve3(points,false,'centripetal'),b={points,r0,r1,order,parent,children:[],curve,length:curve.getLength(),phase:rnd()*6.283};if(parent)parent.children.push(b);branches.push(b);return b}
 function pointAt(b,t){return b.curve.getPointAt(THREE.MathUtils.clamp(t,0,1))}
 function tangentAt(b,t){return b.curve.getTangentAt(THREE.MathUtils.clamp(t,0,1)).normalize()}
-function radiusAt(b,t){return b.r1+(b.r0-b.r1)*Math.pow(1-t,.78)}
+function radiusAt(b,t){return b.r1+(b.r0-b.r1)*Math.pow(1-t,.80)}
 function frameAt(parent,t){const tan=tangentAt(parent,t),ref=Math.abs(tan.y)<.9?new THREE.Vector3(0,1,0):new THREE.Vector3(1,0,0),u=new THREE.Vector3().crossVectors(tan,ref).normalize(),v=new THREE.Vector3().crossVectors(u,tan).normalize();return{tan,u,v}}
 function dirAround(parent,t,azimuth,angle,verticalBias=0){const {tan,u,v}=frameAt(parent,t),radial=u.clone().multiplyScalar(Math.cos(azimuth)).add(v.clone().multiplyScalar(Math.sin(azimuth))).normalize(),d=tan.clone().multiplyScalar(Math.cos(angle)).add(radial.multiplyScalar(Math.sin(angle)));d.y+=verticalBias;return d.normalize()}
 
-// 03 — CHILD AXES LEAVE THE PARENT TANGENTIALLY, THEN TURN GRADUALLY
-function growChild(parent,t,targetDir,len,r0,r1,order,{rise=0,droop=0,wander=1}={}){
+// 03 — EACH AXIS RUNS FROM ONE FORK TO THE NEXT
+function growAxis(parent,t,targetDir,len,r0,r1,order,{rise=0,droop=0,wander=1}={}){
   const start=pointAt(parent,t),parentTan=tangentAt(parent,t),steps=order===2?17:order===3?14:11,pts=[start.clone()];let p=start.clone();
   for(let i=1;i<=steps;i++){
-    const f=i/steps,endTurn=order===2?.90:order===3?.84:.78,ease=THREE.MathUtils.smoothstep(f,.055,endTurn),d=parentTan.clone().lerp(targetDir,ease),wig=(order===2?.010:order===3?.017:.026)*wander;
-    d.x+=jit(wig);d.z+=jit(wig);d.y+=jit(wig*.5)+rise*Math.sin(Math.PI*f)-droop*f*f;d.normalize();
-    p=p.clone().add(d.multiplyScalar(len/steps*(.992+rr(-.012,.016))));pts.push(p.clone());
+    const f=i/steps,endTurn=order===2?.88:order===3?.82:.76,ease=THREE.MathUtils.smoothstep(f,.055,endTurn),d=parentTan.clone().lerp(targetDir,ease),wig=(order===2?.009:order===3?.015:.022)*wander;
+    d.x+=jit(wig);d.z+=jit(wig);d.y+=jit(wig*.48)+rise*Math.sin(Math.PI*f)-droop*f*f;d.normalize();
+    p=p.clone().add(d.multiplyScalar(len/steps*(.993+rr(-.010,.014))));pts.push(p.clone());
   }
   return branch(pts,r0,r1,order,parent);
 }
 
-// 04 — SMOOTH TAPER + SMALL BRANCH-COLLAR FLARE
+// 04 — SMOOTH TAPER + BRANCH COLLARS
 function render(){
   const buckets=Array.from({length:5},()=>[]);
   for(const b of branches){
     const seg=b.order===0?48:b.order===1?52:b.order===2?38:b.order===3?28:20,sides=b.order===0?14:b.order===1?12:b.order===2?10:b.order===3?8:6,g=new THREE.TubeGeometry(b.curve,seg,1,sides,false),pos=g.attributes.position,uv=g.attributes.uv,c=new THREE.Vector3(),v=new THREE.Vector3();
     for(let i=0;i<pos.count;i++){
       const t=uv.getX(i);b.curve.getPointAt(t,c);v.set(pos.getX(i),pos.getY(i),pos.getZ(i)).sub(c);
-      const collar=b.parent&&t<.16?1+(b.order===2?.28:b.order===3?.18:.10)*(1-t/.16):1;
-      const r=radiusAt(b,t)*collar*(1+(b.order<3?.005:.0025)*Math.sin(15*t+b.phase));v.multiplyScalar(r);pos.setXYZ(i,c.x+v.x,c.y+v.y,c.z+v.z);
+      const collar=b.parent&&t<.14?1+(b.order===2?.24:b.order===3?.16:.09)*(1-t/.14):1;
+      const r=radiusAt(b,t)*collar*(1+(b.order<3?.0045:.0022)*Math.sin(15*t+b.phase));v.multiplyScalar(r);pos.setXYZ(i,c.x+v.x,c.y+v.y,c.z+v.z);
     }
     g.computeVertexNormals();buckets[b.order].push(g);
   }
   buckets.forEach((gs,o)=>{if(!gs.length)return;const merged=mergeGeometries(gs,false);gs.forEach(g=>g.dispose());const m=new THREE.Mesh(merged,mats[o]);m.castShadow=true;m.receiveShadow=true;treeRoot.add(m);meshes.push(m)});
 }
 
-// 05 — ONE MATURE OAK LIMB: A REAL FORKED SCAFFOLD
+// 05 — ONE MATURE OAK LIMB: FORK-BY-FORK, NOT A BEAM WITH STICKS
 function build(density){
   branches.length=0;
   const trunkPts=[new THREE.Vector3(0,0,0),new THREE.Vector3(.02,1.25,.01),new THREE.Vector3(.04,2.50,.02),new THREE.Vector3(.02,3.75,.04),new THREE.Vector3(-.02,4.95,.06),new THREE.Vector3(-.05,5.65,.08)];
   const trunk=branch(trunkPts,1.0,.54,0,null),attach=pointAt(trunk,.73),tr=radiusAt(trunk,.73);
 
-  // Proximal scaffold axis only. It does NOT stay dominant to the very end: it forks.
-  const p=[attach.clone(),attach.clone().add(new THREE.Vector3(-.72,.30,-.02)),attach.clone().add(new THREE.Vector3(-1.62,.58,-.10)),attach.clone().add(new THREE.Vector3(-2.68,.80,-.25)),attach.clone().add(new THREE.Vector3(-3.78,.88,-.43)),attach.clone().add(new THREE.Vector3(-4.82,.83,-.58)),attach.clone().add(new THREE.Vector3(-5.72,.70,-.68))];
-  const primary=branch(p,tr*.64,tr*.22,1,trunk);
+  // Proximal scaffold: only long enough to reach its first major decision point.
+  const p=[attach.clone(),attach.clone().add(new THREE.Vector3(-.72,.30,-.02)),attach.clone().add(new THREE.Vector3(-1.62,.58,-.10)),attach.clone().add(new THREE.Vector3(-2.68,.80,-.25)),attach.clone().add(new THREE.Vector3(-3.78,.88,-.43)),attach.clone().add(new THREE.Vector3(-4.82,.83,-.58)),attach.clone().add(new THREE.Vector3(-5.65,.72,-.67))];
+  const primary=branch(p,tr*.64,tr*.30,1,trunk);
 
-  // Two proximal laterals before the main fork.
-  const secondaryAxes=[];
-  const proximal=[
-    {t:.31,az:1.62,angle:.66,len:3.55,bias:-.04,base:.48,tip:.14,droop:.035},
-    {t:.48,az:-1.12,angle:.60,len:3.90,bias:.13,base:.52,tip:.15}
-  ];
-  for(const s of proximal){const r=radiusAt(primary,s.t),d=dirAround(primary,s.t,s.az+jit(.03),s.angle+jit(.018),s.bias+jit(.012));secondaryAxes.push(growChild(primary,s.t,d,s.len*rr(.99,1.01),r*s.base,r*s.tip,2,{rise:s.bias>0?.004:0,droop:s.droop||0,wander:.38}))}
+  function forkAxis(parent,order,depth,phase,dominance=1){
+    if(depth<=0||order>4)return;
+    const t=.992,r=radiusAt(parent,t),tan=tangentAt(parent,t);
+    const contAngle=rr(.16,.26),contAz=phase+jit(.12),contBias=order===2?rr(.035,.085):rr(.015,.055);
+    const latAngle=order===2?rr(.58,.78):order===3?rr(.48,.68):rr(.36,.54);
+    const latAz=phase+(rnd()<.5?-1:1)*rr(1.55,2.35)+jit(.16);
+    const latBias=order===2?rr(-.035,.11):rr(-.025,.075);
 
-  // Main Y-fork: two co-dominant axes share the distal mass instead of one 'pole' carrying everything.
-  const forkT=.82,forkR=radiusAt(primary,forkT);
-  const upperDir=dirAround(primary,forkT,-.42,.53,.12),outerDir=dirAround(primary,forkT,2.35,.46,.015);
-  const upper=growChild(primary,forkT,upperDir,4.75,forkR*.78,forkR*.14,2,{rise:.006,wander:.34});
-  const outer=growChild(primary,forkT,outerDir,4.35,forkR*.68,forkR*.13,2,{droop:.012,wander:.34});
-  secondaryAxes.push(upper,outer);
+    const contDir=dirAround(parent,t,contAz,contAngle,contBias);
+    const latDir=dirAround(parent,t,latAz,latAngle,latBias);
 
-  function growSecondary(sec,index){
-    // 2–3 tertiary branches, weighted toward the outer half, plus one strong continuation.
-    const count=Math.max(2,Math.round((2.35+rr(0,.50))*density));
-    for(let i=0;i<count;i++){
-      const frac=(i+1)/(count+1),t=.34+Math.pow(frac,.82)*.46+jit(.012),r=radiusAt(sec,t),az=(i%2?1:-1)*rr(.75,1.48)+index*.39,angle=rr(.46,.66),bias=rr(-.025,.075),d=dirAround(sec,t,az,angle,bias);
-      const ter=growChild(sec,t,d,sec.length*rr(.31,.40)*(1-.10*t),r*rr(.44,.54),r*rr(.14,.19),3,{rise:bias>0?.003:0,droop:bias<0?.012:0,wander:.52});
-      growTertiary(ter,index*4+i);
+    const nextOrder=order;
+    const contLen=parent.length*(order===2?rr(.66,.76):order===3?rr(.60,.70):rr(.52,.62))*dominance;
+    const latLen=parent.length*(order===2?rr(.50,.62):order===3?rr(.46,.57):rr(.40,.50));
+
+    const cont0=r*rr(.90,.97),cont1=cont0*(order===2?rr(.48,.56):order===3?rr(.42,.50):rr(.32,.40));
+    const lat0=r*(order===2?rr(.58,.69):order===3?rr(.54,.64):rr(.46,.58));
+    const lat1=lat0*(order===2?rr(.36,.44):order===3?rr(.32,.40):rr(.26,.34));
+
+    const cont=growAxis(parent,t,contDir,contLen,cont0,cont1,nextOrder,{rise:contBias>0?.003:0,wander:.42});
+    const lat=growAxis(parent,t,latDir,latLen,lat0,lat1,nextOrder,{rise:latBias>0?.003:0,droop:latBias<0?.010:0,wander:.52});
+
+    if(depth>1){
+      forkAxis(cont,Math.min(4,order+1),depth-1,phase+rr(.45,.85),dominance*.94);
+      forkAxis(lat,Math.min(4,order+1),depth-1,phase-rr(.55,.95),dominance*.82);
     }
-    const t=.975,r=radiusAt(sec,t),d=tangentAt(sec,t).clone().add(new THREE.Vector3(jit(.012),.018,jit(.012))).normalize();
-    const ter=growChild(sec,t,d,sec.length*rr(.31,.37),r*.94,r*.20,3,{rise:.003,wander:.40});growTertiary(ter,index*4+3);
   }
 
-  function growTertiary(ter,index){
-    // Fine structure is still wood, not twig hair: one or two laterals plus a tapering continuation.
-    const count=Math.max(1,Math.round((1.35+rr(0,.40))*density));
-    for(let i=0;i<count;i++){
-      const t=.54+i*.20+jit(.012),r=radiusAt(ter,t),az=(i%2?1:-1)*rr(.62,1.20)+index*.25,angle=rr(.34,.52),bias=rr(-.012,.050),d=dirAround(ter,t,az,angle,bias);
-      growChild(ter,t,d,ter.length*rr(.27,.35),r*rr(.40,.50),r*rr(.15,.21),4,{rise:bias>0?.002:0,droop:bias<0?.006:0,wander:.60});
-    }
-    const t=.978,r=radiusAt(ter,t),d=tangentAt(ter,t).clone().add(new THREE.Vector3(jit(.013),.010,jit(.013))).normalize();
-    growChild(ter,t,d,ter.length*rr(.28,.34),r*.92,r*.19,4,{wander:.46});
-  }
+  // One substantial lower/back lateral before the main fork.
+  const preT=.50,preR=radiusAt(primary,preT),preDir=dirAround(primary,preT,1.72,.68,-.045);
+  const lower=growAxis(primary,preT,preDir,3.35,preR*.48,preR*.16,2,{droop:.030,wander:.40});
+  forkAxis(lower,3,2,-.8,.86);
 
-  secondaryAxes.forEach(growSecondary);
+  // Main fork: two co-dominant axes. This is the visual heart of the branch.
+  const forkT=.992,forkR=radiusAt(primary,forkT);
+  const upperDir=dirAround(primary,forkT,-.50,.56,.13);
+  const outerDir=dirAround(primary,forkT,2.38,.49,.02);
+  const upper=growAxis(primary,forkT,upperDir,4.35,forkR*.84,forkR*.38,2,{rise:.006,wander:.34});
+  const outer=growAxis(primary,forkT,outerDir,4.05,forkR*.74,forkR*.33,2,{droop:.010,wander:.34});
+
+  // Let each co-dominant axis split again, then those children split once more.
+  forkAxis(upper,3,2,-.25,1.0);
+  forkAxis(outer,3,2,2.15,.92);
+
+  // Density only controls whether we add one extra modest tertiary fork, never a twig cloud.
+  if(density>1.05){
+    const t=.64,r=radiusAt(upper,t),d=dirAround(upper,t,1.55,.52,.035);
+    const extra=growAxis(upper,t,d,upper.length*.38,r*.42,r*.16,3,{wander:.48});
+    forkAxis(extra,4,1,1.1,.78);
+  }
 }
 
 // 06 — UI
