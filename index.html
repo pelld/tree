@@ -29,7 +29,7 @@ canvas{display:block;touch-action:none}
 <button id="gear">⚙</button>
 <div id="panel">
   <label><span>Seed</span><input id="seedInput" type="number" value="88231"></label>
-  <label><span>Branching</span><input id="densityInput" type="range" min="0.8" max="1.25" step="0.05" value="1"></label>
+  <label><span>Branching</span><input id="densityInput" type="range" min="0.8" max="1.25" step="0.05" value="1.1"></label>
   <label><span>Leaves</span><input id="leafInput" type="range" min="0.8" max="2.2" step="0.05" value="1.35"></label>
   <label><span>Randomness</span><input id="randomInput" type="range" min="0.1" max="0.55" step="0.05" value="0.18"></label>
   <div class="buttons"><button id="regen">Regenerate</button><button id="newSeed">New seed</button></div>
@@ -65,9 +65,56 @@ function growAxis(parent,t,targetDir,len,r0,r1,order,{rise=0,lateRise=0,droop=0,
 
 function renderWood(){const buckets=Array.from({length:5},()=>[]);for(const b of branches){const seg=b.order===0?60:b.order===1?48:b.order===2?34:b.order===3?24:16,sides=b.order===0?16:b.order===1?12:b.order===2?9:b.order===3?7:5,g=new THREE.TubeGeometry(b.curve,seg,1,sides,false),pos=g.attributes.position,uv=g.attributes.uv,c=new THREE.Vector3(),v=new THREE.Vector3();for(let i=0;i<pos.count;i++){const t=uv.getX(i);b.curve.getPointAt(t,c);v.set(pos.getX(i),pos.getY(i),pos.getZ(i)).sub(c);const collar=b.parent&&t<.18?1+(b.order===1?.16:b.order===2?.34:b.order===3?.22:.12)*(1-t/.18):1,r=radiusAt(b,t)*collar*(1+(b.order<3?.005:.0025)*Math.sin(15*t+b.phase));v.multiplyScalar(r);pos.setXYZ(i,c.x+v.x,c.y+v.y,c.z+v.z)}g.computeVertexNormals();buckets[b.order].push(g)}buckets.forEach((gs,o)=>{if(!gs.length)return;const merged=mergeGeometries(gs,false);gs.forEach(g=>g.dispose());const m=new THREE.Mesh(merged,woodMats[o]);m.castShadow=o<=3;m.receiveShadow=true;treeRoot.add(m);meshes.push(m)})}
 
-function growTerminalCluster(axis,phase,density=1){const next=4,t=.978,r=radiusAt(axis,t),contBias=rr(-.01,.06);growAxis(axis,t,dirAround(axis,t,phase+jit(.08),rr(.16,.30),contBias),axis.length*rr(.36,.46)*density,r*rr(.80,.88),r*rr(.32,.40),next,{rise:contBias>0?.002:0,droop:contBias<0?.008:0,wander:.26,elbow:rr(-.05,.05)});growAxis(axis,t,dirAround(axis,t,phase+(rnd()<.5?-1:1)*rr(1.30,1.95),rr(.50,.78),rr(-.05,.08)),axis.length*rr(.25,.34)*density,r*rr(.48,.58),r*rr(.17,.23),next,{rise:.001,wander:.30,elbow:rr(-.08,.08)});const extras=3+(rnd()<.50?1:0);for(let j=0;j<extras;j++){const jt=rr(.52,.90),jr=radiusAt(axis,jt),spread=j-(extras-1)/2,az=phase+spread*rr(.50,.82)+jit(.35)+(rnd()<.5?-1:1)*rr(.10,.30),ang=rr(.34,.72),vb=rr(-.04,.10);growAxis(axis,jt,dirAround(axis,jt,az,ang,vb),axis.length*rr(.15,.23)*density,jr*rr(.30,.40),jr*rr(.09,.13),next,{rise:vb>0?.0015:0,droop:vb<0?.008:0,wander:.24,elbow:rr(-.04,.04)})}}
-function growSystem(axis,phase,density=1){if(axis.order>=3){growTerminalCluster(axis,phase,density);return}const next=axis.order+1,midT=rr(.42,.60),midR=radiusAt(axis,midT),midAz=phase+(rnd()<.5?-1:1)*rr(1.45,2.05),midBias=rr(-.05,.09),mid=growAxis(axis,midT,dirAround(axis,midT,midAz,rr(.54,.78),midBias),axis.length*rr(.36,.46)*density,midR*rr(.48,.58),midR*rr(.16,.22),next,{rise:midBias>0?.004:0,droop:midBias<0?.016:0,wander:.42,elbow:rr(-.10,.10)}),t=.972,r=radiusAt(axis,t),contBias=rr(.02,.07),cont=growAxis(axis,t,dirAround(axis,t,phase+jit(.06),rr(.16,.28),contBias),axis.length*rr(.56,.67),r*rr(.84,.90),r*rr(.37,.45),next,{rise:.003,wander:.32,elbow:rr(-.07,.07)}),latAz=phase+(rnd()<.5?-1:1)*rr(1.70,2.30),latBias=rr(-.04,.09),lat=growAxis(axis,t,dirAround(axis,t,latAz,rr(.60,.86),latBias),axis.length*rr(.40,.50),r*rr(.58,.66),r*rr(.24,.32),next,{rise:latBias>0?.003:0,droop:latBias<0?.014:0,wander:.38,elbow:rr(-.10,.10)});growSystem(cont,phase+rr(.40,.68),density*.96);growSystem(lat,phase-rr(.52,.88),density*.90);if(axis.order===2)growTerminalCluster(mid,phase+rr(-.25,.25),density*.78)}
-function decoratePrimary(primary,phase,density=1,upperness=0){const systems=[],specs=[{t:.28,az:phase+1.20,ang:.60,bias:.02+upperness*.05,len:.52,base:.63,tip:.25},{t:.52,az:phase-1.05,ang:.66,bias:-.03+upperness*.04,len:.47,base:.57,tip:.22,droop:upperness<.2?.018:0},{t:.74,az:phase+2.22,ang:.56,bias:.03+upperness*.06,len:.42,base:.52,tip:.21}];for(const s of specs){const r=radiusAt(primary,s.t),d=dirAround(primary,s.t,s.az+jit(.18),s.ang+jit(.05),s.bias+jit(.03));systems.push(growAxis(primary,s.t,d,primary.length*s.len*rr(.92,1.08),r*s.base,r*s.tip,2,{rise:s.bias>0?.003:0,droop:s.droop||0,wander:.34,elbow:rr(-.09,.09)}))}const t=.94,r=radiusAt(primary,t),a=growAxis(primary,t,dirAround(primary,t,phase-.55,.48,.06+upperness*.05),primary.length*.43,r*.82,r*.30,2,{rise:.005,wander:.30,elbow:-.05}),b=growAxis(primary,t,dirAround(primary,t,phase+2.15,.48,.015+upperness*.03),primary.length*.39,r*.70,r*.27,2,{wander:.30,elbow:.07});systems.push(a,b);systems.forEach((s,i)=>growSystem(s,phase+i*.87,density))}
+function growTerminalCluster(axis,phase,density=1){
+  const next=4,t=.978,r=radiusAt(axis,t),contBias=rr(-.01,.06);
+  const terminals=[];
+  terminals.push(growAxis(axis,t,dirAround(axis,t,phase+jit(.08),rr(.16,.30),contBias),axis.length*rr(.36,.46)*density,r*rr(.80,.88),r*rr(.32,.40),next,{rise:contBias>0?.002:0,droop:contBias<0?.008:0,wander:.26,elbow:rr(-.05,.05)}));
+  terminals.push(growAxis(axis,t,dirAround(axis,t,phase+(rnd()<.5?-1:1)*rr(1.30,1.95),rr(.50,.78),rr(-.05,.08)),axis.length*rr(.25,.34)*density,r*rr(.48,.58),r*rr(.17,.23),next,{rise:.001,wander:.30,elbow:rr(-.08,.08)}));
+  const extras=5+(rnd()<.65?1:0);
+  for(let j=0;j<extras;j++){
+    const jt=rr(.40,.92),jr=radiusAt(axis,jt),spread=j-(extras-1)/2,az=phase+spread*rr(.38,.62)+jit(.26)+(rnd()<.5?-1:1)*rr(.04,.22),ang=rr(.28,.64),vb=rr(-.04,.10);
+    terminals.push(growAxis(axis,jt,dirAround(axis,jt,az,ang,vb),axis.length*rr(.16,.24)*density,jr*rr(.31,.42),jr*rr(.08,.12),next,{rise:vb>0?.0015:0,droop:vb<0?.008:0,wander:.24,elbow:rr(-.04,.04)}));
+  }
+  if(axis.length>1.2){
+    const outerT=rr(.82,.94),outerR=radiusAt(axis,outerT);
+    terminals.push(growAxis(axis,outerT,dirAround(axis,outerT,phase+rr(-.75,.75),rr(.24,.46),rr(0,.08)),axis.length*rr(.20,.28)*density,outerR*rr(.34,.44),outerR*rr(.11,.16),next,{rise:.001,wander:.24,elbow:rr(-.04,.04)}));
+  }
+  return terminals;
+}
+
+function growSystem(axis,phase,density=1){
+  if(axis.order>=3)return growTerminalCluster(axis,phase,density);
+  const next=axis.order+1,children=[];
+  const midT=rr(.34,.54),midR=radiusAt(axis,midT),midAz=phase+(rnd()<.5?-1:1)*rr(1.35,2.00),midBias=rr(-.05,.09);
+  const mid=growAxis(axis,midT,dirAround(axis,midT,midAz,rr(.50,.74),midBias),axis.length*rr(.34,.44)*density,midR*rr(.48,.58),midR*rr(.16,.22),next,{rise:midBias>0?.004:0,droop:midBias<0?.016:0,wander:.42,elbow:rr(-.10,.10)});children.push(mid);
+  const t=.968,r=radiusAt(axis,t),contBias=rr(.02,.07);
+  const cont=growAxis(axis,t,dirAround(axis,t,phase+jit(.06),rr(.16,.28),contBias),axis.length*rr(.56,.67),r*rr(.84,.90),r*rr(.37,.45),next,{rise:.003,wander:.32,elbow:rr(-.07,.07)});
+  const latAz=phase+(rnd()<.5?-1:1)*rr(1.70,2.30),latBias=rr(-.04,.09);
+  const lat=growAxis(axis,t,dirAround(axis,t,latAz,rr(.60,.86),latBias),axis.length*rr(.40,.50),r*rr(.58,.66),r*rr(.24,.32),next,{rise:latBias>0?.003:0,droop:latBias<0?.014:0,wander:.38,elbow:rr(-.10,.10)});children.push(cont,lat);
+  const rearT=rr(.62,.84),rearR=radiusAt(axis,rearT),rearAz=phase+(rnd()<.5?-1:1)*rr(2.25,2.95),rearBias=rr(-.08,.05);
+  const rear=growAxis(axis,rearT,dirAround(axis,rearT,rearAz,rr(.48,.72),rearBias),axis.length*rr(.24,.34)*density,rearR*rr(.32,.42),rearR*rr(.11,.17),next,{rise:rearBias>0?.002:0,droop:rearBias<0?.012:0,wander:.30,elbow:rr(-.08,.08)});children.push(rear);
+  children.forEach((child,i)=>{const childDensity=child===cont?density*.98:child===lat?density*.92:density*.86;growSystem(child,phase+rr(-.55,.55)+i*.18,childDensity)});
+}
+
+function decoratePrimary(primary,phase,density=1,upperness=0){
+  const systems=[];
+  const specs=[
+    {t:.18,az:phase+.92,ang:.50,bias:.01+upperness*.04,len:.34,base:.50,tip:.20},
+    {t:.32,az:phase+1.20,ang:.60,bias:.02+upperness*.05,len:.52,base:.63,tip:.25},
+    {t:.48,az:phase-1.05,ang:.66,bias:-.03+upperness*.04,len:.47,base:.57,tip:.22,droop:upperness<.2?.018:0},
+    {t:.64,az:phase+2.12,ang:.56,bias:.03+upperness*.06,len:.42,base:.52,tip:.21},
+    {t:.80,az:phase-2.18,ang:.50,bias:.04+upperness*.07,len:.34,base:.46,tip:.18}
+  ];
+  for(const s of specs){
+    const r=radiusAt(primary,s.t),d=dirAround(primary,s.t,s.az+jit(.18),s.ang+jit(.05),s.bias+jit(.03));
+    systems.push(growAxis(primary,s.t,d,primary.length*s.len*rr(.92,1.08),r*s.base,r*s.tip,2,{rise:s.bias>0?.003:0,droop:s.droop||0,wander:.34,elbow:rr(-.09,.09)}));
+  }
+  const tipT=.93,tipR=radiusAt(primary,tipT);
+  const a=growAxis(primary,tipT,dirAround(primary,tipT,phase-.55,.48,.06+upperness*.05),primary.length*.43,tipR*.82,tipR*.30,2,{rise:.005,wander:.30,elbow:-.05});
+  const b=growAxis(primary,tipT,dirAround(primary,tipT,phase+2.15,.48,.015+upperness*.03),primary.length*.39,tipR*.70,tipR*.27,2,{wander:.30,elbow:.07});
+  const cT=.84,cR=radiusAt(primary,cT),c=growAxis(primary,cT,dirAround(primary,cT,phase+.95,.44,.02+upperness*.04),primary.length*.32,cR*.58,cR*.22,2,{rise:.003,wander:.28,elbow:.03});
+  systems.push(a,b,c);systems.forEach((s,i)=>growSystem(s,phase+i*.72,density));
+}
 
 function buildTree(density){branches.length=0;const trunkPts=[new THREE.Vector3(0,0,0),new THREE.Vector3(.08,1.4,.02),new THREE.Vector3(.02,2.8,.08),new THREE.Vector3(-.08,4.2,.05),new THREE.Vector3(.04,5.6,-.04),new THREE.Vector3(-.12,7.0,.02),new THREE.Vector3(.02,8.4,-.06),new THREE.Vector3(-.10,9.7,.02),new THREE.Vector3(.04,10.6,.00)],trunk=branch(trunkPts,1.42,.34,0,null);for(let i=0;i<7;i++){const az=i/7*Math.PI*2+rr(-.18,.18),dir=worldDir(az,rr(-.06,-.015));growAxis(trunk,.02,dir,rr(1.4,2.3),rr(.20,.28),.035,1,{droop:.06,wander:.25,elbow:rr(-.05,.05)})}const primaries=[],specs=[{t:.34,az:3.28,e:.12,len:8.8,b:.58,u:0,d:.025},{t:.39,az:.12,e:.10,len:8.1,b:.55,u:0,d:.018},{t:.44,az:1.60,e:.08,len:7.4,b:.49,u:.05,d:.020},{t:.50,az:4.45,e:.18,len:8.0,b:.52,u:.15,d:.010},{t:.56,az:.78,e:.20,len:7.7,b:.50,u:.20,d:.006},{t:.61,az:5.55,e:.23,len:6.9,b:.46,u:.30,d:0},{t:.67,az:2.45,e:.30,len:6.4,b:.44,u:.42,d:0},{t:.72,az:.02,e:.34,len:6.1,b:.43,u:.50,d:0}];for(const s of specs){const r=radiusAt(trunk,s.t),dir=worldDir(s.az+jit(.18),s.e+jit(.05)),p=growAxis(trunk,s.t,dir,s.len*rr(.95,1.05),r*s.b,r*rr(.16,.22),1,{lateRise:s.u*.05,droop:s.d||0,wander:.34,elbow:rr(-.10,.10)});primaries.push({p,phase:s.az,u:s.u})}const rt=radiusAt(trunk,.985),leader=growAxis(trunk,.985,worldDir(1.15,.78),5.2,rt*.88,rt*.16,1,{lateRise:.04,wander:.28,elbow:.05}),coleader=growAxis(trunk,.84,worldDir(3.75,.62),4.7,radiusAt(trunk,.84)*.52,.10,1,{lateRise:.05,wander:.30,elbow:-.06});primaries.push({p:leader,phase:1.15,u:.85},{p:coleader,phase:3.75,u:.75});primaries.forEach(x=>decoratePrimary(x.p,x.phase,density,x.u))}
 
