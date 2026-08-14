@@ -80,13 +80,22 @@ lobes.forEach((l,i)=>{const base=anchors[i];const secondary=11+Math.floor(rnd()*
 const unitGeos=[new THREE.CylinderGeometry(.78,1,1,9,1,false),new THREE.CylinderGeometry(.72,1,1,7,1,false),new THREE.CylinderGeometry(.66,1,1,5,1,false)],branchMats=[oldBranchMat,oldBranchMat,youngBranchMat];
 branchBuckets.forEach((items,b)=>{if(!items.length)return;const inst=new THREE.InstancedMesh(unitGeos[b],branchMats[b],items.length);inst.castShadow=b<2;inst.receiveShadow=b===0;items.forEach((s,k)=>{delta.subVectors(s.b,s.a);mid.copy(s.a).add(s.b).multiplyScalar(.5);quat.setFromUnitVectors(up,delta.clone().normalize());scaleV.set(s.r,delta.length(),s.r);matrix.compose(mid,quat,scaleV);inst.setMatrixAt(k,matrix)});inst.instanceMatrix.needsUpdate=true;scene.add(inst)});
 
-// 10 — FULL SUMMER OAK FOLIAGE. Dense overlapping leaves fill the same canopy volumes as the previous version.
+// 10 — FULL SUMMER OAK FOLIAGE. Keep the 108k leaf budget, but distribute it as one crown rather than separate balls.
 function makeLeaf(){const s=new THREE.Shape();s.moveTo(0,-.50);[[.10,-.46],[.23,-.44],[.30,-.34],[.23,-.27],[.42,-.17],[.45,-.05],[.31,.04],[.42,.16],[.37,.27],[.20,.31],[.27,.42],[.13,.51],[0,.60],[-.13,.51],[-.27,.42],[-.20,.31],[-.37,.27],[-.42,.16],[-.31,.04],[-.45,-.05],[-.42,-.17],[-.23,-.27],[-.30,-.34],[-.23,-.44],[-.10,-.46]].forEach(v=>s.lineTo(...v));return new THREE.ShapeGeometry(s)}
 const leafGeo=makeLeaf(),leafSpecs=leafMats.map(()=>[]);let leafCount=0;const MAX_LEAVES=108000;
 function addLeaf(p,size,tiltBias=0){if(leafCount>=MAX_LEAVES)return;const e=new THREE.Euler(Math.PI*.5+j(.85)+tiltBias,rnd()*6.283,j(.70)),q=new THREE.Quaternion().setFromEuler(e);const sx=size*(.72+rnd()*.42),sy=size*(.82+rnd()*.30);leafSpecs[Math.floor(rnd()*leafSpecs.length)].push({p:p.clone(),q,s:new THREE.Vector3(sx,sy,size)});leafCount++}
-lobes.forEach((l,li)=>{const count=4500+Math.floor(rnd()*1350);for(let n=0;n<count;n++){const theta=rnd()*6.283,z=2*rnd()-1,ring=Math.sqrt(Math.max(0,1-z*z));const shell=.34+.66*Math.pow(rnd(),.36);const p=l.c.clone().add(new THREE.Vector3(Math.cos(theta)*ring*l.r.x*shell,z*l.r.y*shell,Math.sin(theta)*ring*l.r.z*shell));p.x+=j(.18);p.y+=j(.12);p.z+=j(.18);addLeaf(p,.13+rnd()*.065,j(.14))}
- // Additional interior foliage joins adjacent billows into a summer canopy without making a solid green ball.
- for(let n=0;n<1080;n++){const p=l.c.clone().add(new THREE.Vector3(j(l.r.x*1.25),j(l.r.y*1.05),j(l.r.z*1.25)));if(((p.x-l.c.x)**2/(l.r.x*l.r.x)+(p.y-l.c.y)**2/(l.r.y*l.r.y)+(p.z-l.c.z)**2/(l.r.z*l.r.z))<1)addLeaf(p,.125+rnd()*.06)}});
+
+// 10A — Dense local foliage, pushed deeper into each lobe and slightly expanded so neighbouring masses overlap.
+lobes.forEach(l=>{const fr=l.r.clone().multiplyScalar(1.10),count=3300+Math.floor(rnd()*900);for(let n=0;n<count;n++){const theta=rnd()*6.283,z=2*rnd()-1,ring=Math.sqrt(Math.max(0,1-z*z));const shell=.16+.84*Math.pow(rnd(),.58);const p=l.c.clone().add(new THREE.Vector3(Math.cos(theta)*ring*fr.x*shell,z*fr.y*shell,Math.sin(theta)*ring*fr.z*shell));p.x+=j(.18);p.y+=j(.13);p.z+=j(.18);addLeaf(p,.122+rnd()*.060,j(.12))}for(let n=0;n<650;n++){const p=l.c.clone().add(new THREE.Vector3(j(fr.x*1.20),j(fr.y*1.02),j(fr.z*1.20)));if(((p.x-l.c.x)**2/(fr.x*fr.x)+(p.y-l.c.y)**2/(fr.y*fr.y)+(p.z-l.c.z)**2/(fr.z*fr.z))<1)addLeaf(p,.118+rnd()*.055)}});
+
+// 10B — Bridges between neighbouring canopy masses. These deliberately erase the "green balls" boundaries.
+const bridgePairs=[];for(let i=0;i<lobes.length;i++){const nearest=[];for(let k=0;k<lobes.length;k++){if(i===k)continue;nearest.push({k,d:lobes[i].c.distanceTo(lobes[k].c)})}nearest.sort((a,b)=>a.d-b.d);for(let n=0;n<3;n++){const k=nearest[n].k,a=Math.min(i,k),b=Math.max(i,k),key=a+'-'+b;if(!bridgePairs.some(x=>x.key===key))bridgePairs.push({a,b,key})}}
+bridgePairs.forEach(pair=>{const A=lobes[pair.a],B=lobes[pair.b],avg=new THREE.Vector3().addVectors(A.r,B.r).multiplyScalar(.18);for(let n=0;n<900&&leafCount<MAX_LEAVES;n++){const t=.12+rnd()*.76,p=A.c.clone().lerp(B.c,t);const taper=Math.sin(Math.PI*t);p.x+=j(avg.x*(.55+.45*taper));p.y+=j(avg.y*(.55+.45*taper));p.z+=j(avg.z*(.55+.45*taper));addLeaf(p,.112+rnd()*.052,j(.10))}});
+
+// 10C — A broad irregular crown envelope fills the remaining slots, but only close to the existing oak canopy.
+const crownCentre=new THREE.Vector3(0,9.35,.1),crownR=new THREE.Vector3(9.0,4.7,8.3);let attempts=0;
+while(leafCount<MAX_LEAVES&&attempts<90000){attempts++;const theta=rnd()*6.283,z=2*rnd()-1,ring=Math.sqrt(Math.max(0,1-z*z)),shell=.18+.82*Math.pow(rnd(),.66),p=crownCentre.clone().add(new THREE.Vector3(Math.cos(theta)*ring*crownR.x*shell,z*crownR.y*shell,Math.sin(theta)*ring*crownR.z*shell));let nearest=99;for(const l of lobes){const dx=(p.x-l.c.x)/(l.r.x*1.28),dy=(p.y-l.c.y)/(l.r.y*1.28),dz=(p.z-l.c.z)/(l.r.z*1.28);nearest=Math.min(nearest,dx*dx+dy*dy+dz*dz)}if(nearest<1.12){p.x+=j(.15);p.y+=j(.10);p.z+=j(.15);addLeaf(p,.108+rnd()*.050,j(.08))}}
+
 leafSpecs.forEach((items,i)=>{if(!items.length)return;const inst=new THREE.InstancedMesh(leafGeo,leafMats[i],items.length);inst.castShadow=false;items.forEach((v,k)=>{matrix.compose(v.p,v.q,v.s);inst.setMatrixAt(k,matrix)});inst.instanceMatrix.needsUpdate=true;scene.add(inst)});
 
 // 11 — A FEW SMALL SHOOTS AROUND THE OLD BOLE, NOT A FOREST OF SPIKES.
