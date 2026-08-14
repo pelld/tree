@@ -63,21 +63,30 @@ function worldDir(az,elev){const ce=Math.cos(elev);return new THREE.Vector3(Math
 
 function growAxis(parent,t,targetDir,len,r0,r1,order,{rise=0,lateRise=0,droop=0,wander=1,elbow=0}={}){const start=pointAt(parent,t),parentTan=tangentAt(parent,t),steps=order===1?24:order===2?18:order===3?15:12,pts=[start.clone()],ref=Math.abs(targetDir.y)<.9?new THREE.Vector3(0,1,0):new THREE.Vector3(1,0,0),side=new THREE.Vector3().crossVectors(targetDir,ref).normalize().multiplyScalar(elbow);let p=start.clone();for(let i=1;i<=steps;i++){const f=i/steps,endTurn=order===1?.72:order===2?.84:order===3?.79:.74,ease=THREE.MathUtils.smoothstep(f,order===1?.025:.045,endTurn),d=parentTan.clone().lerp(targetDir,ease);d.addScaledVector(side,Math.sin(Math.PI*Math.max(0,(f-.26)/.74))*.32);const wig=(order===1?.006:order===2?.009:order===3?.015:.022)*wander;d.x+=jit(wig);d.z+=jit(wig);d.y+=jit(wig*.48)+rise*Math.sin(Math.PI*f)+lateRise*THREE.MathUtils.smoothstep(f,.48,.95)-droop*f*f;d.normalize();p=p.clone().add(d.multiplyScalar(len/steps*(.994+rr(-.010,.013))));pts.push(p.clone())}return branch(pts,r0,r1,order,parent)}
 
-function renderWood(){const buckets=Array.from({length:5},()=>[]);for(const b of branches){const seg=b.order===0?60:b.order===1?48:b.order===2?34:b.order===3?24:16,sides=b.order===0?16:b.order===1?12:b.order===2?9:b.order===3?7:5,g=new THREE.TubeGeometry(b.curve,seg,1,sides,false),pos=g.attributes.position,uv=g.attributes.uv,c=new THREE.Vector3(),v=new THREE.Vector3();for(let i=0;i<pos.count;i++){const t=uv.getX(i);b.curve.getPointAt(t,c);v.set(pos.getX(i),pos.getY(i),pos.getZ(i)).sub(c);const collar=b.parent&&t<.18?1+(b.order===1?.16:b.order===2?.34:b.order===3?.22:.12)*(1-t/.18):1,r=radiusAt(b,t)*collar*(1+(b.order<3?.005:.0025)*Math.sin(15*t+b.phase));v.multiplyScalar(r);pos.setXYZ(i,c.x+v.x,c.y+v.y,c.z+v.z)}g.computeVertexNormals();buckets[b.order].push(g)}buckets.forEach((gs,o)=>{if(!gs.length)return;const merged=mergeGeometries(gs,false);gs.forEach(g=>g.dispose());const m=new THREE.Mesh(merged,woodMats[o]);m.castShadow=o<=3;m.receiveShadow=true;treeRoot.add(m);meshes.push(m)})}
+function renderWood(){const buckets=Array.from({length:6},()=>[]);for(const b of branches){const seg=b.order===0?60:b.order===1?48:b.order===2?34:b.order===3?24:b.order===4?16:12,sides=b.order===0?16:b.order===1?12:b.order===2?9:b.order===3?7:b.order===4?5:4,g=new THREE.TubeGeometry(b.curve,seg,1,sides,false),pos=g.attributes.position,uv=g.attributes.uv,c=new THREE.Vector3(),v=new THREE.Vector3();for(let i=0;i<pos.count;i++){const t=uv.getX(i);b.curve.getPointAt(t,c);v.set(pos.getX(i),pos.getY(i),pos.getZ(i)).sub(c);const collar=b.parent&&t<.18?1+(b.order===1?.16:b.order===2?.34:b.order===3?.22:.10)*(1-t/.18):1,r=radiusAt(b,t)*collar*(1+(b.order<3?.005:.0025)*Math.sin(15*t+b.phase));v.multiplyScalar(r);pos.setXYZ(i,c.x+v.x,c.y+v.y,c.z+v.z)}g.computeVertexNormals();buckets[b.order].push(g)}buckets.forEach((gs,o)=>{if(!gs.length)return;const merged=mergeGeometries(gs,false);gs.forEach(g=>g.dispose());const m=new THREE.Mesh(merged,woodMats[Math.min(o,woodMats.length-1)]);m.castShadow=o<=3;m.receiveShadow=true;treeRoot.add(m);meshes.push(m)})}
 
 function growTerminalCluster(axis,phase,density=1){
-  const next=4,t=.978,r=radiusAt(axis,t),contBias=rr(-.01,.06);
-  const terminals=[];
-  terminals.push(growAxis(axis,t,dirAround(axis,t,phase+jit(.08),rr(.16,.30),contBias),axis.length*rr(.36,.46)*density,r*rr(.80,.88),r*rr(.32,.40),next,{rise:contBias>0?.002:0,droop:contBias<0?.008:0,wander:.26,elbow:rr(-.05,.05)}));
-  terminals.push(growAxis(axis,t,dirAround(axis,t,phase+(rnd()<.5?-1:1)*rr(1.30,1.95),rr(.50,.78),rr(-.05,.08)),axis.length*rr(.25,.34)*density,r*rr(.48,.58),r*rr(.17,.23),next,{rise:.001,wander:.30,elbow:rr(-.08,.08)}));
-  const extras=5+(rnd()<.65?1:0);
+  const next=4,t=.968,r=radiusAt(axis,t),contBias=rr(.02,.07),terminals=[];
+  const major=growAxis(axis,t,dirAround(axis,t,phase+jit(.06),rr(.14,.26),contBias),axis.length*rr(.40,.50)*density,r*rr(.82,.90),r*rr(.34,.42),next,{rise:.003,wander:.24,elbow:rr(-.04,.04)});terminals.push(major);
+  terminals.push(growAxis(axis,t,dirAround(axis,t,phase+(rnd()<.5?-1:1)*rr(1.20,1.85),rr(.44,.70),rr(-.04,.08)),axis.length*rr(.28,.38)*density,r*rr(.52,.62),r*rr(.18,.25),next,{rise:.001,wander:.26,elbow:rr(-.06,.06)}));
+  terminals.push(growAxis(axis,t,dirAround(axis,t,phase+(rnd()<.5?-1:1)*rr(2.10,2.75),rr(.34,.58),rr(-.05,.06)),axis.length*rr(.22,.32)*density,r*rr(.42,.52),r*rr(.14,.21),next,{droop:.006,wander:.24,elbow:rr(-.05,.05)}));
+  const extras=8+(rnd()<.75?2:0);
   for(let j=0;j<extras;j++){
-    const jt=rr(.40,.92),jr=radiusAt(axis,jt),spread=j-(extras-1)/2,az=phase+spread*rr(.38,.62)+jit(.26)+(rnd()<.5?-1:1)*rr(.04,.22),ang=rr(.28,.64),vb=rr(-.04,.10);
-    terminals.push(growAxis(axis,jt,dirAround(axis,jt,az,ang,vb),axis.length*rr(.16,.24)*density,jr*rr(.31,.42),jr*rr(.08,.12),next,{rise:vb>0?.0015:0,droop:vb<0?.008:0,wander:.24,elbow:rr(-.04,.04)}));
+    const jt=rr(.34,.96),jr=radiusAt(axis,jt),spread=j-(extras-1)/2,az=phase+spread*rr(.28,.52)+jit(.30)+(rnd()<.5?-1:1)*rr(.03,.18),ang=rr(.22,.58),vb=rr(-.06,.12);
+    terminals.push(growAxis(axis,jt,dirAround(axis,jt,az,ang,vb),axis.length*rr(.18,.28)*density,jr*rr(.28,.40),jr*rr(.09,.14),next,{rise:vb>0?.0015:0,droop:vb<0?.008:0,wander:.20,elbow:rr(-.03,.03)}));
   }
-  if(axis.length>1.2){
-    const outerT=rr(.82,.94),outerR=radiusAt(axis,outerT);
-    terminals.push(growAxis(axis,outerT,dirAround(axis,outerT,phase+rr(-.75,.75),rr(.24,.46),rr(0,.08)),axis.length*rr(.20,.28)*density,outerR*rr(.34,.44),outerR*rr(.11,.16),next,{rise:.001,wander:.24,elbow:rr(-.04,.04)}));
+  if(axis.length>1.1){
+    const ot=rr(.78,.90),or=radiusAt(axis,ot);
+    terminals.push(growAxis(axis,ot,dirAround(axis,ot,phase+rr(-.55,.55),rr(.22,.42),rr(.00,.08)),axis.length*rr(.20,.28)*density,or*rr(.32,.42),or*rr(.10,.15),next,{rise:.001,wander:.18,elbow:rr(-.03,.03)}));
+    terminals.push(growAxis(axis,ot,dirAround(axis,ot,phase+(rnd()<.5?-1:1)*rr(1.10,1.70),rr(.28,.50),rr(-.03,.05)),axis.length*rr(.16,.24)*density,or*rr(.24,.34),or*rr(.08,.12),next,{wander:.18,elbow:rr(-.03,.03)}));
+  }
+  const twigParents=[major,...terminals.filter((_,i)=>i>0&&i<5)];
+  for(const tp of twigParents){
+    const tr=radiusAt(tp,.96),basePhase=phase+rr(-.7,.7),count=2+(rnd()<.55?1:0);
+    for(let j=0;j<count;j++){
+      const tt=rr(.58,.94),jr=radiusAt(tp,tt),side=(j-(count-1)/2),az=basePhase+side*rr(.65,1.05)+rr(-.22,.22),vb=rr(-.03,.08);
+      growAxis(tp,tt,dirAround(tp,tt,az,rr(.22,.46),vb),tp.length*rr(.20,.32)*density,jr*rr(.24,.34),Math.max(.004,tr*rr(.035,.07)),5,{rise:vb>0?.001:0,droop:vb<0?.006:0,wander:.16,elbow:rr(-.02,.02)});
+    }
   }
   return terminals;
 }
@@ -85,15 +94,17 @@ function growTerminalCluster(axis,phase,density=1){
 function growSystem(axis,phase,density=1){
   if(axis.order>=3)return growTerminalCluster(axis,phase,density);
   const next=axis.order+1,children=[];
-  const midT=rr(.34,.54),midR=radiusAt(axis,midT),midAz=phase+(rnd()<.5?-1:1)*rr(1.35,2.00),midBias=rr(-.05,.09);
-  const mid=growAxis(axis,midT,dirAround(axis,midT,midAz,rr(.50,.74),midBias),axis.length*rr(.34,.44)*density,midR*rr(.48,.58),midR*rr(.16,.22),next,{rise:midBias>0?.004:0,droop:midBias<0?.016:0,wander:.42,elbow:rr(-.10,.10)});children.push(mid);
+  const midT=rr(.32,.52),midR=radiusAt(axis,midT),midAz=phase+(rnd()<.5?-1:1)*rr(1.25,1.95),midBias=rr(-.05,.09);
+  const mid=growAxis(axis,midT,dirAround(axis,midT,midAz,rr(.48,.72),midBias),axis.length*rr(.34,.44)*density,midR*rr(.48,.58),midR*rr(.16,.22),next,{rise:midBias>0?.004:0,droop:midBias<0?.016:0,wander:.36,elbow:rr(-.09,.09)});children.push(mid);
   const t=.968,r=radiusAt(axis,t),contBias=rr(.02,.07);
-  const cont=growAxis(axis,t,dirAround(axis,t,phase+jit(.06),rr(.16,.28),contBias),axis.length*rr(.56,.67),r*rr(.84,.90),r*rr(.37,.45),next,{rise:.003,wander:.32,elbow:rr(-.07,.07)});
-  const latAz=phase+(rnd()<.5?-1:1)*rr(1.70,2.30),latBias=rr(-.04,.09);
-  const lat=growAxis(axis,t,dirAround(axis,t,latAz,rr(.60,.86),latBias),axis.length*rr(.40,.50),r*rr(.58,.66),r*rr(.24,.32),next,{rise:latBias>0?.003:0,droop:latBias<0?.014:0,wander:.38,elbow:rr(-.10,.10)});children.push(cont,lat);
-  const rearT=rr(.62,.84),rearR=radiusAt(axis,rearT),rearAz=phase+(rnd()<.5?-1:1)*rr(2.25,2.95),rearBias=rr(-.08,.05);
-  const rear=growAxis(axis,rearT,dirAround(axis,rearT,rearAz,rr(.48,.72),rearBias),axis.length*rr(.24,.34)*density,rearR*rr(.32,.42),rearR*rr(.11,.17),next,{rise:rearBias>0?.002:0,droop:rearBias<0?.012:0,wander:.30,elbow:rr(-.08,.08)});children.push(rear);
-  children.forEach((child,i)=>{const childDensity=child===cont?density*.98:child===lat?density*.92:density*.86;growSystem(child,phase+rr(-.55,.55)+i*.18,childDensity)});
+  const cont=growAxis(axis,t,dirAround(axis,t,phase+jit(.06),rr(.14,.26),contBias),axis.length*rr(.56,.68),r*rr(.84,.90),r*rr(.37,.45),next,{rise:.003,wander:.24,elbow:rr(-.05,.05)});children.push(cont);
+  const latAz=phase+(rnd()<.5?-1:1)*rr(1.55,2.20),latBias=rr(-.04,.08);
+  const lat=growAxis(axis,t,dirAround(axis,t,latAz,rr(.52,.78),latBias),axis.length*rr(.40,.50),r*rr(.58,.66),r*rr(.24,.32),next,{rise:latBias>0?.003:0,droop:latBias<0?.014:0,wander:.30,elbow:rr(-.08,.08)});children.push(lat);
+  const rearT=rr(.58,.82),rearR=radiusAt(axis,rearT),rearAz=phase+(rnd()<.5?-1:1)*rr(2.15,2.85),rearBias=rr(-.08,.05);
+  const rear=growAxis(axis,rearT,dirAround(axis,rearT,rearAz,rr(.44,.68),rearBias),axis.length*rr(.24,.34)*density,rearR*rr(.32,.42),rearR*rr(.11,.17),next,{rise:rearBias>0?.002:0,droop:rearBias<0?.012:0,wander:.24,elbow:rr(-.06,.06)});children.push(rear);
+  const subT=rr(.70,.90),subR=radiusAt(axis,subT),subAz=phase+(rnd()<.5?-1:1)*rr(.80,1.35),subBias=rr(-.03,.08);
+  const sub=growAxis(axis,subT,dirAround(axis,subT,subAz,rr(.30,.54),subBias),axis.length*rr(.22,.30)*density,subR*rr(.26,.36),subR*rr(.09,.14),next,{rise:subBias>0?.002:0,droop:subBias<0?.010:0,wander:.20,elbow:rr(-.05,.05)});children.push(sub);
+  children.forEach((child,i)=>{const childDensity=child===cont?density*.98:child===lat?density*.94:child===mid?density*.94:child===rear?density*.88:density*.90;growSystem(child,phase+rr(-.45,.45)+i*.16,childDensity)});
 }
 
 function decoratePrimary(primary,phase,density=1,upperness=0){
@@ -105,10 +116,7 @@ function decoratePrimary(primary,phase,density=1,upperness=0){
     {t:.64,az:phase+2.12,ang:.56,bias:.03+upperness*.06,len:.42,base:.52,tip:.21},
     {t:.80,az:phase-2.18,ang:.50,bias:.04+upperness*.07,len:.34,base:.46,tip:.18}
   ];
-  for(const s of specs){
-    const r=radiusAt(primary,s.t),d=dirAround(primary,s.t,s.az+jit(.18),s.ang+jit(.05),s.bias+jit(.03));
-    systems.push(growAxis(primary,s.t,d,primary.length*s.len*rr(.92,1.08),r*s.base,r*s.tip,2,{rise:s.bias>0?.003:0,droop:s.droop||0,wander:.34,elbow:rr(-.09,.09)}));
-  }
+  for(const s of specs){const r=radiusAt(primary,s.t),d=dirAround(primary,s.t,s.az+jit(.18),s.ang+jit(.05),s.bias+jit(.03));systems.push(growAxis(primary,s.t,d,primary.length*s.len*rr(.92,1.08),r*s.base,r*s.tip,2,{rise:s.bias>0?.003:0,droop:s.droop||0,wander:.34,elbow:rr(-.09,.09)}))}
   const tipT=.93,tipR=radiusAt(primary,tipT);
   const a=growAxis(primary,tipT,dirAround(primary,tipT,phase-.55,.48,.06+upperness*.05),primary.length*.43,tipR*.82,tipR*.30,2,{rise:.005,wander:.30,elbow:-.05});
   const b=growAxis(primary,tipT,dirAround(primary,tipT,phase+2.15,.48,.015+upperness*.03),primary.length*.39,tipR*.70,tipR*.27,2,{wander:.30,elbow:.07});
@@ -121,23 +129,23 @@ function buildTree(density){branches.length=0;const trunkPts=[new THREE.Vector3(
 function oakLeafGeometry(){const s=new THREE.Shape();s.moveTo(0,-.12);s.lineTo(.018,0);s.lineTo(.10,.07);s.lineTo(.16,.15);s.lineTo(.10,.22);s.lineTo(.22,.31);s.lineTo(.13,.40);s.lineTo(.24,.50);s.lineTo(.13,.59);s.lineTo(.20,.69);s.lineTo(.09,.78);s.lineTo(.11,.88);s.lineTo(0,1.0);s.lineTo(-.10,.88);s.lineTo(-.08,.78);s.lineTo(-.20,.69);s.lineTo(-.13,.59);s.lineTo(-.25,.50);s.lineTo(-.14,.40);s.lineTo(-.22,.31);s.lineTo(-.11,.22);s.lineTo(-.17,.15);s.lineTo(-.09,.07);s.lineTo(-.018,0);s.closePath();const g=new THREE.ShapeGeometry(s);g.computeVertexNormals();return g}
 
 function renderLeaves(mult){
-  const terminals=branches.filter(b=>b.order===4),maxLeaves=110000;
+  const terminals=branches.filter(b=>b.order>=4),maxLeaves=110000;
   if(!terminals.length)return;
-  const capacity=Math.min(maxLeaves,Math.max(terminals.length*14,Math.floor(terminals.length*34*mult)));
-  const perTerminal=Math.max(12,Math.min(38,Math.floor(capacity/terminals.length)));
+  const capacity=Math.min(maxLeaves,Math.max(terminals.length*12,Math.floor(terminals.length*26*mult)));
+  const perTerminal=Math.max(8,Math.min(30,Math.floor(capacity/terminals.length)));
   const g=oakLeafGeometry(),mat=new THREE.MeshStandardMaterial({color:0x355f29,roughness:.86,side:THREE.DoubleSide}),inst=new THREE.InstancedMesh(g,mat,capacity),dummy=new THREE.Object3D(),q=new THREE.Quaternion(),spinQ=new THREE.Quaternion(),up=new THREE.Vector3(0,1,0),center=new THREE.Vector3(),pos=new THREE.Vector3(),offset=new THREE.Vector3(),outward=new THREE.Vector3(),leafDir=new THREE.Vector3(),col=new THREE.Color();
   let k=0;
   const ordered=[...terminals].sort((a,b)=>pointAt(b,.9).y-pointAt(a,.9).y);
   for(const b of ordered){
-    const branchWeight=THREE.MathUtils.clamp(b.length/.9,.78,1.18),tipPos=pointAt(b,.9),upperBoost=THREE.MathUtils.clamp((tipPos.y-8.0)/7.0,0,1),target=Math.max(10,Math.min(perTerminal+Math.round(upperBoost*5),capacity-k)),sprays=target>=26?3:2;
+    const branchWeight=THREE.MathUtils.clamp(b.length/.75,.72,1.18),tipPos=pointAt(b,.9),upperBoost=THREE.MathUtils.clamp((tipPos.y-8.0)/7.0,0,1),target=Math.max(6,Math.min(perTerminal+Math.round(upperBoost*3),capacity-k)),sprays=target>=20?3:2;
     let used=0;
     for(let s=0;s<sprays&&used<target&&k<capacity;s++){
-      const ct=THREE.MathUtils.clamp(.52+(s/Math.max(1,sprays-1))*.40+rr(-.04,.04),.45,.96),tTan=tangentAt(b,ct),{u,v}=frameAt(b,ct);
-      center.copy(pointAt(b,ct)).addScaledVector(tTan,rr(.02,.10));
-      const radius=rr(.13,.21)*mult*branchWeight*(.82+ct*.25),left=target-used,leavesInSpray=Math.max(4,Math.min(left-(s===sprays-1?0:6),Math.round(left/(sprays-s))));
+      const ct=THREE.MathUtils.clamp(.55+(s/Math.max(1,sprays-1))*.38+rr(-.04,.04),.48,.97),tTan=tangentAt(b,ct),{u,v}=frameAt(b,ct);
+      center.copy(pointAt(b,ct)).addScaledVector(tTan,rr(.02,.08));
+      const radius=rr(.10,.18)*mult*branchWeight*(.82+ct*.22),left=target-used,leavesInSpray=Math.max(3,Math.min(left-(s===sprays-1?0:4),Math.round(left/(sprays-s))));
       for(let i=0;i<leavesInSpray&&used<target&&k<capacity;i++,used++,k++){
         const a=rr(0,Math.PI*2),shell=radius*Math.pow(rnd(),.70);
-        offset.copy(u).multiplyScalar(Math.cos(a)*shell).addScaledVector(v,Math.sin(a)*shell*rr(.68,1.08)).addScaledVector(tTan,rr(-radius*.22,radius*.48));
+        offset.copy(u).multiplyScalar(Math.cos(a)*shell).addScaledVector(v,Math.sin(a)*shell*rr(.68,1.08)).addScaledVector(tTan,rr(-radius*.20,radius*.42));
         pos.copy(center).add(offset);outward.copy(offset).normalize();
         leafDir.copy(tTan).multiplyScalar(rr(.12,.30)).addScaledVector(outward,rr(.72,1.03)).add(new THREE.Vector3(0,rr(-.04,.16),0)).normalize();
         q.setFromUnitVectors(up,leafDir);spinQ.setFromAxisAngle(leafDir,rr(0,Math.PI*2));q.premultiply(spinQ);
@@ -146,9 +154,9 @@ function renderLeaves(mult){
       }
     }
     while(used<target&&k<capacity){
-      const tt=rr(.90,.998),tipTan=tangentAt(b,tt),{u:tu,v:tv}=frameAt(b,tt),a=rr(0,Math.PI*2),tipRadius=rr(.08,.14)*mult*branchWeight,shell=tipRadius*Math.pow(rnd(),.72);
-      center.copy(pointAt(b,tt)).addScaledVector(tipTan,rr(.02,.09));
-      offset.copy(tu).multiplyScalar(Math.cos(a)*shell).addScaledVector(tv,Math.sin(a)*shell*rr(.72,1.08)).addScaledVector(tipTan,rr(-tipRadius*.08,tipRadius*.38));
+      const tt=rr(.90,.998),tipTan=tangentAt(b,tt),{u:tu,v:tv}=frameAt(b,tt),a=rr(0,Math.PI*2),tipRadius=rr(.07,.12)*mult*branchWeight,shell=tipRadius*Math.pow(rnd(),.72);
+      center.copy(pointAt(b,tt)).addScaledVector(tipTan,rr(.02,.07));
+      offset.copy(tu).multiplyScalar(Math.cos(a)*shell).addScaledVector(tv,Math.sin(a)*shell*rr(.72,1.08)).addScaledVector(tipTan,rr(-tipRadius*.08,tipRadius*.36));
       pos.copy(center).add(offset);outward.copy(offset).normalize();
       leafDir.copy(tipTan).multiplyScalar(rr(.14,.30)).addScaledVector(outward,rr(.72,1.08)).add(new THREE.Vector3(0,rr(-.03,.15),0)).normalize();
       q.setFromUnitVectors(up,leafDir);spinQ.setFromAxisAngle(leafDir,rr(0,Math.PI*2));q.premultiply(spinQ);
