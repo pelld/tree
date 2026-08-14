@@ -1,421 +1,214 @@
 import * as THREE from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
-import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
 
-// 00. PERFORMANCE PROFILE ----------------------------------------------------
-// The previous version created hundreds of thousands of woody axes before it
-// even started drawing leaves. That could exhaust memory on a phone. This
-// version keeps a detailed visible crown but caps the structural complexity.
+// 00. MOBILE-FIRST PERFORMANCE ----------------------------------------------
 const mobileMode=matchMedia('(pointer:coarse)').matches||innerWidth<900;
-const PROFILE=mobileMode?{
-  pixelRatio:1,
-  antialias:false,
-  shadows:false,
-  primaryCount:14,
-  secondaryCount:5,
-  tertiaryCount:3,
-  twigCount:2,
-  maxLeaves:18000,
-  tubeSegments:[32,16,8],
-  tubeSides:[10,7,5]
-}:{
-  pixelRatio:Math.min(devicePixelRatio,1.25),
-  antialias:true,
-  shadows:true,
-  primaryCount:16,
-  secondaryCount:7,
-  tertiaryCount:4,
-  twigCount:2,
-  maxLeaves:42000,
-  tubeSegments:[44,22,11],
-  tubeSides:[12,8,6]
-};
+const PROFILE=mobileMode?{pixelRatio:1,antialias:false,shadows:false,maxStems:52,budsPerStem:12}:{pixelRatio:Math.min(devicePixelRatio,1.3),antialias:true,shadows:true,maxStems:76,budsPerStem:16};
 
 // 01. SCENE ------------------------------------------------------------------
 const scene=new THREE.Scene();
-scene.background=new THREE.Color(0xcbd7c5);
-scene.fog=new THREE.FogExp2(0xcbd7c5,.0028);
+scene.background=new THREE.Color(0xcfdcc4);
+scene.fog=new THREE.FogExp2(0xcfdcc4,.022);
 
-const camera=new THREE.PerspectiveCamera(39,innerWidth/innerHeight,.05,180);
-camera.position.set(21,12.7,29);
+const camera=new THREE.PerspectiveCamera(40,innerWidth/innerHeight,.03,80);
+camera.position.set(5.2,3.1,7.4);
 
 const renderer=new THREE.WebGLRenderer({antialias:PROFILE.antialias,powerPreference:'high-performance'});
 renderer.setPixelRatio(PROFILE.pixelRatio);
 renderer.setSize(innerWidth,innerHeight);
 renderer.outputColorSpace=THREE.SRGBColorSpace;
 renderer.toneMapping=THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure=1.03;
+renderer.toneMappingExposure=1.05;
 renderer.shadowMap.enabled=PROFILE.shadows;
 if(PROFILE.shadows)renderer.shadowMap.type=THREE.PCFSoftShadowMap;
 document.body.prepend(renderer.domElement);
 
 const controls=new OrbitControls(camera,renderer.domElement);
-controls.target.set(0,7.5,0);
+controls.target.set(0,1.45,0);
 controls.enableDamping=true;
 controls.dampingFactor=.06;
-controls.minDistance=3;
-controls.maxDistance=70;
+controls.minDistance=.7;
+controls.maxDistance=18;
 controls.zoomToCursor=true;
 
-scene.add(new THREE.HemisphereLight(0xdce8d5,0x4a4237,1.55));
-const sun=new THREE.DirectionalLight(0xffefd0,2.7);
-sun.position.set(-18,29,14);
+scene.add(new THREE.HemisphereLight(0xeaf0df,0x4b4437,1.65));
+const sun=new THREE.DirectionalLight(0xffefd8,2.6);
+sun.position.set(-8,12,8);
 sun.castShadow=PROFILE.shadows;
-if(PROFILE.shadows){
-  sun.shadow.mapSize.set(768,768);
-  sun.shadow.camera.left=-24;sun.shadow.camera.right=24;
-  sun.shadow.camera.top=26;sun.shadow.camera.bottom=-8;
-  sun.shadow.bias=-.00015;
-}
+if(PROFILE.shadows){sun.shadow.mapSize.set(768,768);sun.shadow.camera.left=-8;sun.shadow.camera.right=8;sun.shadow.camera.top=8;sun.shadow.camera.bottom=-5;sun.shadow.bias=-.0002}
 scene.add(sun);
 
-const ground=new THREE.Mesh(
-  new THREE.CircleGeometry(50,64),
-  new THREE.MeshLambertMaterial({color:0x788861})
-);
+const ground=new THREE.Mesh(new THREE.CircleGeometry(16,64),new THREE.MeshLambertMaterial({color:0x8d9f6e}));
 ground.rotation.x=-Math.PI/2;
 ground.receiveShadow=PROFILE.shadows;
 scene.add(ground);
 
-// 02. MATERIALS / STATE ------------------------------------------------------
-const woodMats=[0x40342b,0x493a30,0x514033,0x564536,0x4a3b30].map(c=>new THREE.MeshLambertMaterial({color:c}));
-const leafMat=new THREE.MeshLambertMaterial({color:0x315b27,side:THREE.DoubleSide});
-const treeRoot=new THREE.Group();
-scene.add(treeRoot);
+const plantRoot=new THREE.Group();
+scene.add(plantRoot);
+let generated=[];
+let seed=88231,randomness=.18;
 
-let meshes=[];
-let branches=[];
-let seed=88231;
-let randomness=.18;
-
+// 02. SEEDED RANDOM ----------------------------------------------------------
 function reset(v){seed=Math.max(1,Math.floor(v)||1)%2147483647;if(!seed)seed=1}
 function rnd(){seed=seed*16807%2147483647;return(seed-1)/2147483646}
 function rr(a,b){return a+(b-a)*rnd()}
 function jit(a){return(rnd()-.5)*a*randomness}
 
-// 03. BRANCH HELPERS ---------------------------------------------------------
-function makeBranch(points,r0,r1,order,parent=null){
-  const curve=new THREE.CatmullRomCurve3(points,false,'centripetal');
-  const b={points,r0,r1,order,parent,curve,length:curve.getLength(),children:[]};
-  if(parent)parent.children.push(b);
-  branches.push(b);
-  return b;
+function clearPlant(){
+  for(const m of generated){plantRoot.remove(m);m.geometry?.dispose();m.material?.dispose?.()}
+  generated=[];
 }
-function pointAt(b,t){return b.curve.getPointAt(THREE.MathUtils.clamp(t,0,1))}
-function tangentAt(b,t){return b.curve.getTangentAt(THREE.MathUtils.clamp(t,0,1)).normalize()}
-function radiusAt(b,t){return b.r1+(b.r0-b.r1)*Math.pow(1-t,.72)}
-function frameAt(b,t){
-  const tan=tangentAt(b,t);
-  const ref=Math.abs(tan.y)<.88?new THREE.Vector3(0,1,0):new THREE.Vector3(1,0,0);
+function addGenerated(m){plantRoot.add(m);generated.push(m);return m}
+
+// 03. GEOMETRY HELPERS -------------------------------------------------------
+const UP=new THREE.Vector3(0,1,0);
+const dummy=new THREE.Object3D();
+const q=new THREE.Quaternion();
+const dir=new THREE.Vector3();
+
+function placeSegment(inst,index,a,b,radius){
+  dir.copy(b).sub(a);
+  const len=dir.length();
+  dir.normalize();
+  q.setFromUnitVectors(UP,dir);
+  dummy.position.copy(a).add(b).multiplyScalar(.5);
+  dummy.quaternion.copy(q);
+  dummy.scale.set(radius,len,radius);
+  dummy.updateMatrix();
+  inst.setMatrixAt(index,dummy.matrix);
+}
+
+function stemPoints(base,az,height,lean){
+  const out=[];
+  const bendAz=az+rr(-.35,.35);
+  const dx=Math.cos(bendAz)*lean,dz=Math.sin(bendAz)*lean;
+  const sway=rr(-.10,.10);
+  for(let i=0;i<=6;i++){
+    const t=i/6;
+    const ease=t*t*(3-2*t);
+    out.push(new THREE.Vector3(
+      base.x+dx*ease+Math.sin(t*Math.PI)*sway+jit(.025),
+      height*t,
+      base.z+dz*ease+Math.sin(t*Math.PI*.9)*sway*.45+jit(.025)
+    ));
+  }
+  return out;
+}
+
+function frameFromTangent(tan){
+  const ref=Math.abs(tan.y)<.92?new THREE.Vector3(0,1,0):new THREE.Vector3(1,0,0);
   const u=new THREE.Vector3().crossVectors(tan,ref).normalize();
   const v=new THREE.Vector3().crossVectors(u,tan).normalize();
-  return{tan,u,v};
-}
-function worldDir(az,elev){
-  const ce=Math.cos(elev);
-  return new THREE.Vector3(Math.cos(az)*ce,Math.sin(elev),Math.sin(az)*ce).normalize();
+  return{u,v};
 }
 
-// Explicit crown envelope. Everything from secondary branching onward is
-// steered toward this broad elliptical dome.
-function crownTop(radial){
-  const R=11.6,H=6.9,base=7.55,q=THREE.MathUtils.clamp(radial/R,0,1);
-  return base+H*Math.sqrt(Math.max(0,1-q*q));
-}
-function crownTarget(radial,order){
-  const inset=order===2?2.15:order===3?1.25:.62;
-  return crownTop(radial)-inset;
-}
+// 04. LAVENDER ---------------------------------------------------------------
+function buildLavender(density,bloom,spread){
+  const stemCount=Math.max(18,Math.min(PROFILE.maxStems,Math.round(PROFILE.maxStems*density)));
+  const segmentsPerStem=6;
+  const stems=new THREE.InstancedMesh(new THREE.CylinderGeometry(1,1,1,5,1,false),new THREE.MeshLambertMaterial({color:0x66834d}),stemCount*segmentsPerStem);
+  const leafCount=stemCount*7;
+  const leaves=new THREE.InstancedMesh(new THREE.PlaneGeometry(.14,.62,1,1),new THREE.MeshLambertMaterial({color:0x7f9466,side:THREE.DoubleSide}),leafCount);
+  const maxBuds=Math.ceil(stemCount*PROFILE.budsPerStem*Math.max(.7,bloom));
+  const buds=new THREE.InstancedMesh(new THREE.SphereGeometry(1,mobileMode?5:6,mobileMode?4:5),new THREE.MeshLambertMaterial({color:0xffffff}),maxBuds);
 
-function growFrom(parent,t,azimuth,angle,len,r0,r1,order,verticalBias=0){
-  const start=pointAt(parent,t);
-  const {tan,u,v}=frameAt(parent,t);
-  const radial=u.clone().multiplyScalar(Math.cos(azimuth)).add(v.clone().multiplyScalar(Math.sin(azimuth))).normalize();
-  let d=tan.clone().multiplyScalar(Math.cos(angle)).add(radial.multiplyScalar(Math.sin(angle))).normalize();
-  d.y+=verticalBias;
-  d.normalize();
+  stems.castShadow=PROFILE.shadows;stems.receiveShadow=PROFILE.shadows;
+  leaves.castShadow=false;leaves.receiveShadow=false;
+  buds.castShadow=false;buds.receiveShadow=false;
 
-  const steps=order===1?10:order===2?7:order===3?5:4;
-  const pts=[start.clone()];
-  let p=start.clone();
-
-  for(let i=1;i<=steps;i++){
-    const f=i/steps;
-    const nowRadial=Math.hypot(p.x,p.z);
-
-    if(order>=2){
-      const target=crownTarget(nowRadial,order);
-      const err=THREE.MathUtils.clamp(target-p.y,-2.4,2.4);
-      const attraction=order===2?.060:order===3?.095:.13;
-      d.y+=err*attraction;
-
-      // Near the outer crown, turn growth slightly downward and inward so the
-      // profile closes rather than ending in horizontal spokes.
-      if(nowRadial>8.8){
-        const edge=THREE.MathUtils.clamp((nowRadial-8.8)/2.8,0,1);
-        d.y-=edge*.09;
-        if(nowRadial>.1)d.addScaledVector(new THREE.Vector3(-p.x,0,-p.z).normalize(),edge*.018);
-      }
-    }
-
-    const wander=(order===1?.018:order===2?.028:order===3?.040:.052)*randomness;
-    d.x+=rr(-wander,wander);
-    d.z+=rr(-wander,wander);
-    d.y+=rr(-wander*.35,wander*.35);
-    d.normalize();
-
-    // A gentle arch in main wood and a little terminal droop in fine wood.
-    if(order<=2)d.y+=Math.sin(Math.PI*f)*.012;
-    if(order>=3)d.y-=Math.max(0,f-.72)*.018;
-    d.normalize();
-
-    p=p.clone().add(d.clone().multiplyScalar(len/steps));
-    pts.push(p.clone());
-  }
-  return makeBranch(pts,r0,r1,order,parent);
-}
-
-// 04. TREE ARCHITECTURE ------------------------------------------------------
-function buildTree(density){
-  branches=[];
+  let si=0,li=0,bi=0;
+  const colour=new THREE.Color();
   const golden=2.399963229728653;
 
-  const trunkPts=[
-    new THREE.Vector3(0,0,0),new THREE.Vector3(.10,1.25,.02),new THREE.Vector3(.02,2.55,.08),
-    new THREE.Vector3(-.09,3.85,.04),new THREE.Vector3(.05,5.15,-.05),new THREE.Vector3(-.11,6.45,.02),
-    new THREE.Vector3(.02,7.55,-.06),new THREE.Vector3(-.07,8.35,.02)
-  ];
-  const trunk=makeBranch(trunkPts,1.50,.36,0,null);
+  for(let i=0;i<stemCount;i++){
+    const ring=Math.sqrt((i+.45)/stemCount);
+    const az=i*golden+rr(-.18,.18);
+    const baseR=ring*rr(.08,.66)*spread;
+    const base=new THREE.Vector3(Math.cos(az)*baseR,0,Math.sin(az)*baseR);
+    const edge=THREE.MathUtils.clamp(baseR/(.66*spread),0,1);
+    const height=rr(2.35,3.20)*(1-.12*edge)+rr(-.12,.12);
+    const lean=rr(.28,.72)*spread*(.55+.70*edge);
+    const pts=stemPoints(base,az,height,lean);
 
-  // Short buttress/root hints.
-  for(let i=0;i<7;i++){
-    const az=i/7*Math.PI*2+rr(-.16,.16);
-    growFrom(trunk,.015,az,1.20,rr(1.35,2.10),rr(.22,.30),.035,1,-.10);
-  }
-
-  // Main crown: low limbs are longest, upper limbs progressively shorter.
-  const primaries=[];
-  const pc=PROFILE.primaryCount;
-  for(let i=0;i<pc;i++){
-    const u=i/(pc-1);
-    const t=.43+u*.46+rr(-.014,.014);
-    const az=i*golden+rr(-.10,.10);
-    const len=9.7-u*4.0+rr(-.30,.30);
-    const elev=.15+u*.42+rr(-.018,.018);
-    const r=radiusAt(trunk,t);
-    const p=growFrom(trunk,t,az,elev,len,r*(.63-u*.19),r*rr(.13,.19),1,.015+u*.025);
-    primaries.push({b:p,phase:az,u});
-  }
-
-  const secBase=Math.max(4,Math.round(PROFILE.secondaryCount*density/1.25));
-  const tertBase=Math.max(2,Math.round(PROFILE.tertiaryCount*density/1.25));
-
-  for(const item of primaries){
-    const primary=item.b;
-    const secondary=[];
-    const sc=secBase;
-
-    for(let j=0;j<sc;j++){
-      const f=j/(sc-1);
-      const t=.20+f*.66+rr(-.018,.018);
-      const az=item.phase+(j+.4)*golden+rr(-.16,.16);
-      const len=primary.length*rr(.20,.30)*(1-.12*f);
-      const r=radiusAt(primary,t);
-      secondary.push(growFrom(primary,t,az,rr(.42,.66),len,r*rr(.38,.50),r*rr(.10,.15),2,rr(-.02,.06)));
+    for(let s=0;s<segmentsPerStem;s++){
+      const r=.018*(1-s*.085)+rr(-.002,.002);
+      placeSegment(stems,si++,pts[s],pts[s+1],Math.max(.009,r));
     }
 
-    // A short continuation closes each primary into the crown rather than
-    // leaving a bare spoke at the end.
-    {
-      const t=.91,r=radiusAt(primary,t);
-      secondary.push(growFrom(primary,t,item.phase+.7,.30,primary.length*.22,r*.57,r*.16,2,.035));
-    }
-
-    for(let si=0;si<secondary.length;si++){
-      const sec=secondary[si];
-      const tertiary=[];
-      const tc=tertBase;
-
-      for(let k=0;k<tc;k++){
-        const f=k/(tc-1);
-        const t=.28+f*.58+rr(-.020,.020);
-        const az=item.phase+(si*.73+k)*golden+rr(-.20,.20);
-        const len=sec.length*rr(.32,.48);
-        const r=radiusAt(sec,t);
-        tertiary.push(growFrom(sec,t,az,rr(.45,.72),len,r*rr(.34,.46),r*rr(.09,.13),3,rr(-.015,.055)));
-      }
-
-      for(let ti=0;ti<tertiary.length;ti++){
-        const ter=tertiary[ti];
-        const twigs=PROFILE.twigCount;
-        for(let m=0;m<twigs;m++){
-          const t=.50+m*.34+rr(-.035,.035);
-          const az=item.phase+(si+ti+m*.8)*golden+rr(-.23,.23);
-          const len=ter.length*rr(.34,.50);
-          const r=radiusAt(ter,t);
-          growFrom(ter,t,az,rr(.38,.66),len,r*rr(.28,.38),Math.max(.003,r*.07),4,rr(-.025,.045));
-        }
-      }
-    }
-  }
-}
-
-// 05. WOOD RENDERING --------------------------------------------------------
-function tubeFor(b,segments,sides){
-  const g=new THREE.TubeGeometry(b.curve,segments,1,sides,false);
-  const pos=g.attributes.position,uv=g.attributes.uv,c=new THREE.Vector3(),v=new THREE.Vector3();
-  for(let i=0;i<pos.count;i++){
-    const t=uv.getX(i);
-    b.curve.getPointAt(t,c);
-    v.set(pos.getX(i),pos.getY(i),pos.getZ(i)).sub(c).multiplyScalar(radiusAt(b,t));
-    pos.setXYZ(i,c.x+v.x,c.y+v.y,c.z+v.z);
-  }
-  g.computeVertexNormals();
-  return g;
-}
-
-function renderWood(){
-  const major=[[],[],[]];
-  const fine=[];
-
-  for(const b of branches){
-    if(b.order<=2){
-      const idx=b.order;
-      major[idx].push(tubeFor(b,PROFILE.tubeSegments[idx],PROFILE.tubeSides[idx]));
-    }else{
-      const samples=b.order===3?3:2;
-      for(let i=0;i<samples;i++){
-        const t0=i/samples,t1=(i+1)/samples;
-        const p0=pointAt(b,t0),p1=pointAt(b,t1);
-        const len=p1.distanceTo(p0);
-        if(len>.01)fine.push({order:b.order,p0,p1,len,r:Math.max(.003,radiusAt(b,t0))});
-      }
-    }
-  }
-
-  major.forEach((arr,order)=>{
-    if(!arr.length)return;
-    const merged=mergeGeometries(arr,false);
-    arr.forEach(g=>g.dispose());
-    const mesh=new THREE.Mesh(merged,woodMats[Math.min(order,woodMats.length-1)]);
-    mesh.castShadow=PROFILE.shadows&&order<=1;
-    mesh.receiveShadow=PROFILE.shadows;
-    treeRoot.add(mesh);meshes.push(mesh);
-  });
-
-  for(const order of [3,4]){
-    const segs=fine.filter(s=>s.order===order);
-    if(!segs.length)continue;
-    const geo=new THREE.CylinderGeometry(.72,1,1,order===3?5:4,1,false);
-    const inst=new THREE.InstancedMesh(geo,woodMats[Math.min(order,woodMats.length-1)],segs.length);
-    const dummy=new THREE.Object3D(),up=new THREE.Vector3(0,1,0),dir=new THREE.Vector3(),q=new THREE.Quaternion();
-    segs.forEach((s,i)=>{
-      dir.copy(s.p1).sub(s.p0).normalize();
-      q.setFromUnitVectors(up,dir);
-      dummy.position.copy(s.p0).add(s.p1).multiplyScalar(.5);
+    // Narrow grey-green leaves, concentrated in the lower half of the stem.
+    for(let j=0;j<7;j++){
+      const t=.07+j*.068+rr(-.018,.018);
+      const f=t*6,idx=Math.min(5,Math.floor(f)),local=f-idx;
+      const pos=pts[idx].clone().lerp(pts[idx+1],local);
+      const tan=pts[idx+1].clone().sub(pts[idx]).normalize();
+      const {u,v}=frameFromTangent(tan);
+      const a=az+j*golden+rr(-.28,.28);
+      const leafDir=u.multiplyScalar(Math.cos(a)).add(v.multiplyScalar(Math.sin(a))).multiplyScalar(.82).add(tan.clone().multiplyScalar(rr(.05,.22))).normalize();
+      q.setFromUnitVectors(UP,leafDir);
+      dummy.position.copy(pos).addScaledVector(leafDir,.12);
       dummy.quaternion.copy(q);
-      dummy.scale.set(s.r,s.len,s.r);
+      dummy.rotateY(rr(-.8,.8));
+      const ls=rr(.62,1.08)*(1-.055*j);
+      dummy.scale.set(rr(.72,1.00),ls,1);
       dummy.updateMatrix();
-      inst.setMatrixAt(i,dummy.matrix);
-    });
-    inst.instanceMatrix.needsUpdate=true;
-    inst.castShadow=false;inst.receiveShadow=false;
-    treeRoot.add(inst);meshes.push(inst);
-  }
-}
+      leaves.setMatrixAt(li++,dummy.matrix);
+    }
 
-// 06. LEAVES ---------------------------------------------------------------
-function oakLeafGeometry(){
-  const s=new THREE.Shape();
-  s.moveTo(0,-.10);s.lineTo(.018,0);s.lineTo(.10,.08);s.lineTo(.16,.16);s.lineTo(.10,.23);
-  s.lineTo(.21,.32);s.lineTo(.13,.41);s.lineTo(.23,.50);s.lineTo(.13,.59);s.lineTo(.19,.69);
-  s.lineTo(.09,.78);s.lineTo(.10,.88);s.lineTo(0,1.0);s.lineTo(-.10,.88);s.lineTo(-.09,.78);
-  s.lineTo(-.19,.69);s.lineTo(-.13,.59);s.lineTo(-.23,.50);s.lineTo(-.13,.41);s.lineTo(-.21,.32);
-  s.lineTo(-.10,.23);s.lineTo(-.16,.16);s.lineTo(-.10,.08);s.lineTo(-.018,0);s.closePath();
-  return new THREE.ShapeGeometry(s);
-}
-
-function renderLeaves(mult){
-  // Prefer fine branches as leaf-bearing anchors. A fixed cap avoids mobile OOM.
-  const anchors=branches.filter(b=>b.order>=3);
-  if(!anchors.length)return;
-  const requested=Math.floor(PROFILE.maxLeaves*THREE.MathUtils.clamp(mult/1.35,.65,1.35));
-  const capacity=Math.min(PROFILE.maxLeaves,Math.max(mobileMode?9000:18000,requested));
-  const geo=oakLeafGeometry();
-  const inst=new THREE.InstancedMesh(geo,leafMat,capacity);
-  const dummy=new THREE.Object3D(),q=new THREE.Quaternion(),spinQ=new THREE.Quaternion();
-  const up=new THREE.Vector3(0,1,0),pos=new THREE.Vector3(),offset=new THREE.Vector3(),out=new THREE.Vector3(),leafDir=new THREE.Vector3();
-  const col=new THREE.Color();
-
-  let k=0;
-  const per=Math.max(3,Math.ceil(capacity/anchors.length));
-  for(let bi=0;bi<anchors.length&&k<capacity;bi++){
-    const b=anchors[bi];
-    const n=Math.min(per+(bi%5===0?1:0),capacity-k);
-    for(let i=0;i<n;i++,k++){
-      const t=THREE.MathUtils.clamp(.30+(i/Math.max(1,n-1))*.68+rr(-.07,.07),.20,.998);
-      const p=pointAt(b,t),tan=tangentAt(b,t),{u,v}=frameAt(b,t);
-      const a=rr(0,Math.PI*2),rad=rr(.07,.23)*(b.order===3?1.25:1);
-      offset.copy(u).multiplyScalar(Math.cos(a)*rad).addScaledVector(v,Math.sin(a)*rad*rr(.75,1.18)).addScaledVector(tan,rr(-.04,.10));
-      pos.copy(p).add(offset);
-
-      // Keep foliage close to the dome surface at the top and shoulders.
-      const radial=Math.hypot(pos.x,pos.z),top=crownTop(radial);
-      if(pos.y>top)pos.y=top-rr(.03,.18);
-
-      out.copy(offset).normalize();
-      leafDir.copy(tan).multiplyScalar(.28).addScaledVector(out,.72).add(new THREE.Vector3(0,rr(-.02,.10),0)).normalize();
-      q.setFromUnitVectors(up,leafDir);
-      spinQ.setFromAxisAngle(leafDir,rr(0,Math.PI*2));
-      q.premultiply(spinQ);
-      dummy.position.copy(pos);dummy.quaternion.copy(q);
-      const sc=rr(.14,.205);
-      dummy.scale.set(sc*rr(.88,1.12),sc*rr(.95,1.15),sc);
+    // Flower spike: many tiny buds wrapped helically around the upper stem.
+    const wanted=Math.max(7,Math.round(PROFILE.budsPerStem*(.72+.45*bloom)*rr(.88,1.08)));
+    for(let j=0;j<wanted&&bi<maxBuds;j++){
+      const ft=.69+(j/Math.max(1,wanted-1))*.285;
+      const f=ft*6,idx=Math.min(5,Math.floor(f)),local=f-idx;
+      const centre=pts[idx].clone().lerp(pts[idx+1],local);
+      const tan=pts[idx+1].clone().sub(pts[idx]).normalize();
+      const {u,v}=frameFromTangent(tan);
+      const a=j*golden+az+rr(-.24,.24);
+      const taper=1-(j/Math.max(1,wanted-1))*.42;
+      const radial=rr(.040,.075)*taper;
+      centre.addScaledVector(u,Math.cos(a)*radial).addScaledVector(v,Math.sin(a)*radial);
+      dummy.position.copy(centre);
+      dummy.quaternion.setFromUnitVectors(UP,tan);
+      const bs=rr(.80,1.18)*(.88+.16*bloom);
+      dummy.scale.set(.045*bs,.070*bs,.045*bs);
       dummy.updateMatrix();
-      inst.setMatrixAt(k,dummy.matrix);
-      const light=rr(.85,1.15);
-      col.setRGB(.17*light,.36*light,.14*light);
-      inst.setColorAt(k,col);
+      buds.setMatrixAt(bi,dummy.matrix);
+      const light=rr(.90,1.10),top=j/wanted;
+      colour.setRGB(.47*light+.10*top,.31*light+.05*top,.73*light+.12*top);
+      buds.setColorAt(bi,colour);
+      bi++;
     }
   }
-  inst.count=k;
-  inst.instanceMatrix.needsUpdate=true;
-  if(inst.instanceColor)inst.instanceColor.needsUpdate=true;
-  inst.castShadow=false;inst.receiveShadow=false;
-  treeRoot.add(inst);meshes.push(inst);
-}
 
-// 07. GENERATION / UI -------------------------------------------------------
-function clearTree(){
-  for(const m of meshes){
-    if(m.geometry)m.geometry.dispose();
-    treeRoot.remove(m);
+  stems.count=si;leaves.count=li;buds.count=bi;
+  stems.instanceMatrix.needsUpdate=true;leaves.instanceMatrix.needsUpdate=true;buds.instanceMatrix.needsUpdate=true;
+  if(buds.instanceColor)buds.instanceColor.needsUpdate=true;
+  addGenerated(stems);addGenerated(leaves);addGenerated(buds);
+
+  // Dense basal foliage fills the centre so it reads as a lavender mound, not bare sticks.
+  const basalCount=mobileMode?150:230;
+  const basal=new THREE.InstancedMesh(new THREE.PlaneGeometry(.16,.58),new THREE.MeshLambertMaterial({color:0x82966a,side:THREE.DoubleSide}),basalCount);
+  for(let i=0;i<basalCount;i++){
+    const a=i*golden+rr(-.25,.25),r=Math.sqrt(rnd())*.72*spread;
+    const pos=new THREE.Vector3(Math.cos(a)*r,rr(.05,.42),Math.sin(a)*r);
+    const out=new THREE.Vector3(Math.cos(a),rr(.16,.55),Math.sin(a)).normalize();
+    q.setFromUnitVectors(UP,out);
+    dummy.position.copy(pos);dummy.quaternion.copy(q);dummy.rotateY(rr(-1,1));dummy.scale.set(rr(.78,1.06),rr(.66,1.08),1);dummy.updateMatrix();
+    basal.setMatrixAt(i,dummy.matrix);
   }
-  meshes=[];
-  while(treeRoot.children.length)treeRoot.remove(treeRoot.children[0]);
+  basal.instanceMatrix.needsUpdate=true;basal.castShadow=false;
+  addGenerated(basal);
 }
 
-let generationToken=0;
+// 05. UI / LOOP --------------------------------------------------------------
 function generate(){
-  const token=++generationToken;
-  const status=document.querySelector('#status');
-  status.textContent=mobileMode?'Growing oak · mobile detail…':'Growing oak…';
-  status.style.display='block';
-
-  // Give the browser one frame to paint the loading message before doing work.
-  requestAnimationFrame(()=>setTimeout(()=>{
-    if(token!==generationToken)return;
-    clearTree();
+  const status=document.querySelector('#status');status.style.display='block';
+  setTimeout(()=>{
+    clearPlant();
     randomness=+document.querySelector('#randomInput').value;
     reset(+document.querySelector('#seedInput').value);
-    const density=+document.querySelector('#densityInput').value;
-    const leafMult=+document.querySelector('#leafInput').value;
-    buildTree(density);
-    renderWood();
-    renderLeaves(leafMult);
+    buildLavender(+document.querySelector('#densityInput').value,+document.querySelector('#flowerInput').value,+document.querySelector('#spreadInput').value);
     status.style.display='none';
-    console.log(`oak: ${branches.length} axes · ${mobileMode?'mobile':'desktop'} profile`);
-  },24));
+  },20);
 }
 
 document.querySelector('#gear').onclick=()=>document.querySelector('#panel').classList.toggle('show');
@@ -423,12 +216,7 @@ document.querySelector('#regen').onclick=generate;
 document.querySelector('#newSeed').onclick=()=>{document.querySelector('#seedInput').value=Math.floor(1+Math.random()*999999999);generate()};
 
 function animate(){controls.update();renderer.render(scene,camera);requestAnimationFrame(animate)}
-animate();
-generate();
+animate();generate();
 
-addEventListener('resize',()=>{
-  camera.aspect=innerWidth/innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(innerWidth,innerHeight);
-});
+addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
 setTimeout(()=>document.querySelector('#hint').style.opacity=.24,6000);
