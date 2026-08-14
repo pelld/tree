@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Tree — English oak</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#d9e4d2;font-family:system-ui,-apple-system,sans-serif;color:#172117}canvas{display:block;touch-action:none}
+#title{position:fixed;left:18px;top:15px;z-index:2;pointer-events:none}#title b{display:block;font:600 22px Georgia,serif}#title span{font-size:12px;opacity:.68;font-style:italic}
+#info{position:fixed;right:14px;top:14px;width:min(290px,calc(100vw - 28px));padding:13px 15px;background:#fffffff0;border:1px solid #ffffff;border-radius:12px;box-shadow:0 5px 24px #0002;z-index:3;display:none}#info strong{font-family:Georgia,serif;font-size:18px}#info p{font-size:13px;line-height:1.42;margin:7px 0 0;color:#435043}
+#hint{position:fixed;bottom:15px;left:50%;transform:translateX(-50%);background:#172117d9;color:white;border-radius:20px;padding:8px 13px;font-size:12px;z-index:2;white-space:nowrap;pointer-events:none}
+#scale{position:fixed;left:18px;bottom:18px;font:11px ui-monospace,monospace;opacity:.65;z-index:2;pointer-events:none}
+@media(max-width:600px){#info{top:auto;bottom:55px}#hint{font-size:11px}}
+</style>
+</head><body>
+<div id="title"><b>English oak</b><span>Quercus robur</span></div><div id="info"><strong id="infoname"></strong><p id="infotext"></p></div><div id="scale"></div><div id="hint">Drag to rotate · pinch / scroll to explore · tap a part</div>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.179.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.179.1/examples/jsm/"}}</script>
+<script type="module">
+import * as THREE from 'three';
+import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
+
+// 01 — SCENE
+const scene=new THREE.Scene();scene.background=new THREE.Color(0xdce6d6);scene.fog=new THREE.FogExp2(0xdce6d6,.012);
+const camera=new THREE.PerspectiveCamera(42,innerWidth/innerHeight,.025,300);camera.position.set(18,11,25);
+const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.setSize(innerWidth,innerHeight);renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.outputColorSpace=THREE.SRGBColorSpace;document.body.prepend(renderer.domElement);
+const controls=new OrbitControls(camera,renderer.domElement);controls.target.set(0,7,0);controls.enableDamping=true;controls.dampingFactor=.06;controls.minDistance=.15;controls.maxDistance=65;controls.zoomToCursor=true;
+scene.add(new THREE.HemisphereLight(0xeaf3df,0x75634d,2.0));const sun=new THREE.DirectionalLight(0xfff2d5,2.5);sun.position.set(-12,24,10);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);sun.shadow.camera.left=-18;sun.shadow.camera.right=18;sun.shadow.camera.top=25;sun.shadow.camera.bottom=-8;scene.add(sun);
+const ground=new THREE.Mesh(new THREE.CircleGeometry(45,80),new THREE.MeshStandardMaterial({color:0x819067,roughness:1}));ground.rotation.x=-Math.PI/2;ground.receiveShadow=true;scene.add(ground);
+
+// 02 — MATERIALS
+const bark=new THREE.MeshStandardMaterial({color:0x49382b,roughness:1});const twigMat=new THREE.MeshStandardMaterial({color:0x59432f,roughness:.95});const leafMat=new THREE.MeshStandardMaterial({color:0x355f2c,roughness:.82,side:THREE.DoubleSide});const budMat=new THREE.MeshStandardMaterial({color:0x6d4c2e,roughness:.8});
+const pickables=[];const branchNodes=[];let seed=1947;const rnd=()=>{seed=(seed*16807)%2147483647;return(seed-1)/2147483646};const jitter=a=>(rnd()-.5)*a;
+
+// 03 — BIOLOGICAL GEOMETRY HELPERS
+function segment(a,b,r0,r1,mat=bark,name='Branch',text='A woody axis of the crown, carrying progressively smaller branches and twigs.'){
+ const d=new THREE.Vector3().subVectors(b,a),len=d.length(),mid=a.clone().add(b).multiplyScalar(.5);const g=new THREE.CylinderGeometry(r1,r0,len,Math.max(6,Math.min(14,Math.round(r0*20))),3);const m=new THREE.Mesh(g,mat);m.position.copy(mid);m.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),d.clone().normalize());m.castShadow=true;m.receiveShadow=true;m.userData={name,text};scene.add(m);pickables.push(m);return m;
+}
+function leafShape(){const s=new THREE.Shape();s.moveTo(0,-.55);const pts=[[.18,-.42],[.32,-.28],[.22,-.14],[.43,0],[.26,.14],[.39,.29],[.18,.38],[0,.58],[-.18,.38],[-.39,.29],[-.26,.14],[-.43,0],[-.22,-.14],[-.32,-.28],[-.18,-.42]];pts.forEach(p=>s.lineTo(...p));s.lineTo(0,-.55);return new THREE.ShapeGeometry(s,1);}
+const leafGeo=leafShape();
+function addLeaf(p,dir,scale=.55){const m=new THREE.Mesh(leafGeo,leafMat);m.position.copy(p);m.scale.setScalar(scale*(.8+rnd()*.35));m.rotation.set(jitter(.7),rnd()*Math.PI*2,jitter(.5));m.castShadow=true;m.userData={name:'Leaf',text:'A lobed English oak leaf. Its network of veins carries water into the leaf and transports sugars away from photosynthetic tissue.'};scene.add(m);pickables.push(m);const vein=new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,-.48,.006),new THREE.Vector3(0,.48,.006)]),new THREE.LineBasicMaterial({color:0xa3b56e}));m.add(vein);}
+function addBud(p,dir){const g=new THREE.SphereGeometry(.075,7,6);g.scale(.72,1.5,.72);const m=new THREE.Mesh(g,budMat);m.position.copy(p);m.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),dir);m.userData={name:'Bud',text:'A compact growing shoot protected by overlapping bud scales. Oak buds cluster characteristically near twig tips.'};scene.add(m);pickables.push(m);}
+
+// 04 — TRUNK: tapered, irregular and deliberately asymmetric
+let trunkPts=[];for(let i=0;i<=11;i++){const y=i*1.05;trunkPts.push(new THREE.Vector3(Math.sin(i*.63)*.13,y,Math.sin(i*.41)*.11));if(i>0)segment(trunkPts[i-1],trunkPts[i],Math.max(.42,1.02-i*.055),Math.max(.37,.98-i*.057),bark,'Trunk','The main woody stem. Beneath the protective bark lie phloem, cambium and water-conducting xylem. Future versions will allow this trunk to be opened layer by layer.');}
+// basal buttresses / visible root flare
+for(let i=0;i<9;i++){const a=i/9*Math.PI*2,root0=new THREE.Vector3(Math.cos(a)*.48,.3,Math.sin(a)*.48),root1=new THREE.Vector3(Math.cos(a)*(2+rnd()*2),.05,Math.sin(a)*(2+rnd()*2));segment(root0,root1,.32,.07,bark,'Root','A structural root radiating from the root flare. The root system will later continue underground into fine roots and root hairs.');}
+
+// 05 — RECURSIVE CROWN. Every visible twig has an actual parent branch.
+function grow(start,dir,len,radius,depth){
+ const bend=new THREE.Vector3(jitter(.35),.12+rnd()*.28,jitter(.35));const end=start.clone().add(dir.clone().add(bend).normalize().multiplyScalar(len));segment(start,end,radius,radius*.61,depth>1?bark:twigMat,depth<=1?'Twig':'Branch',depth<=1?'A current or recent woody shoot. Look closely for terminal buds and leaves attached at nodes.':'A woody branch forming part of the oak’s hierarchical crown.');branchNodes.push({start,end,depth});
+ if(depth<=0){const d=dir.clone().normalize();addBud(end,d);for(let k=0;k<2+Math.floor(rnd()*3);k++){const t=.35+k*.18;const lp=start.clone().lerp(end,Math.min(.9,t)).add(new THREE.Vector3(jitter(.15),jitter(.12),jitter(.15)));addLeaf(lp,d,.38+rnd()*.22)}return}
+ const children=depth>=3?3:2+(rnd()>.58?1:0);for(let i=0;i<children;i++){let nd=dir.clone();nd.x+=jitter(1.35);nd.z+=jitter(1.35);nd.y+=depth>2?jitter(.3):jitter(.55);nd.normalize();grow(end,nd,len*(.62+rnd()*.12),radius*.62,depth-1)}
+}
+const origins=[{y:3.5,n:3},{y:5,n:4},{y:6.5,n:5},{y:8,n:5},{y:9.3,n:5},{y:10.5,n:4}];
+origins.forEach((o,ring)=>{for(let j=0;j<o.n;j++){const ang=(j/o.n)*Math.PI*2+ring*.72+jitter(.4);const rise=.18+rnd()*.34;const dir=new THREE.Vector3(Math.cos(ang)*(1-rise),rise,Math.sin(ang)*(1-rise)).normalize();const p=new THREE.Vector3(Math.sin(o.y*.6)*.13,o.y,Math.sin(o.y*.39)*.11);grow(p,dir,2.6+rnd()*1.8,.27-(ring*.015),3)}});
+
+// 06 — SELECTION / INSPECTION
+const ray=new THREE.Raycaster(),mouse=new THREE.Vector2(),info=document.querySelector('#info');renderer.domElement.addEventListener('pointerup',e=>{if(Math.abs(e.movementX)>4||Math.abs(e.movementY)>4)return;mouse.x=e.clientX/innerWidth*2-1;mouse.y=-(e.clientY/innerHeight)*2+1;ray.setFromCamera(mouse,camera);const hit=ray.intersectObjects(pickables,false)[0];if(hit){document.querySelector('#infoname').textContent=hit.object.userData.name;document.querySelector('#infotext').textContent=hit.object.userData.text;info.style.display='block'}else info.style.display='none'});
+
+// 07 — SCALE / RENDER
+const scale=document.querySelector('#scale');function animate(){controls.update();const d=camera.position.distanceTo(controls.target);scale.textContent=d<2?'MACRO VIEW':d<8?'BRANCH VIEW':'WHOLE TREE';renderer.render(scene,camera);requestAnimationFrame(animate)}animate();
+addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
+setTimeout(()=>document.querySelector('#hint').style.opacity=.35,6000);
+</script></body></html>
