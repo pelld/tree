@@ -119,39 +119,41 @@ function decoratePrimary(primary,phase,density=1,upperness=0){
 function buildTree(density){branches.length=0;const trunkPts=[new THREE.Vector3(0,0,0),new THREE.Vector3(.08,1.4,.02),new THREE.Vector3(.02,2.8,.08),new THREE.Vector3(-.08,4.2,.05),new THREE.Vector3(.04,5.6,-.04),new THREE.Vector3(-.12,7.0,.02),new THREE.Vector3(.02,8.4,-.06),new THREE.Vector3(-.10,9.7,.02),new THREE.Vector3(.04,10.6,.00)],trunk=branch(trunkPts,1.42,.34,0,null);for(let i=0;i<7;i++){const az=i/7*Math.PI*2+rr(-.18,.18),dir=worldDir(az,rr(-.06,-.015));growAxis(trunk,.02,dir,rr(1.4,2.3),rr(.20,.28),.035,1,{droop:.06,wander:.25,elbow:rr(-.05,.05)})}const primaries=[],specs=[{t:.34,az:3.28,e:.12,len:8.8,b:.58,u:0,d:.025},{t:.39,az:.12,e:.10,len:8.1,b:.55,u:0,d:.018},{t:.44,az:1.60,e:.08,len:7.4,b:.49,u:.05,d:.020},{t:.50,az:4.45,e:.18,len:8.0,b:.52,u:.15,d:.010},{t:.56,az:.78,e:.20,len:7.7,b:.50,u:.20,d:.006},{t:.61,az:5.55,e:.23,len:6.9,b:.46,u:.30,d:0},{t:.67,az:2.45,e:.30,len:6.4,b:.44,u:.42,d:0},{t:.72,az:.02,e:.34,len:6.1,b:.43,u:.50,d:0}];for(const s of specs){const r=radiusAt(trunk,s.t),dir=worldDir(s.az+jit(.18),s.e+jit(.05)),p=growAxis(trunk,s.t,dir,s.len*rr(.95,1.05),r*s.b,r*rr(.16,.22),1,{lateRise:s.u*.05,droop:s.d||0,wander:.34,elbow:rr(-.10,.10)});primaries.push({p,phase:s.az,u:s.u})}const rt=radiusAt(trunk,.985),leader=growAxis(trunk,.985,worldDir(1.15,.78),5.2,rt*.88,rt*.16,1,{lateRise:.04,wander:.28,elbow:.05}),coleader=growAxis(trunk,.84,worldDir(3.75,.62),4.7,radiusAt(trunk,.84)*.52,.10,1,{lateRise:.05,wander:.30,elbow:-.06});primaries.push({p:leader,phase:1.15,u:.85},{p:coleader,phase:3.75,u:.75});primaries.forEach(x=>decoratePrimary(x.p,x.phase,density,x.u))}
 
 function oakLeafGeometry(){const s=new THREE.Shape();s.moveTo(0,-.12);s.lineTo(.018,0);s.lineTo(.10,.07);s.lineTo(.16,.15);s.lineTo(.10,.22);s.lineTo(.22,.31);s.lineTo(.13,.40);s.lineTo(.24,.50);s.lineTo(.13,.59);s.lineTo(.20,.69);s.lineTo(.09,.78);s.lineTo(.11,.88);s.lineTo(0,1.0);s.lineTo(-.10,.88);s.lineTo(-.08,.78);s.lineTo(-.20,.69);s.lineTo(-.13,.59);s.lineTo(-.25,.50);s.lineTo(-.14,.40);s.lineTo(-.22,.31);s.lineTo(-.11,.22);s.lineTo(-.17,.15);s.lineTo(-.09,.07);s.lineTo(-.018,0);s.closePath();const g=new THREE.ShapeGeometry(s);g.computeVertexNormals();return g}
+
 function renderLeaves(mult){
-  const terminals=branches.filter(b=>b.order===4),maxLeaves=82000;
+  const terminals=branches.filter(b=>b.order===4),maxLeaves=110000;
   if(!terminals.length)return;
-  const g=oakLeafGeometry(),mat=new THREE.MeshStandardMaterial({color:0x355f29,roughness:.86,side:THREE.DoubleSide}),inst=new THREE.InstancedMesh(g,mat,maxLeaves),dummy=new THREE.Object3D(),q=new THREE.Quaternion(),spinQ=new THREE.Quaternion(),up=new THREE.Vector3(0,1,0),center=new THREE.Vector3(),pos=new THREE.Vector3(),offset=new THREE.Vector3(),outward=new THREE.Vector3(),leafDir=new THREE.Vector3(),col=new THREE.Color();
+  const capacity=Math.min(maxLeaves,Math.max(terminals.length*14,Math.floor(terminals.length*34*mult)));
+  const perTerminal=Math.max(12,Math.min(38,Math.floor(capacity/terminals.length)));
+  const g=oakLeafGeometry(),mat=new THREE.MeshStandardMaterial({color:0x355f29,roughness:.86,side:THREE.DoubleSide}),inst=new THREE.InstancedMesh(g,mat,capacity),dummy=new THREE.Object3D(),q=new THREE.Quaternion(),spinQ=new THREE.Quaternion(),up=new THREE.Vector3(0,1,0),center=new THREE.Vector3(),pos=new THREE.Vector3(),offset=new THREE.Vector3(),outward=new THREE.Vector3(),leafDir=new THREE.Vector3(),col=new THREE.Color();
   let k=0;
-  for(const b of terminals){
-    const branchWeight=THREE.MathUtils.clamp(b.length/.9,.72,1.28),sprays=3+(rnd()<.65?1:0);
-    for(let s=0;s<sprays&&k<maxLeaves;s++){
-      const ct=THREE.MathUtils.clamp(.56+(s/Math.max(1,sprays-1))*.39+rr(-.05,.05),.48,.995),tTan=tangentAt(b,ct),{u,v}=frameAt(b,ct);
-      center.copy(pointAt(b,ct)).addScaledVector(tTan,rr(.03,.14));
-      const radius=rr(.14,.25)*mult*branchWeight*(.78+ct*.35),leavesInSpray=Math.round(rr(14,24)*mult);
-      for(let i=0;i<leavesInSpray&&k<maxLeaves;i++,k++){
-        const a=rr(0,Math.PI*2),shell=radius*Math.pow(rnd(),.68);
-        offset.copy(u).multiplyScalar(Math.cos(a)*shell).addScaledVector(v,Math.sin(a)*shell*rr(.65,1.15)).addScaledVector(tTan,rr(-radius*.28,radius*.52));
+  const ordered=[...terminals].sort((a,b)=>pointAt(b,.9).y-pointAt(a,.9).y);
+  for(const b of ordered){
+    const branchWeight=THREE.MathUtils.clamp(b.length/.9,.78,1.18),tipPos=pointAt(b,.9),upperBoost=THREE.MathUtils.clamp((tipPos.y-8.0)/7.0,0,1),target=Math.max(10,Math.min(perTerminal+Math.round(upperBoost*5),capacity-k)),sprays=target>=26?3:2;
+    let used=0;
+    for(let s=0;s<sprays&&used<target&&k<capacity;s++){
+      const ct=THREE.MathUtils.clamp(.52+(s/Math.max(1,sprays-1))*.40+rr(-.04,.04),.45,.96),tTan=tangentAt(b,ct),{u,v}=frameAt(b,ct);
+      center.copy(pointAt(b,ct)).addScaledVector(tTan,rr(.02,.10));
+      const radius=rr(.13,.21)*mult*branchWeight*(.82+ct*.25),left=target-used,leavesInSpray=Math.max(4,Math.min(left-(s===sprays-1?0:6),Math.round(left/(sprays-s))));
+      for(let i=0;i<leavesInSpray&&used<target&&k<capacity;i++,used++,k++){
+        const a=rr(0,Math.PI*2),shell=radius*Math.pow(rnd(),.70);
+        offset.copy(u).multiplyScalar(Math.cos(a)*shell).addScaledVector(v,Math.sin(a)*shell*rr(.68,1.08)).addScaledVector(tTan,rr(-radius*.22,radius*.48));
         pos.copy(center).add(offset);outward.copy(offset).normalize();
-        leafDir.copy(tTan).multiplyScalar(rr(.10,.30)).addScaledVector(outward,rr(.68,1.05)).add(new THREE.Vector3(0,rr(-.05,.18),0)).normalize();
+        leafDir.copy(tTan).multiplyScalar(rr(.12,.30)).addScaledVector(outward,rr(.72,1.03)).add(new THREE.Vector3(0,rr(-.04,.16),0)).normalize();
         q.setFromUnitVectors(up,leafDir);spinQ.setFromAxisAngle(leafDir,rr(0,Math.PI*2));q.premultiply(spinQ);
-        dummy.position.copy(pos);dummy.quaternion.copy(q);const sc=rr(.14,.22);dummy.scale.set(sc*rr(.84,1.16),sc*rr(.94,1.22),sc);dummy.updateMatrix();inst.setMatrixAt(k,dummy.matrix);
+        dummy.position.copy(pos);dummy.quaternion.copy(q);const sc=rr(.135,.205);dummy.scale.set(sc*rr(.86,1.14),sc*rr(.94,1.18),sc);dummy.updateMatrix();inst.setMatrixAt(k,dummy.matrix);
         const light=rr(.88,1.16);col.setRGB(.18*light,.38*light,.15*light);inst.setColorAt(k,col);
       }
     }
-    if(k<maxLeaves){
-      const tt=.992,tipTan=tangentAt(b,tt),{u:tu,v:tv}=frameAt(b,tt);center.copy(pointAt(b,tt)).addScaledVector(tipTan,rr(.04,.12));
-      const tipRadius=rr(.10,.16)*mult*branchWeight,tipLeaves=Math.round(rr(10,16)*mult);
-      for(let i=0;i<tipLeaves&&k<maxLeaves;i++,k++){
-        const a=rr(0,Math.PI*2),shell=tipRadius*Math.pow(rnd(),.72);
-        offset.copy(tu).multiplyScalar(Math.cos(a)*shell).addScaledVector(tv,Math.sin(a)*shell*rr(.7,1.1)).addScaledVector(tipTan,rr(-tipRadius*.12,tipRadius*.42));
-        pos.copy(center).add(offset);outward.copy(offset).normalize();
-        leafDir.copy(tipTan).multiplyScalar(rr(.12,.28)).addScaledVector(outward,rr(.72,1.08)).add(new THREE.Vector3(0,rr(-.04,.16),0)).normalize();
-        q.setFromUnitVectors(up,leafDir);spinQ.setFromAxisAngle(leafDir,rr(0,Math.PI*2));q.premultiply(spinQ);
-        dummy.position.copy(pos);dummy.quaternion.copy(q);const sc=rr(.14,.21);dummy.scale.set(sc*rr(.86,1.14),sc*rr(.94,1.20),sc);dummy.updateMatrix();inst.setMatrixAt(k,dummy.matrix);
-        const light=rr(.90,1.18);col.setRGB(.19*light,.40*light,.16*light);inst.setColorAt(k,col);
-      }
+    while(used<target&&k<capacity){
+      const tt=rr(.90,.998),tipTan=tangentAt(b,tt),{u:tu,v:tv}=frameAt(b,tt),a=rr(0,Math.PI*2),tipRadius=rr(.08,.14)*mult*branchWeight,shell=tipRadius*Math.pow(rnd(),.72);
+      center.copy(pointAt(b,tt)).addScaledVector(tipTan,rr(.02,.09));
+      offset.copy(tu).multiplyScalar(Math.cos(a)*shell).addScaledVector(tv,Math.sin(a)*shell*rr(.72,1.08)).addScaledVector(tipTan,rr(-tipRadius*.08,tipRadius*.38));
+      pos.copy(center).add(offset);outward.copy(offset).normalize();
+      leafDir.copy(tipTan).multiplyScalar(rr(.14,.30)).addScaledVector(outward,rr(.72,1.08)).add(new THREE.Vector3(0,rr(-.03,.15),0)).normalize();
+      q.setFromUnitVectors(up,leafDir);spinQ.setFromAxisAngle(leafDir,rr(0,Math.PI*2));q.premultiply(spinQ);
+      dummy.position.copy(pos);dummy.quaternion.copy(q);const sc=rr(.135,.20);dummy.scale.set(sc*rr(.87,1.13),sc*rr(.95,1.17),sc);dummy.updateMatrix();inst.setMatrixAt(k,dummy.matrix);
+      const light=rr(.90,1.18);col.setRGB(.19*light,.40*light,.16*light);inst.setColorAt(k,col);used++;k++;
     }
   }
   inst.count=k;inst.instanceMatrix.needsUpdate=true;if(inst.instanceColor)inst.instanceColor.needsUpdate=true;inst.castShadow=false;inst.receiveShadow=true;treeRoot.add(inst);meshes.push(inst);
