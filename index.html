@@ -80,9 +80,9 @@ lobes.forEach((l,i)=>{const base=anchors[i];const secondary=11+Math.floor(rnd()*
 const unitGeos=[new THREE.CylinderGeometry(.78,1,1,9,1,false),new THREE.CylinderGeometry(.72,1,1,7,1,false),new THREE.CylinderGeometry(.66,1,1,5,1,false)],branchMats=[oldBranchMat,oldBranchMat,youngBranchMat];
 branchBuckets.forEach((items,b)=>{if(!items.length)return;const inst=new THREE.InstancedMesh(unitGeos[b],branchMats[b],items.length);inst.castShadow=b<2;inst.receiveShadow=b===0;items.forEach((s,k)=>{delta.subVectors(s.b,s.a);mid.copy(s.a).add(s.b).multiplyScalar(.5);quat.setFromUnitVectors(up,delta.clone().normalize());scaleV.set(s.r,delta.length(),s.r);matrix.compose(mid,quat,scaleV);inst.setMatrixAt(k,matrix)});inst.instanceMatrix.needsUpdate=true;scene.add(inst)});
 
-// 10 — FULL SUMMER OAK FOLIAGE. Keep the 108k leaf budget, but distribute it as one crown rather than separate balls.
+// 10 — FULL SUMMER OAK FOLIAGE. Keep the 160k leaf budget, but distribute it as one crown rather than separate balls.
 function makeLeaf(){const s=new THREE.Shape();s.moveTo(0,-.50);[[.10,-.46],[.23,-.44],[.30,-.34],[.23,-.27],[.42,-.17],[.45,-.05],[.31,.04],[.42,.16],[.37,.27],[.20,.31],[.27,.42],[.13,.51],[0,.60],[-.13,.51],[-.27,.42],[-.20,.31],[-.37,.27],[-.42,.16],[-.31,.04],[-.45,-.05],[-.42,-.17],[-.23,-.27],[-.30,-.34],[-.23,-.44],[-.10,-.46]].forEach(v=>s.lineTo(...v));return new THREE.ShapeGeometry(s)}
-const leafGeo=makeLeaf(),leafSpecs=leafMats.map(()=>[]);let leafCount=0;const MAX_LEAVES=108000;
+const leafGeo=makeLeaf(),leafSpecs=leafMats.map(()=>[]);let leafCount=0;const MAX_LEAVES=160000;
 function addLeaf(p,size,tiltBias=0){if(leafCount>=MAX_LEAVES)return;const e=new THREE.Euler(Math.PI*.5+j(.85)+tiltBias,rnd()*6.283,j(.70)),q=new THREE.Quaternion().setFromEuler(e);const sx=size*(.72+rnd()*.42),sy=size*(.82+rnd()*.30);leafSpecs[Math.floor(rnd()*leafSpecs.length)].push({p:p.clone(),q,s:new THREE.Vector3(sx,sy,size)});leafCount++}
 
 // 10A — Dense local foliage, pushed deeper into each lobe and slightly expanded so neighbouring masses overlap.
@@ -94,9 +94,11 @@ bridgePairs.forEach(pair=>{const A=lobes[pair.a],B=lobes[pair.b],avg=new THREE.V
 
 // 10C — A broad irregular crown envelope fills the remaining slots, but only close to the existing oak canopy.
 const crownCentre=new THREE.Vector3(0,9.35,.1),crownR=new THREE.Vector3(9.0,4.7,8.3);let attempts=0;
-while(leafCount<MAX_LEAVES&&attempts<90000){attempts++;const theta=rnd()*6.283,z=2*rnd()-1,ring=Math.sqrt(Math.max(0,1-z*z)),shell=.18+.82*Math.pow(rnd(),.66),p=crownCentre.clone().add(new THREE.Vector3(Math.cos(theta)*ring*crownR.x*shell,z*crownR.y*shell,Math.sin(theta)*ring*crownR.z*shell));let nearest=99;for(const l of lobes){const dx=(p.x-l.c.x)/(l.r.x*1.28),dy=(p.y-l.c.y)/(l.r.y*1.28),dz=(p.z-l.c.z)/(l.r.z*1.28);nearest=Math.min(nearest,dx*dx+dy*dy+dz*dz)}if(nearest<1.12){p.x+=j(.15);p.y+=j(.10);p.z+=j(.15);addLeaf(p,.108+rnd()*.050,j(.08))}}
+while(leafCount<MAX_LEAVES&&attempts<220000){attempts++;const theta=rnd()*6.283,z=2*rnd()-1,ring=Math.sqrt(Math.max(0,1-z*z)),shell=.18+.82*Math.pow(rnd(),.66),p=crownCentre.clone().add(new THREE.Vector3(Math.cos(theta)*ring*crownR.x*shell,z*crownR.y*shell,Math.sin(theta)*ring*crownR.z*shell));let nearest=99;for(const l of lobes){const dx=(p.x-l.c.x)/(l.r.x*1.28),dy=(p.y-l.c.y)/(l.r.y*1.28),dz=(p.z-l.c.z)/(l.r.z*1.28);nearest=Math.min(nearest,dx*dx+dy*dy+dz*dz)}if(nearest<1.12){p.x+=j(.15);p.y+=j(.10);p.z+=j(.15);addLeaf(p,.108+rnd()*.050,j(.08))}}
 
-leafSpecs.forEach((items,i)=>{if(!items.length)return;const inst=new THREE.InstancedMesh(leafGeo,leafMats[i],items.length);inst.castShadow=false;items.forEach((v,k)=>{matrix.compose(v.p,v.q,v.s);inst.setMatrixAt(k,matrix)});inst.instanceMatrix.needsUpdate=true;scene.add(inst)});
+// Two of the seven leaf buckets cast shadows. They are a live sample of this exact canopy,
+// so the ground shadow follows the current crown without rendering all 160k leaves twice.
+leafSpecs.forEach((items,i)=>{if(!items.length)return;const inst=new THREE.InstancedMesh(leafGeo,leafMats[i],items.length);inst.castShadow=i<2;items.forEach((v,k)=>{matrix.compose(v.p,v.q,v.s);inst.setMatrixAt(k,matrix)});inst.instanceMatrix.needsUpdate=true;scene.add(inst)});
 
 // 11 — A FEW SMALL SHOOTS AROUND THE OLD BOLE, NOT A FOREST OF SPIKES.
 for(let n=0;n<9;n++){const y=2.7+rnd()*3.7,a=rnd()*6.283,r=trunkR(y),p=new THREE.Vector3(.0055*y*y+Math.cos(a)*r,y,Math.sin(a)*r),d=new THREE.Vector3(Math.cos(a),.35+rnd()*.28,Math.sin(a)).normalize(),q=p.clone().add(d.multiplyScalar(.35+rnd()*.45));woodMesh(p,q,.026,.010,youngBranchMat,5)}
