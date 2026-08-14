@@ -3,9 +3,9 @@ import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
 
 const scene=new THREE.Scene();scene.background=new THREE.Color(0xcbd7c5);scene.fog=new THREE.FogExp2(0xcbd7c5,.0030);
-const camera=new THREE.PerspectiveCamera(39,innerWidth/innerHeight,.03,260);camera.position.set(24,13.2,31);
+const camera=new THREE.PerspectiveCamera(39,innerWidth/innerHeight,.03,260);camera.position.set(22,12.5,28);
 const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});renderer.setPixelRatio(Math.min(devicePixelRatio,1.4));renderer.setSize(innerWidth,innerHeight);renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.04;renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;document.body.prepend(renderer.domElement);
-const controls=new OrbitControls(camera,renderer.domElement);controls.target.set(0,7.4,0);controls.enableDamping=true;controls.dampingFactor=.06;controls.minDistance=.25;controls.maxDistance=75;controls.zoomToCursor=true;
+const controls=new OrbitControls(camera,renderer.domElement);controls.target.set(0,7.2,0);controls.enableDamping=true;controls.dampingFactor=.06;controls.minDistance=.25;controls.maxDistance=75;controls.zoomToCursor=true;
 scene.add(new THREE.HemisphereLight(0xdce8d5,0x4a4237,1.45));
 const sun=new THREE.DirectionalLight(0xffefd0,3.1);sun.position.set(-18,29,14);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);sun.shadow.camera.left=-28;sun.shadow.camera.right=28;sun.shadow.camera.top=30;sun.shadow.camera.bottom=-10;sun.shadow.bias=-.00012;scene.add(sun);
 const ground=new THREE.Mesh(new THREE.CircleGeometry(55,80),new THREE.MeshStandardMaterial({color:0x788861,roughness:1}));ground.rotation.x=-Math.PI/2;ground.receiveShadow=true;scene.add(ground);
@@ -32,11 +32,16 @@ function growAxis(parent,t,targetDir,len,r0,r1,order,{rise=0,lateRise=0,droop=0,
     const wig=(order===1?.006:order===2?.009:order===3?.015:order===4?.021:.026)*wander;
     d.x+=jit(wig);d.z+=jit(wig);d.y+=jit(wig*.48)+rise*Math.sin(Math.PI*f)+lateRise*THREE.MathUtils.smoothstep(f,.48,.95)-droop*f*f;
 
-    // Mature open-grown oak: suppress vertical spikes as fine branching approaches the crown surface.
-    // The allowable top height falls gradually away from the trunk, giving a broad broken dome rather than a cone.
+    // Fine axes are gently pulled toward a broad oak crown shell. This creates a broken dome:
+    // higher near the centre, progressively lower at the edge, without a single pointed leader.
     if(order>=2){
-      const radial=Math.hypot(p.x,p.z),ceiling=13.7-.032*radial*radial,pressure=THREE.MathUtils.clamp((p.y-(ceiling-1.65))/1.65,0,1);
-      if(pressure>0){d.y-=pressure*(.16+.34*pressure);if(radial>.35)d.addScaledVector(new THREE.Vector3(p.x,0,p.z).normalize(),pressure*.055)}
+      const radial=Math.hypot(p.x,p.z),targetY=12.35-.038*radial*radial,error=targetY-p.y;
+      d.y+=THREE.MathUtils.clamp(error,-1.8,1.8)*(order===2?.025:.038);
+      const pressure=THREE.MathUtils.clamp((p.y-(targetY-.95))/.95,0,1);
+      if(pressure>0){
+        d.y-=pressure*(.18+.36*pressure);
+        if(radial>.35)d.addScaledVector(new THREE.Vector3(p.x,0,p.z).normalize(),pressure*.060);
+      }
     }
 
     d.normalize();p=p.clone().add(d.multiplyScalar(len/steps*(.994+rr(-.010,.013))));pts.push(p.clone())
@@ -67,21 +72,21 @@ function renderWood(){
 
 function growTwigSpray(tp,phase,density=1){
   const made=[],t=.965,r=radiusAt(tp,t);
-  const cont=growAxis(tp,t,dirAround(tp,t,phase+jit(.10),rr(.10,.25),rr(-.04,.04)),tp.length*rr(.32,.44)*density,r*rr(.68,.78),Math.max(.003,r*rr(.15,.21)),5,{wander:.14,elbow:rr(-.022,.022)});made.push(cont);
-  const lateralCount=3+(rnd()<.62?1:0);
-  for(let j=0;j<lateralCount;j++){const tt=rr(.28,.91),jr=radiusAt(tp,tt),az=phase+(j-(lateralCount-1)/2)*rr(.58,.95)+rr(-.24,.24),vb=rr(-.065,.055);made.push(growAxis(tp,tt,dirAround(tp,tt,az,rr(.26,.56),vb),tp.length*rr(.21,.34)*density,jr*rr(.27,.38),Math.max(.003,jr*rr(.065,.11)),5,{droop:vb<0?.007:0,wander:.14,elbow:rr(-.018,.018)}))}
-  for(const p of made){const count=1+(rnd()<.66?1:0);for(let j=0;j<count;j++){const tt=rr(.43,.95),jr=radiusAt(p,tt),az=phase+(rnd()<.5?-1:1)*rr(.48,1.42)+rr(-.18,.18),vb=rr(-.055,.045);growAxis(p,tt,dirAround(p,tt,az,rr(.20,.46),vb),p.length*rr(.20,.31)*density,jr*rr(.22,.32),.0025,6,{droop:vb<0?.004:0,wander:.11,elbow:rr(-.010,.010)})}}
+  const cont=growAxis(tp,t,dirAround(tp,t,phase+jit(.10),rr(.10,.22),rr(-.035,.035)),tp.length*rr(.27,.37)*density,r*rr(.66,.76),Math.max(.003,r*rr(.14,.20)),5,{wander:.14,elbow:rr(-.022,.022)});made.push(cont);
+  const lateralCount=4+(rnd()<.55?1:0);
+  for(let j=0;j<lateralCount;j++){const tt=rr(.25,.92),jr=radiusAt(tp,tt),az=phase+(j-(lateralCount-1)/2)*rr(.50,.78)+rr(-.20,.20),vb=rr(-.060,.045);made.push(growAxis(tp,tt,dirAround(tp,tt,az,rr(.23,.49),vb),tp.length*rr(.17,.27)*density,jr*rr(.24,.34),Math.max(.003,jr*rr(.060,.10)),5,{droop:vb<0?.007:0,wander:.14,elbow:rr(-.018,.018)}))}
+  for(const p of made){const count=1+(rnd()<.56?1:0);for(let j=0;j<count;j++){const tt=rr(.40,.95),jr=radiusAt(p,tt),az=phase+(rnd()<.5?-1:1)*rr(.46,1.30)+rr(-.16,.16),vb=rr(-.050,.040);growAxis(p,tt,dirAround(p,tt,az,rr(.18,.42),vb),p.length*rr(.17,.26)*density,jr*rr(.20,.30),.0025,6,{droop:vb<0?.004:0,wander:.11,elbow:rr(-.010,.010)})}}
   return made;
 }
 
 function growTerminalCluster(axis,phase,density=1){
   const next=4,t=.968,r=radiusAt(axis,t),terminals=[];
-  const major=growAxis(axis,t,dirAround(axis,t,phase+jit(.06),rr(.12,.25),rr(-.02,.035)),axis.length*rr(.40,.51)*density,r*rr(.82,.90),r*rr(.32,.40),next,{wander:.22,elbow:rr(-.04,.04)});terminals.push(major);
-  terminals.push(growAxis(axis,t,dirAround(axis,t,phase+(rnd()<.5?-1:1)*rr(1.15,1.80),rr(.42,.68),rr(-.07,.055)),axis.length*rr(.29,.39)*density,r*rr(.52,.62),r*rr(.17,.24),next,{droop:.004,wander:.23,elbow:rr(-.05,.05)}));
-  terminals.push(growAxis(axis,t,dirAround(axis,t,phase+(rnd()<.5?-1:1)*rr(2.00,2.75),rr(.34,.58),rr(-.075,.045)),axis.length*rr(.23,.33)*density,r*rr(.42,.52),r*rr(.13,.20),next,{droop:.006,wander:.22,elbow:rr(-.04,.04)}));
-  const extras=13+(rnd()<.70?2:0);
-  for(let j=0;j<extras;j++){const jt=rr(.22,.97),jr=radiusAt(axis,jt),spread=j-(extras-1)/2,az=phase+spread*rr(.20,.38)+jit(.26)+(rnd()<.5?-1:1)*rr(.02,.14),ang=rr(.18,.54),vb=rr(-.085,.075);terminals.push(growAxis(axis,jt,dirAround(axis,jt,az,ang,vb),axis.length*rr(.16,.28)*density,jr*rr(.26,.39),Math.max(.004,jr*rr(.065,.11)),next,{droop:vb<0?.008:0,wander:.17,elbow:rr(-.028,.028)}))}
-  terminals.forEach((tp,i)=>{if(i===0||rnd()<.76)growTwigSpray(tp,phase+i*.19,density*.94)});
+  const major=growAxis(axis,t,dirAround(axis,t,phase+jit(.06),rr(.10,.22),rr(-.025,.030)),axis.length*rr(.34,.44)*density,r*rr(.78,.86),r*rr(.28,.35),next,{wander:.21,elbow:rr(-.04,.04)});terminals.push(major);
+  terminals.push(growAxis(axis,t,dirAround(axis,t,phase+(rnd()<.5?-1:1)*rr(1.05,1.62),rr(.35,.58),rr(-.070,.045)),axis.length*rr(.24,.32)*density,r*rr(.47,.57),r*rr(.15,.21),next,{droop:.004,wander:.22,elbow:rr(-.05,.05)}));
+  terminals.push(growAxis(axis,t,dirAround(axis,t,phase+(rnd()<.5?-1:1)*rr(1.85,2.55),rr(.30,.51),rr(-.080,.035)),axis.length*rr(.19,.27)*density,r*rr(.37,.47),r*rr(.11,.17),next,{droop:.006,wander:.21,elbow:rr(-.04,.04)}));
+  const extras=12+(rnd()<.65?2:0);
+  for(let j=0;j<extras;j++){const jt=rr(.18,.97),jr=radiusAt(axis,jt),spread=j-(extras-1)/2,az=phase+spread*rr(.17,.29)+jit(.22)+(rnd()<.5?-1:1)*rr(.02,.11),ang=rr(.16,.46),vb=rr(-.090,.060);terminals.push(growAxis(axis,jt,dirAround(axis,jt,az,ang,vb),axis.length*rr(.11,.20)*density,jr*rr(.21,.32),Math.max(.0035,jr*rr(.052,.09)),next,{droop:vb<0?.008:0,wander:.16,elbow:rr(-.024,.024)}))}
+  terminals.forEach((tp,i)=>{if(i===0||rnd()<.82)growTwigSpray(tp,phase+i*.17,density*.92)});
   return terminals;
 }
 
@@ -89,56 +94,59 @@ function growSystem(axis,phase,density=1){
   if(axis.order>=3)return growTerminalCluster(axis,phase,density);
   const next=axis.order+1,children=[];
   const addChild=(tt,az,ang,bias,len,base,tip,opts={})=>{const r=radiusAt(axis,tt),c=growAxis(axis,tt,dirAround(axis,tt,az,ang,bias),axis.length*len*density,r*base,r*tip,next,opts);children.push(c);return c};
-  addChild(rr(.20,.34),phase+(rnd()<.5?-1:1)*rr(.95,1.55),rr(.40,.66),rr(-.065,.055),rr(.27,.38),rr(.42,.54),rr(.13,.19),{wander:.31,elbow:rr(-.075,.075)});
-  addChild(rr(.34,.48),phase+(rnd()<.5?-1:1)*rr(1.20,1.85),rr(.44,.70),rr(-.070,.060),rr(.30,.41),rr(.45,.56),rr(.14,.20),{wander:.32,elbow:rr(-.08,.08)});
-  addChild(rr(.49,.64),phase+(rnd()<.5?-1:1)*rr(1.45,2.10),rr(.46,.72),rr(-.075,.060),rr(.31,.43),rr(.45,.57),rr(.15,.21),{wander:.32,elbow:rr(-.085,.085)});
-  const t=.968,r=radiusAt(axis,t),cont=growAxis(axis,t,dirAround(axis,t,phase+jit(.05),rr(.12,.25),rr(-.015,.035)),axis.length*rr(.56,.69),r*rr(.84,.90),r*rr(.36,.44),next,{wander:.22,elbow:rr(-.05,.05)});children.push(cont);
-  addChild(t,phase+(rnd()<.5?-1:1)*rr(1.40,2.10),rr(.48,.75),rr(-.065,.055),rr(.39,.51),rr(.56,.65),rr(.23,.31),{wander:.27,elbow:rr(-.07,.07)});
-  addChild(rr(.58,.76),phase+(rnd()<.5?-1:1)*rr(2.00,2.82),rr(.40,.65),rr(-.095,.035),rr(.23,.35),rr(.31,.41),rr(.10,.16),{droop:.004,wander:.21,elbow:rr(-.05,.05)});
-  addChild(rr(.70,.88),phase+(rnd()<.5?-1:1)*rr(.68,1.28),rr(.26,.50),rr(-.055,.045),rr(.21,.31),rr(.25,.35),rr(.08,.14),{wander:.19,elbow:rr(-.04,.04)});
-  children.forEach((child,i)=>growSystem(child,phase+rr(-.40,.40)+i*.13,(child===cont?density*.98:density*rr(.88,.96))));
+
+  // Repeated small branch units spiral around each parent rather than all sitting in one plane.
+  const childSpecs=[
+    {t:.20,az:phase-2.05,ang:.38,bias:-.060,len:.24,base:.38,tip:.13},
+    {t:.32,az:phase-1.02,ang:.46,bias:-.035,len:.29,base:.43,tip:.14},
+    {t:.45,az:phase+.02,ang:.54,bias:-.015,len:.32,base:.46,tip:.15},
+    {t:.58,az:phase+1.08,ang:.52,bias:-.020,len:.30,base:.43,tip:.14},
+    {t:.70,az:phase+2.14,ang:.44,bias:-.035,len:.26,base:.38,tip:.12},
+    {t:.81,az:phase+3.18,ang:.35,bias:-.045,len:.21,base:.32,tip:.10}
+  ];
+  for(const s of childSpecs)addChild(s.t+rr(-.025,.025),s.az+jit(.20),s.ang+jit(.06),s.bias+rr(-.025,.040),s.len*rr(.90,1.08),s.base*rr(.94,1.06),s.tip*rr(.92,1.08),{droop:s.bias<-.03?.004:0,wander:.24,elbow:rr(-.055,.055)});
+
+  const t=.968,r=radiusAt(axis,t),cont=growAxis(axis,t,dirAround(axis,t,phase+jit(.05),rr(.10,.21),rr(-.015,.030)),axis.length*rr(.45,.56),r*rr(.76,.84),r*rr(.29,.36),next,{wander:.20,elbow:rr(-.045,.045)});children.push(cont);
+  children.forEach((child,i)=>growSystem(child,phase+(i-(children.length-1)/2)*.31+rr(-.18,.18),(child===cont?density*.94:density*rr(.85,.93))));
 }
 
 function decoratePrimary(primary,phase,density=1,upperness=0){
   const systems=[],specs=[
-    {t:.12,az:phase-.55,ang:.42,bias:-.025+upperness*.012,len:.25,base:.40,tip:.15},
-    {t:.20,az:phase+.70,ang:.44,bias:-.010+upperness*.012,len:.31,base:.45,tip:.17},
-    {t:.30,az:phase+1.30,ang:.58,bias:.000+upperness*.016,len:.44,base:.57,tip:.21},
-    {t:.40,az:phase-.95,ang:.62,bias:-.040+upperness*.018,len:.49,base:.59,tip:.22,droop:upperness<.2?.020:0},
-    {t:.51,az:phase+2.15,ang:.58,bias:-.005+upperness*.020,len:.47,base:.55,tip:.21},
-    {t:.62,az:phase-2.25,ang:.54,bias:.000+upperness*.020,len:.42,base:.50,tip:.19},
-    {t:.73,az:phase+.85,ang:.50,bias:.005+upperness*.022,len:.38,base:.46,tip:.17},
-    {t:.83,az:phase-1.45,ang:.46,bias:.010+upperness*.024,len:.33,base:.40,tip:.15}
+    {t:.12,az:phase-1.75,ang:.34,bias:-.040+upperness*.008,len:.19,base:.34,tip:.12},
+    {t:.21,az:phase-1.08,ang:.39,bias:-.030+upperness*.010,len:.23,base:.38,tip:.13},
+    {t:.30,az:phase-.38,ang:.46,bias:-.020+upperness*.012,len:.28,base:.43,tip:.14},
+    {t:.39,az:phase+.34,ang:.53,bias:-.012+upperness*.014,len:.33,base:.48,tip:.16},
+    {t:.48,az:phase+1.08,ang:.56,bias:-.010+upperness*.016,len:.35,base:.50,tip:.17},
+    {t:.57,az:phase+1.82,ang:.53,bias:-.012+upperness*.018,len:.33,base:.47,tip:.16},
+    {t:.66,az:phase+2.55,ang:.48,bias:-.010+upperness*.019,len:.29,base:.43,tip:.14},
+    {t:.75,az:phase-2.98,ang:.42,bias:-.004+upperness*.020,len:.25,base:.39,tip:.13},
+    {t:.84,az:phase-2.23,ang:.35,bias:.004+upperness*.022,len:.20,base:.34,tip:.11}
   ];
-  for(const s of specs){const r=radiusAt(primary,s.t),d=dirAround(primary,s.t,s.az+jit(.18),s.ang+jit(.05),s.bias+jit(.03));systems.push(growAxis(primary,s.t,d,primary.length*s.len*rr(.92,1.08),r*s.base,r*s.tip,2,{droop:s.droop||0,wander:.30,elbow:rr(-.08,.08)}))}
+  for(const s of specs){const r=radiusAt(primary,s.t),d=dirAround(primary,s.t,s.az+jit(.16),s.ang+jit(.05),s.bias+jit(.025));systems.push(growAxis(primary,s.t,d,primary.length*s.len*rr(.93,1.07),r*s.base,r*s.tip,2,{droop:s.bias<-.025?.006:0,wander:.26,elbow:rr(-.06,.06)}))}
   const t=.93,r=radiusAt(primary,t);
-  systems.push(growAxis(primary,t,dirAround(primary,t,phase-.55,.46,.018+upperness*.020),primary.length*.44,r*.80,r*.28,2,{wander:.26,elbow:-.05}));
-  systems.push(growAxis(primary,t,dirAround(primary,t,phase+2.15,.48,-.010+upperness*.018),primary.length*.40,r*.69,r*.25,2,{wander:.27,elbow:.07}));
-  systems.push(growAxis(primary,.82,dirAround(primary,.82,phase+.95,.42,.000+upperness*.020),primary.length*.34,radiusAt(primary,.82)*.56,radiusAt(primary,.82)*.20,2,{wander:.25,elbow:.03}));
-  systems.forEach((s,i)=>growSystem(s,phase+i*.57,density));
+  systems.push(growAxis(primary,t,dirAround(primary,t,phase-.55,.36,.008+upperness*.014),primary.length*.25,r*.64,r*.22,2,{wander:.22,elbow:-.04}));
+  systems.push(growAxis(primary,t,dirAround(primary,t,phase+1.65,.34,-.010+upperness*.012),primary.length*.22,r*.57,r*.20,2,{wander:.22,elbow:.05}));
+  systems.forEach((s,i)=>growSystem(s,phase+i*.39,density));
 }
 
 function buildTree(density){
   branches.length=0;
 
-  // Shorter central trunk and much longer low scaffold limbs are the defining silhouette of an old open-grown oak.
-  const trunkPts=[new THREE.Vector3(0,0,0),new THREE.Vector3(.08,1.3,.02),new THREE.Vector3(.02,2.6,.08),new THREE.Vector3(-.08,3.9,.05),new THREE.Vector3(.04,5.2,-.04),new THREE.Vector3(-.12,6.5,.02),new THREE.Vector3(.02,7.7,-.06),new THREE.Vector3(-.10,8.7,.02),new THREE.Vector3(.04,9.45,.00)],trunk=branch(trunkPts,1.48,.31,0,null);
+  const trunkPts=[new THREE.Vector3(0,0,0),new THREE.Vector3(.08,1.3,.02),new THREE.Vector3(.02,2.6,.08),new THREE.Vector3(-.08,3.9,.05),new THREE.Vector3(.04,5.2,-.04),new THREE.Vector3(-.12,6.5,.02),new THREE.Vector3(.02,7.7,-.06),new THREE.Vector3(-.10,8.7,.02),new THREE.Vector3(.04,9.35,.00)],trunk=branch(trunkPts,1.48,.30,0,null);
   for(let i=0;i<7;i++){const az=i/7*Math.PI*2+rr(-.18,.18),dir=worldDir(az,rr(-.06,-.015));growAxis(trunk,.02,dir,rr(1.4,2.3),rr(.20,.28),.035,1,{droop:.06,wander:.25,elbow:rr(-.05,.05)})}
 
-  const primaries=[],specs=[
-    {t:.32,az:3.28,e:.035,len:9.8,b:.61,u:0,d:.032},
-    {t:.37,az:.12,e:.045,len:9.3,b:.58,u:0,d:.026},
-    {t:.42,az:1.60,e:.055,len:8.7,b:.53,u:.04,d:.026},
-    {t:.47,az:4.45,e:.075,len:9.0,b:.55,u:.08,d:.020},
-    {t:.52,az:.78,e:.095,len:8.7,b:.53,u:.12,d:.016},
-    {t:.57,az:5.55,e:.115,len:8.1,b:.49,u:.18,d:.010},
-    {t:.62,az:2.45,e:.145,len:7.6,b:.47,u:.26,d:.006},
-    {t:.68,az:.02,e:.175,len:7.2,b:.45,u:.34,d:.002}
-  ];
-  for(const s of specs){const r=radiusAt(trunk,s.t),dir=worldDir(s.az+jit(.18),s.e+jit(.04)),p=growAxis(trunk,s.t,dir,s.len*rr(.96,1.04),r*s.b,r*rr(.16,.22),1,{lateRise:s.u*.018,droop:s.d||0,wander:.34,elbow:rr(-.10,.10)});primaries.push({p,phase:s.az,u:s.u})}
+  // Twelve scaffold limbs are staggered vertically and rotated by the golden angle.
+  // The lower limbs are longest; higher limbs shorten so the silhouette closes into a dome.
+  const primaries=[],primaryCount=12,golden=2.399963229728653;
+  for(let i=0;i<primaryCount;i++){
+    const u=i/(primaryCount-1),t=.29+u*.43+rr(-.014,.014),az=i*golden+rr(-.11,.11),e=.025+u*.16+rr(-.018,.018),len=9.35-u*2.65+rr(-.35,.35),base=.62-u*.17;
+    const r=radiusAt(trunk,t),dir=worldDir(az,e),p=growAxis(trunk,t,dir,len,r*base,r*rr(.15,.21),1,{lateRise:u*.010,droop:Math.max(0,.030-u*.034),wander:.32,elbow:rr(-.095,.095)});
+    primaries.push({p,phase:az,u});
+  }
 
-  // Keep the centre broken and subordinate. These are crown-filling limbs, not a dominant conifer-like leader.
-  const rt=radiusAt(trunk,.985),leader=growAxis(trunk,.985,worldDir(1.15,.43),3.15,rt*.84,rt*.18,1,{lateRise:.012,wander:.31,elbow:.07}),coleader=growAxis(trunk,.83,worldDir(3.75,.34),3.55,radiusAt(trunk,.83)*.56,.11,1,{lateRise:.010,wander:.32,elbow:-.08});primaries.push({p:leader,phase:1.15,u:.48},{p:coleader,phase:3.75,u:.42});
+  // Small centre fillers only: no tall central spear.
+  const rt=radiusAt(trunk,.985),leader=growAxis(trunk,.985,worldDir(1.15,.38),2.65,rt*.76,rt*.16,1,{lateRise:.006,wander:.27,elbow:.06}),coleader=growAxis(trunk,.84,worldDir(3.75,.30),2.95,radiusAt(trunk,.84)*.50,.10,1,{lateRise:.006,wander:.29,elbow:-.07});
+  primaries.push({p:leader,phase:1.15,u:.56},{p:coleader,phase:3.75,u:.48});
   primaries.forEach(x=>decoratePrimary(x.p,x.phase,density,x.u));
 }
 
@@ -146,13 +154,13 @@ function oakLeafGeometry(){const s=new THREE.Shape();s.moveTo(0,-.12);s.lineTo(.
 
 function renderLeaves(mult){
   const terminals=branches.filter(b=>b.order>=4&&b.children.length===0),maxLeaves=110000;if(!terminals.length)return;
-  const capacity=Math.min(maxLeaves,Math.max(40000,Math.floor(92000*mult/1.35))),perTerminal=Math.max(1,Math.min(12,Math.floor(capacity/terminals.length)));
+  const capacity=Math.min(maxLeaves,Math.max(50000,Math.floor(100000*mult/1.35))),perTerminal=Math.max(1,Math.min(12,Math.floor(capacity/terminals.length)));
   const g=oakLeafGeometry(),mat=new THREE.MeshStandardMaterial({color:0x355f29,roughness:.86,side:THREE.DoubleSide}),inst=new THREE.InstancedMesh(g,mat,capacity),dummy=new THREE.Object3D(),q=new THREE.Quaternion(),spinQ=new THREE.Quaternion(),up=new THREE.Vector3(0,1,0),center=new THREE.Vector3(),pos=new THREE.Vector3(),offset=new THREE.Vector3(),outward=new THREE.Vector3(),leafDir=new THREE.Vector3(),col=new THREE.Color();let k=0;
   const ordered=[...terminals].sort((a,b)=>pointAt(b,.9).y-pointAt(a,.9).y);
   for(let bi=0;bi<ordered.length&&k<capacity;bi++){
     const b=ordered[bi],remaining=capacity-k,branchesLeft=ordered.length-bi,target=Math.max(1,Math.min(perTerminal+((bi%7===0)?1:0),Math.floor(remaining/Math.max(1,branchesLeft))+1)),branchWeight=THREE.MathUtils.clamp(b.length/.50,.68,1.12);
     for(let i=0;i<target&&k<capacity;i++,k++){
-      const t=THREE.MathUtils.clamp(.42+(i/Math.max(1,target-1))*.56+rr(-.04,.04),.34,.998),tan=tangentAt(b,t),{u,v}=frameAt(b,t),a=rr(0,Math.PI*2),rad=rr(.045,.125)*mult*branchWeight,shell=rad*Math.pow(rnd(),.78);
+      const t=THREE.MathUtils.clamp(.42+(i/Math.max(1,target-1))*.56+rr(-.04,.04),.34,.998),tan=tangentAt(b,t),{u,v}=frameAt(b,t),a=rr(0,Math.PI*2),rad=rr(.042,.118)*mult*branchWeight,shell=rad*Math.pow(rnd(),.78);
       center.copy(pointAt(b,t));offset.copy(u).multiplyScalar(Math.cos(a)*shell).addScaledVector(v,Math.sin(a)*shell*rr(.65,1.05)).addScaledVector(tan,rr(-rad*.10,rad*.24));pos.copy(center).add(offset);outward.copy(offset).normalize();leafDir.copy(tan).multiplyScalar(rr(.20,.42)).addScaledVector(outward,rr(.58,.90)).add(new THREE.Vector3(0,rr(-.03,.13),0)).normalize();q.setFromUnitVectors(up,leafDir);spinQ.setFromAxisAngle(leafDir,rr(0,Math.PI*2));q.premultiply(spinQ);dummy.position.copy(pos);dummy.quaternion.copy(q);const sc=rr(.13,.195);dummy.scale.set(sc*rr(.86,1.14),sc*rr(.94,1.18),sc);dummy.updateMatrix();inst.setMatrixAt(k,dummy.matrix);const light=rr(.88,1.16);col.setRGB(.18*light,.38*light,.15*light);inst.setColorAt(k,col)
     }
   }
