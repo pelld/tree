@@ -17,7 +17,7 @@
 <div id="title"><b>English oak</b><span>branch study · one mature scaffold limb · no leaves</span></div>
 <div id="status">Growing oak branch…</div><div id="hint">Drag to orbit · pinch / scroll to inspect</div>
 <button id="gear">⚙</button>
-<div id="panel"><label><span>Seed</span><input id="seedInput" type="number" value="88231"></label><label><span>Fine growth</span><input id="densityInput" type="range" min="0.75" max="1.35" step="0.05" value="1"></label><label><span>Randomness</span><input id="randomInput" type="range" min="0.15" max="0.9" step="0.05" value="0.35"></label><div class="buttons"><button id="regen">Regenerate</button><button id="newSeed">New seed</button></div></div>
+<div id="panel"><label><span>Seed</span><input id="seedInput" type="number" value="88231"></label><label><span>Fine growth</span><input id="densityInput" type="range" min="0.75" max="1.35" step="0.05" value="1"></label><label><span>Randomness</span><input id="randomInput" type="range" min="0.15" max="0.8" step="0.05" value="0.30"></label><div class="buttons"><button id="regen">Regenerate</button><button id="newSeed">New seed</button></div></div>
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.179.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.179.1/examples/jsm/"}}</script>
 <script type="module">
 import * as THREE from 'three';
@@ -26,91 +26,91 @@ import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
 
 // 01 — SCENE
 const scene=new THREE.Scene();scene.background=new THREE.Color(0xcbd7c5);scene.fog=new THREE.FogExp2(0xcbd7c5,.0035);
-const camera=new THREE.PerspectiveCamera(40,innerWidth/innerHeight,.03,250);camera.position.set(15.5,8.4,24.5);
+const camera=new THREE.PerspectiveCamera(39,innerWidth/innerHeight,.03,220);camera.position.set(11.8,7.5,20.2);
 const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});renderer.setPixelRatio(Math.min(devicePixelRatio,1.45));renderer.setSize(innerWidth,innerHeight);renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.06;renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;document.body.prepend(renderer.domElement);
-const controls=new OrbitControls(camera,renderer.domElement);controls.target.set(-4.0,5.2,-.25);controls.enableDamping=true;controls.dampingFactor=.06;controls.minDistance=.2;controls.maxDistance=60;controls.zoomToCursor=true;
-scene.add(new THREE.HemisphereLight(0xdce8d5,0x4a4237,1.55));const sun=new THREE.DirectionalLight(0xffefd0,3.0);sun.position.set(-15,25,12);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);sun.shadow.camera.left=-22;sun.shadow.camera.right=22;sun.shadow.camera.top=24;sun.shadow.camera.bottom=-7;scene.add(sun);
-const ground=new THREE.Mesh(new THREE.CircleGeometry(45,72),new THREE.MeshStandardMaterial({color:0x788861,roughness:1}));ground.rotation.x=-Math.PI/2;ground.receiveShadow=true;scene.add(ground);
+const controls=new OrbitControls(camera,renderer.domElement);controls.target.set(-4.5,5.25,-.45);controls.enableDamping=true;controls.dampingFactor=.06;controls.minDistance=.18;controls.maxDistance=55;controls.zoomToCursor=true;
+scene.add(new THREE.HemisphereLight(0xdce8d5,0x4a4237,1.55));const sun=new THREE.DirectionalLight(0xffefd0,3.0);sun.position.set(-14,24,11);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);sun.shadow.camera.left=-20;sun.shadow.camera.right=20;sun.shadow.camera.top=22;sun.shadow.camera.bottom=-7;scene.add(sun);
+const ground=new THREE.Mesh(new THREE.CircleGeometry(40,72),new THREE.MeshStandardMaterial({color:0x788861,roughness:1}));ground.rotation.x=-Math.PI/2;ground.receiveShadow=true;scene.add(ground);
 
 // 02 — MODEL + RANDOMNESS
 const mats=[0x493b30,0x514136,0x554437,0x594838,0x493b2f,0x353326].map(c=>new THREE.MeshStandardMaterial({color:c,roughness:1}));
-const treeRoot=new THREE.Group();scene.add(treeRoot);let meshes=[];const branches=[];let seed=88231,randomness=.35;
+const treeRoot=new THREE.Group();scene.add(treeRoot);let meshes=[];const branches=[];let seed=88231,randomness=.30;
 function reset(v){seed=Math.max(1,Math.floor(v)||1)%2147483647;if(!seed)seed=1}function rnd(){seed=seed*16807%2147483647;return(seed-1)/2147483646}function rr(a,b){return a+(b-a)*rnd()}function jit(a){return(rnd()-.5)*a*randomness}
 function branch(points,r0,r1,order,parent=null){const b={points,r0,r1,order,parent,children:[],curve:new THREE.CatmullRomCurve3(points,false,'centripetal'),phase:rnd()*6.283};if(parent)parent.children.push(b);branches.push(b);return b}
 function pointAt(b,t){return b.curve.getPointAt(THREE.MathUtils.clamp(t,0,1))}function tangentAt(b,t){return b.curve.getTangentAt(THREE.MathUtils.clamp(t,0,1)).normalize()}function radiusAt(b,t){return b.r1+(b.r0-b.r1)*Math.pow(1-t,.72)}
 function frameAt(parent,t){const tan=tangentAt(parent,t),ref=Math.abs(tan.y)<.90?new THREE.Vector3(0,1,0):new THREE.Vector3(1,0,0),u=new THREE.Vector3().crossVectors(tan,ref).normalize(),v=new THREE.Vector3().crossVectors(u,tan).normalize();return{tan,u,v}}
 function dirAround(parent,t,azimuth,angle,verticalBias=0){const {tan,u,v}=frameAt(parent,t),radial=u.clone().multiplyScalar(Math.cos(azimuth)).add(v.clone().multiplyScalar(Math.sin(azimuth))).normalize(),d=tan.clone().multiplyScalar(Math.cos(angle)).add(radial.multiplyScalar(Math.sin(angle)));d.y+=verticalBias;return d.normalize()}
 
-// A child leaves the parent tangentially, then takes up its own axis. This makes a crotch rather than a glued-on stick.
+// Child starts tangent to its parent, then turns gradually. Large branches turn slowly; twigs turn faster.
 function growChild(parent,t,targetDir,len,r0,r1,order,{rise=0,droop=0,wander=1}={}){
-  const start=pointAt(parent,t),parentTan=tangentAt(parent,t),steps=order===2?14:order===3?11:order===4?9:7,pts=[start.clone()];let p=start.clone();
+  const start=pointAt(parent,t),parentTan=tangentAt(parent,t),steps=order===2?15:order===3?12:order===4?9:7,pts=[start.clone()];let p=start.clone();
   for(let i=1;i<=steps;i++){
-    const f=i/steps,ease=THREE.MathUtils.smoothstep(f,.10,.78),d=parentTan.clone().lerp(targetDir,ease),wig=(order===2?.014:order===3?.024:order===4?.034:.044)*wander;
+    const f=i/steps,endTurn=order===2?.88:order===3?.82:.76,ease=THREE.MathUtils.smoothstep(f,.08,endTurn),d=parentTan.clone().lerp(targetDir,ease),wig=(order===2?.012:order===3?.020:order===4?.030:.040)*wander;
     d.x+=jit(wig);d.z+=jit(wig);d.y+=jit(wig*.55)+rise*Math.sin(Math.PI*f)-droop*f*f;d.normalize();
-    p=p.clone().add(d.multiplyScalar(len/steps*(.985+rr(-.02,.025))));pts.push(p.clone());
+    p=p.clone().add(d.multiplyScalar(len/steps*(.988+rr(-.018,.022))));pts.push(p.clone());
   }
   return branch(pts,r0,r1,order,parent);
 }
 
 // 03 — RENDER SMOOTH CONTINUOUS TAPER
-function render(){const buckets=Array.from({length:6},()=>[]);for(const b of branches){const seg=b.order===0?48:b.order===1?46:b.order===2?32:b.order===3?23:b.order===4?16:10,sides=b.order===0?14:b.order===1?12:b.order===2?10:b.order===3?8:b.order===4?6:5,g=new THREE.TubeGeometry(b.curve,seg,1,sides,false),pos=g.attributes.position,uv=g.attributes.uv,c=new THREE.Vector3(),v=new THREE.Vector3();for(let i=0;i<pos.count;i++){const t=uv.getX(i);b.curve.getPointAt(t,c);v.set(pos.getX(i),pos.getY(i),pos.getZ(i)).sub(c);const r=radiusAt(b,t)*(1+(b.order<3?.007:.0035)*Math.sin(15*t+b.phase));v.multiplyScalar(r);pos.setXYZ(i,c.x+v.x,c.y+v.y,c.z+v.z)}g.computeVertexNormals();buckets[b.order].push(g)}buckets.forEach((gs,o)=>{if(!gs.length)return;const merged=mergeGeometries(gs,false);gs.forEach(g=>g.dispose());const m=new THREE.Mesh(merged,mats[o]);m.castShadow=o<5;m.receiveShadow=true;treeRoot.add(m);meshes.push(m)})}
+function render(){const buckets=Array.from({length:6},()=>[]);for(const b of branches){const seg=b.order===0?48:b.order===1?48:b.order===2?34:b.order===3?24:b.order===4?16:10,sides=b.order===0?14:b.order===1?12:b.order===2?10:b.order===3?8:b.order===4?6:5,g=new THREE.TubeGeometry(b.curve,seg,1,sides,false),pos=g.attributes.position,uv=g.attributes.uv,c=new THREE.Vector3(),v=new THREE.Vector3();for(let i=0;i<pos.count;i++){const t=uv.getX(i);b.curve.getPointAt(t,c);v.set(pos.getX(i),pos.getY(i),pos.getZ(i)).sub(c);const r=radiusAt(b,t)*(1+(b.order<3?.006:.003)*Math.sin(15*t+b.phase));v.multiplyScalar(r);pos.setXYZ(i,c.x+v.x,c.y+v.y,c.z+v.z)}g.computeVertexNormals();buckets[b.order].push(g)}buckets.forEach((gs,o)=>{if(!gs.length)return;const merged=mergeGeometries(gs,false);gs.forEach(g=>g.dispose());const m=new THREE.Mesh(merged,mats[o]);m.castShadow=o<5;m.receiveShadow=true;treeRoot.add(m);meshes.push(m)})}
 
 // 04 — ONE MATURE OAK SCAFFOLD LIMB
 function build(density){
   branches.length=0;
-  const trunkPts=[new THREE.Vector3(0,0,0),new THREE.Vector3(.03,1.45,.01),new THREE.Vector3(.05,2.9,.03),new THREE.Vector3(.03,4.35,.05),new THREE.Vector3(-.01,5.75,.08),new THREE.Vector3(-.05,6.65,.10)];
-  const trunk=branch(trunkPts,1.05,.50,0,null);
-  const attach=pointAt(trunk,.64),tr=radiusAt(trunk,.64);
+  // The support bole is deliberately short: this study is about the branch, not the trunk.
+  const trunkPts=[new THREE.Vector3(0,0,0),new THREE.Vector3(.02,1.30,.01),new THREE.Vector3(.04,2.60,.03),new THREE.Vector3(.02,3.90,.05),new THREE.Vector3(-.02,5.10,.08),new THREE.Vector3(-.05,5.75,.10)];
+  const trunk=branch(trunkPts,1.00,.55,0,null);
+  const attach=pointAt(trunk,.72),tr=radiusAt(trunk,.72);
 
-  // A massive scaffold that rises, settles, and finally turns upward again slightly at the distal end.
-  const p=[attach.clone(),attach.clone().add(new THREE.Vector3(-.72,.28,-.03)),attach.clone().add(new THREE.Vector3(-1.58,.55,-.12)),attach.clone().add(new THREE.Vector3(-2.58,.77,-.28)),attach.clone().add(new THREE.Vector3(-3.72,.88,-.47)),attach.clone().add(new THREE.Vector3(-4.88,.82,-.66)),attach.clone().add(new THREE.Vector3(-5.98,.65,-.82)),attach.clone().add(new THREE.Vector3(-6.95,.48,-.90)),attach.clone().add(new THREE.Vector3(-7.78,.42,-.83)),attach.clone().add(new THREE.Vector3(-8.45,.50,-.69))];
-  const primary=branch(p,tr*.62,.055,1,trunk);
+  // Main scaffold axis. Thick at the union, then a long gradual taper rather than a pipe ending in a brush.
+  const p=[attach.clone(),attach.clone().add(new THREE.Vector3(-.68,.28,-.02)),attach.clone().add(new THREE.Vector3(-1.55,.55,-.11)),attach.clone().add(new THREE.Vector3(-2.55,.77,-.28)),attach.clone().add(new THREE.Vector3(-3.65,.88,-.49)),attach.clone().add(new THREE.Vector3(-4.78,.84,-.70)),attach.clone().add(new THREE.Vector3(-5.85,.68,-.88)),attach.clone().add(new THREE.Vector3(-6.80,.50,-.98)),attach.clone().add(new THREE.Vector3(-7.62,.43,-.94)),attach.clone().add(new THREE.Vector3(-8.32,.50,-.79)),attach.clone().add(new THREE.Vector3(-8.90,.62,-.58))];
+  const primary=branch(p,tr*.64,.036,1,trunk);
 
-  // Seven scaffold branches. The first three carry most of the mass; the outer branches are progressively smaller.
+  // Four major scaffold branches only. This is the key change: visible forks, not a broom of equal stems.
   const specs=[
-    {t:.19,az:-1.15,angle:.60,len:4.60,bias:.14,base:.53,tip:.15},
-    {t:.31,az:1.56,angle:.65,len:4.05,bias:.04,base:.47,tip:.14,droop:.025},
-    {t:.43,az:.22,angle:.62,len:4.15,bias:.18,base:.50,tip:.14},
-    {t:.55,az:-2.05,angle:.68,len:3.45,bias:-.03,base:.42,tip:.13,droop:.055},
-    {t:.66,az:2.42,angle:.60,len:3.00,bias:.10,base:.39,tip:.12},
-    {t:.76,az:-.62,angle:.55,len:2.55,bias:.14,base:.35,tip:.11},
-    {t:.84,az:1.14,angle:.48,len:1.95,bias:.06,base:.31,tip:.10}
+    {t:.24,az:-1.18,angle:.58,len:4.55,bias:.15,base:.56,tip:.16},
+    {t:.40,az:1.70,angle:.66,len:3.75,bias:-.045,base:.47,tip:.14,droop:.035},
+    {t:.57,az:.34,angle:.62,len:3.55,bias:.16,base:.48,tip:.14},
+    {t:.72,az:-2.18,angle:.61,len:2.85,bias:.04,base:.39,tip:.12}
   ];
   const secondaries=[];
-  for(const s of specs){const r=radiusAt(primary,s.t),dir=dirAround(primary,s.t,s.az+jit(.05),s.angle+jit(.03),s.bias+jit(.02));secondaries.push(growChild(primary,s.t,dir,s.len*rr(.98,1.02),r*s.base,r*s.tip,2,{rise:s.bias>0?.006:0,droop:s.droop||0,wander:.56}))}
+  for(const s of specs){const r=radiusAt(primary,s.t),dir=dirAround(primary,s.t,s.az+jit(.04),s.angle+jit(.025),s.bias+jit(.018));secondaries.push(growChild(primary,s.t,dir,s.len*rr(.985,1.015),r*s.base,r*s.tip,2,{rise:s.bias>0?.005:0,droop:s.droop||0,wander:.48}))}
 
-  // Carry the primary itself to a genuine fine tip.
-  const tipT=.88,tipR=radiusAt(primary,tipT),tipDir=tangentAt(primary,tipT).clone().add(new THREE.Vector3(-.02,.10,.08)).normalize();
-  secondaries.push(growChild(primary,tipT,tipDir,1.85,tipR*.70,tipR*.13,2,{rise:.006,wander:.45}));
+  // Distal continuation of the scaffold: this is a real continuation, not another equal branch.
+  const tipT=.83,tipR=radiusAt(primary,tipT),tipDir=tangentAt(primary,tipT).clone().add(new THREE.Vector3(-.025,.11,.08)).normalize();
+  secondaries.push(growChild(primary,tipT,tipDir,2.30,tipR*.78,tipR*.14,2,{rise:.006,wander:.42}));
 
   function growSecondary(sec,index){
-    const n=Math.max(3,Math.round((3.1+rr(0,.8))*density));
+    // 2–3 tertiary branches plus one continuation. Clear hierarchy first, density second.
+    const n=Math.max(2,Math.round((2.2+rr(0,.55))*density));
     for(let i=0;i<n;i++){
-      const t=.24+(i+1)/(n+1)*.61+jit(.018),r=radiusAt(sec,t),az=(i%2?1:-1)*rr(.70,1.62)+index*.37,angle=rr(.46,.72),bias=rr(-.030,.095),dir=dirAround(sec,t,az,angle,bias);
-      const ter=growChild(sec,t,dir,rr(1.55,2.30)*(1-.08*t),r*rr(.42,.53),r*rr(.12,.16),3,{rise:bias>0?.005:0,droop:bias<0?.020:0,wander:.70});growTertiary(ter,index+i);
+      const t=.30+(i+1)/(n+1)*.50+jit(.015),r=radiusAt(sec,t),az=(i%2?1:-1)*rr(.72,1.45)+index*.43,angle=rr(.42,.64),bias=rr(-.025,.075),dir=dirAround(sec,t,az,angle,bias);
+      const ter=growChild(sec,t,dir,rr(1.55,2.15)*(1-.07*t),r*rr(.40,.49),r*rr(.12,.15),3,{rise:bias>0?.004:0,droop:bias<0?.015:0,wander:.62});growTertiary(ter,index+i);
     }
-    const t=.965,r=radiusAt(sec,t),dir=tangentAt(sec,t).clone().add(new THREE.Vector3(jit(.020),.020,jit(.020))).normalize();
-    const ter=growChild(sec,t,dir,rr(1.30,1.75),r*.94,r*.18,3,{rise:.004,wander:.54});growTertiary(ter,index+9);
+    const t=.965,r=radiusAt(sec,t),dir=tangentAt(sec,t).clone().add(new THREE.Vector3(jit(.016),.018,jit(.016))).normalize();
+    const ter=growChild(sec,t,dir,rr(1.35,1.70),r*.93,r*.18,3,{rise:.003,wander:.48});growTertiary(ter,index+8);
   }
 
   function growTertiary(ter,index){
-    const n=Math.max(2,Math.round((2.7+rr(0,.8))*density));
+    const n=Math.max(2,Math.round((2.1+rr(0,.55))*density));
     for(let i=0;i<n;i++){
-      const t=.33+(i+1)/(n+1)*.53+jit(.018),r=radiusAt(ter,t),az=(i%2?1:-1)*rr(.62,1.48)+index*.29,angle=rr(.40,.66),bias=rr(-.020,.075),dir=dirAround(ter,t,az,angle,bias);
-      const fine=growChild(ter,t,dir,rr(.86,1.32),r*rr(.38,.48),r*rr(.12,.16),4,{rise:bias>0?.004:0,droop:bias<0?.012:0,wander:.78});growFine(fine,index+i);
+      const t=.37+(i+1)/(n+1)*.46+jit(.015),r=radiusAt(ter,t),az=(i%2?1:-1)*rr(.62,1.30)+index*.31,angle=rr(.36,.56),bias=rr(-.015,.060),dir=dirAround(ter,t,az,angle,bias);
+      const fine=growChild(ter,t,dir,rr(.90,1.28),r*rr(.35,.44),r*rr(.11,.15),4,{rise:bias>0?.003:0,droop:bias<0?.009:0,wander:.70});growFine(fine,index+i);
     }
-    const t=.972,r=radiusAt(ter,t),dir=tangentAt(ter,t).clone().add(new THREE.Vector3(jit(.024),.015,jit(.024))).normalize();
-    const fine=growChild(ter,t,dir,rr(.78,1.08),r*.92,r*.18,4,{wander:.64});growFine(fine,index+6);
+    const t=.972,r=radiusAt(ter,t),dir=tangentAt(ter,t).clone().add(new THREE.Vector3(jit(.018),.012,jit(.018))).normalize();
+    const fine=growChild(ter,t,dir,rr(.82,1.08),r*.91,r*.17,4,{wander:.58});growFine(fine,index+6);
   }
 
   function growFine(fine,index){
-    const n=Math.max(2,Math.round((2.4+rr(0,.7))*density));
+    // Fine branches are still visible wood, not hair. Only the very last order becomes twig-thin.
+    const n=Math.max(2,Math.round((2.0+rr(0,.45))*density));
     for(let i=0;i<n;i++){
-      const t=.47+(i+1)/(n+1)*.42+jit(.014),r=radiusAt(fine,t),az=(i%2?1:-1)*rr(.50,1.25)+index*.22,angle=rr(.28,.52),bias=rr(-.012,.050),dir=dirAround(fine,t,az,angle,bias);
-      growChild(fine,t,dir,rr(.38,.62),Math.max(.012,r*rr(.28,.38)),.0030,5,{rise:bias>0?.002:0,wander:.84});
+      const t=.52+(i+1)/(n+1)*.35+jit(.012),r=radiusAt(fine,t),az=(i%2?1:-1)*rr(.48,1.12)+index*.22,angle=rr(.25,.44),bias=rr(-.008,.040),dir=dirAround(fine,t,az,angle,bias);
+      growChild(fine,t,dir,rr(.38,.58),Math.max(.010,r*rr(.28,.36)),.0026,5,{rise:bias>0?.002:0,wander:.72});
     }
-    const t=.979,r=radiusAt(fine,t),dir=tangentAt(fine,t).clone().add(new THREE.Vector3(jit(.018),.010,jit(.018))).normalize();
-    growChild(fine,t,dir,rr(.40,.64),Math.max(.012,r*.90),.0026,5,{wander:.74});
+    const t=.980,r=radiusAt(fine,t),dir=tangentAt(fine,t).clone().add(new THREE.Vector3(jit(.014),.008,jit(.014))).normalize();
+    growChild(fine,t,dir,rr(.42,.62),Math.max(.010,r*.90),.0023,5,{wander:.62});
   }
   secondaries.forEach(growSecondary);
 }
