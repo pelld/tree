@@ -17,28 +17,107 @@
 <div id="title"><b>English oak</b><span>branch study · one mature scaffold limb · no leaves</span></div>
 <div id="status">Growing oak branch…</div><div id="hint">Drag to orbit · pinch / scroll to inspect</div>
 <button id="gear">⚙</button>
-<div id="panel">
-<label><span>Seed</span><input id="seedInput" type="number" value="88231"></label>
-<label><span>Fine growth</span><input id="densityInput" type="range" min="0.75" max="1.35" step="0.05" value="1"></label>
-<label><span>Randomness</span><input id="randomInput" type="range" min="0.2" max="1" step="0.05" value="0.48"></label>
-<div class="buttons"><button id="regen">Regenerate</button><button id="newSeed">New seed</button></div></div>
+<div id="panel"><label><span>Seed</span><input id="seedInput" type="number" value="88231"></label><label><span>Fine growth</span><input id="densityInput" type="range" min="0.75" max="1.35" step="0.05" value="1"></label><label><span>Randomness</span><input id="randomInput" type="range" min="0.2" max="1" step="0.05" value="0.42"></label><div class="buttons"><button id="regen">Regenerate</button><button id="newSeed">New seed</button></div></div>
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.179.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.179.1/examples/jsm/"}}</script>
 <script type="module">
 import * as THREE from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
-const scene=new THREE.Scene();scene.background=new THREE.Color(0xcbd7c5);scene.fog=new THREE.FogExp2(0xcbd7c5,.0035);const camera=new THREE.PerspectiveCamera(40,innerWidth/innerHeight,.03,250);camera.position.set(15.5,8.8,25.5);const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});renderer.setPixelRatio(Math.min(devicePixelRatio,1.45));renderer.setSize(innerWidth,innerHeight);renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.06;renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;document.body.prepend(renderer.domElement);const controls=new OrbitControls(camera,renderer.domElement);controls.target.set(-3.9,5.0,-.35);controls.enableDamping=true;controls.dampingFactor=.06;controls.minDistance=.2;controls.maxDistance=60;controls.zoomToCursor=true;scene.add(new THREE.HemisphereLight(0xdce8d5,0x4a4237,1.55));const sun=new THREE.DirectionalLight(0xffefd0,3.0);sun.position.set(-15,25,12);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);sun.shadow.camera.left=-22;sun.shadow.camera.right=22;sun.shadow.camera.top=24;sun.shadow.camera.bottom=-7;scene.add(sun);const ground=new THREE.Mesh(new THREE.CircleGeometry(45,72),new THREE.MeshStandardMaterial({color:0x788861,roughness:1}));ground.rotation.x=-Math.PI/2;ground.receiveShadow=true;scene.add(ground);
-const mats=[0x493b30,0x514136,0x554437,0x594838,0x493b2f,0x353326].map(c=>new THREE.MeshStandardMaterial({color:c,roughness:1}));const treeRoot=new THREE.Group();scene.add(treeRoot);let meshes=[];const branches=[];let seed=88231,randomness=.48;function reset(v){seed=Math.max(1,Math.floor(v)||1)%2147483647;if(!seed)seed=1}function rnd(){seed=seed*16807%2147483647;return(seed-1)/2147483646}function rr(a,b){return a+(b-a)*rnd()}function jit(a){return(rnd()-.5)*a*randomness}
-function branch(points,r0,r1,order,parent=null){const b={points,r0,r1,order,parent,children:[],curve:new THREE.CatmullRomCurve3(points,false,'centripetal'),phase:rnd()*6.283};if(parent)parent.children.push(b);branches.push(b);return b}function pointAt(b,t){return b.curve.getPointAt(THREE.MathUtils.clamp(t,0,1))}function tangentAt(b,t){return b.curve.getTangentAt(THREE.MathUtils.clamp(t,0,1)).normalize()}function radiusAt(b,t){return b.r1+(b.r0-b.r1)*Math.pow(1-t,.80)}
-function frameAt(parent,t){const tan=tangentAt(parent,t),ref=Math.abs(tan.y)<.88?new THREE.Vector3(0,1,0):new THREE.Vector3(1,0,0),u=new THREE.Vector3().crossVectors(tan,ref).normalize(),v=new THREE.Vector3().crossVectors(u,tan).normalize();return{tan,u,v}}function divergentDir(parent,t,azimuth,angle,verticalBias=0){const {tan,u,v}=frameAt(parent,t),radial=u.clone().multiplyScalar(Math.cos(azimuth)).add(v.clone().multiplyScalar(Math.sin(azimuth))).normalize(),d=tan.clone().multiplyScalar(Math.cos(angle)).add(radial.multiplyScalar(Math.sin(angle)));d.y+=verticalBias;return d.normalize()}
-function organicChild(parent,t,targetDir,len,r0,r1,order,{rise=0,droop=0,wander=1}={}){const start=pointAt(parent,t),parentTan=tangentAt(parent,t),steps=order===2?12:order===3?9:order===4?7:6,pts=[start.clone()];let p=start.clone();for(let i=1;i<=steps;i++){const f=i/steps,ease=THREE.MathUtils.smoothstep(f,.10,.78),d=parentTan.clone().lerp(targetDir,ease),wig=(order===2?.022:order===3?.035:order===4?.046:.058)*wander;d.x+=jit(wig);d.z+=jit(wig);d.y+=jit(wig*.6)+rise*Math.sin(Math.PI*f)-droop*f*f;d.normalize();p=p.clone().add(d.multiplyScalar(len/steps*(.97+rr(-.03,.035))));pts.push(p.clone())}return branch(pts,r0,r1,order,parent)}
-function render(){const buckets=Array.from({length:6},()=>[]);for(const b of branches){const seg=b.order===0?48:b.order===1?42:b.order===2?28:b.order===3?19:b.order===4?12:8,sides=b.order===0?14:b.order===1?12:b.order===2?9:b.order===3?7:b.order===4?6:5,g=new THREE.TubeGeometry(b.curve,seg,1,sides,false),pos=g.attributes.position,uv=g.attributes.uv,c=new THREE.Vector3(),v=new THREE.Vector3();for(let i=0;i<pos.count;i++){const t=uv.getX(i);b.curve.getPointAt(t,c);v.set(pos.getX(i),pos.getY(i),pos.getZ(i)).sub(c);const r=radiusAt(b,t)*(1+(b.order<3?.009:.004)*Math.sin(15*t+b.phase));v.multiplyScalar(r);pos.setXYZ(i,c.x+v.x,c.y+v.y,c.z+v.z)}g.computeVertexNormals();buckets[b.order].push(g)}buckets.forEach((gs,o)=>{if(!gs.length)return;const merged=mergeGeometries(gs,false);gs.forEach(g=>g.dispose());const m=new THREE.Mesh(merged,mats[o]);m.castShadow=o<5;m.receiveShadow=true;treeRoot.add(m);meshes.push(m)})}
-function build(density){branches.length=0;const trunkPts=[new THREE.Vector3(0,0,0),new THREE.Vector3(.03,1.6,.01),new THREE.Vector3(.05,3.1,.03),new THREE.Vector3(.03,4.6,.05),new THREE.Vector3(.00,6.2,.08),new THREE.Vector3(-.05,7.1,.10)];const trunk=branch(trunkPts,1.10,.54,0,null);const attach=pointAt(trunk,.60),tr=radiusAt(trunk,.60);const p=[attach.clone(),attach.clone().add(new THREE.Vector3(-.85,.34,-.05)),attach.clone().add(new THREE.Vector3(-1.9,.67,-.17)),attach.clone().add(new THREE.Vector3(-3.05,.88,-.40)),attach.clone().add(new THREE.Vector3(-4.25,.91,-.68)),attach.clone().add(new THREE.Vector3(-5.45,.72,-.88)),attach.clone().add(new THREE.Vector3(-6.55,.46,-1.02)),attach.clone().add(new THREE.Vector3(-7.45,.28,-1.06)),attach.clone().add(new THREE.Vector3(-8.15,.22,-1.00))];const primary=branch(p,tr*.58,.060,1,trunk);
-const specs=[{t:.24,az:-1.65,angle:.74,len:3.15,bias:.10,r:.39},{t:.36,az:.72,angle:.88,len:4.15,bias:.18,r:.42},{t:.50,az:2.48,angle:.78,len:3.55,bias:-.02,r:.36,droop:.05},{t:.64,az:-.42,angle:.70,len:2.95,bias:.12,r:.34},{t:.77,az:1.82,angle:.64,len:2.35,bias:.02,r:.31},{t:.86,az:-2.55,angle:.57,len:1.65,bias:.08,r:.27}];const secondaries=[];for(const s of specs){const r=radiusAt(primary,s.t),dir=divergentDir(primary,s.t,s.az+jit(.09),s.angle+jit(.05),s.bias+jit(.035));secondaries.push(organicChild(primary,s.t,dir,s.len*rr(.95,1.05),r*s.r,r*rr(.070,.095),2,{rise:s.bias>0?.010:0,droop:s.droop||0,wander:.72}))}
-function growSecondary(sec,index){const n=Math.max(2,Math.round((2.4+rr(0,.9))*density));for(let i=0;i<n;i++){const t=.28+(i+1)/(n+1)*.57+jit(.025),r=radiusAt(sec,t),az=(i%2?1:-1)*rr(.95,2.25)+index*.31,angle=rr(.56,.86),bias=rr(-.035,.10),dir=divergentDir(sec,t,az,angle,bias);const ter=organicChild(sec,t,dir,rr(1.20,1.85)*(1-.08*t),r*rr(.26,.35),r*rr(.050,.075),3,sec,{rise:bias>0?.008:0,droop:bias<0?.025:0,wander:.88});growTertiary(ter,index+i)}const t=.965,r=radiusAt(sec,t),dir=tangentAt(sec,t).clone().add(new THREE.Vector3(jit(.035),.018,jit(.035))).normalize();const ter=organicChild(sec,t,dir,rr(1.0,1.35),r*.90,r*.10,3,sec,{rise:.005,wander:.72});growTertiary(ter,index+9)}
-function growTertiary(ter,index){const n=Math.max(2,Math.round((2.0+rr(0,.8))*density));for(let i=0;i<n;i++){const t=.34+(i+1)/(n+1)*.51+jit(.025),r=radiusAt(ter,t),az=(i%2?1:-1)*rr(.85,2.15)+index*.27,angle=rr(.48,.76),bias=rr(-.025,.075),dir=divergentDir(ter,t,az,angle,bias);const fine=organicChild(ter,t,dir,rr(.62,.98),r*rr(.22,.30),r*rr(.048,.070),4,ter,{rise:bias>0?.005:0,droop:bias<0?.018:0,wander:.95});growFine(fine,index+i)}const t=.97,r=radiusAt(ter,t),dir=tangentAt(ter,t).clone().add(new THREE.Vector3(jit(.04),.015,jit(.04))).normalize();const fine=organicChild(ter,t,dir,rr(.58,.82),r*.86,r*.10,4,ter,{wander:.82});growFine(fine,index+7)}
-function growFine(fine,index){const n=Math.max(2,Math.round((2.2+rr(0,.9))*density));for(let i=0;i<n;i++){const t=.48+(i+1)/(n+1)*.40+jit(.020),r=radiusAt(fine,t),az=(i%2?1:-1)*rr(.72,1.85)+index*.23,angle=rr(.34,.58),bias=rr(-.015,.050),dir=divergentDir(fine,t,az,angle,bias);organicChild(fine,t,dir,rr(.25,.43),Math.max(.0045,r*rr(.17,.24)),.0008,5,{rise:bias>0?.003:0,wander:1.0})}const t=.978,r=radiusAt(fine,t),dir=tangentAt(fine,t).clone().add(new THREE.Vector3(jit(.028),.010,jit(.028))).normalize();organicChild(fine,t,dir,rr(.27,.43),Math.max(.0045,r*.84),.00065,5,{wander:.9})}secondaries.forEach(growSecondary)}
-function clear(){for(const m of meshes){if(m.geometry)m.geometry.dispose();treeRoot.remove(m)}meshes=[];while(treeRoot.children.length)treeRoot.remove(treeRoot.children[0])}function generate(){document.querySelector('#status').style.display='block';setTimeout(()=>{clear();randomness=+document.querySelector('#randomInput').value;reset(+document.querySelector('#seedInput').value);build(+document.querySelector('#densityInput').value);render();document.querySelector('#status').style.display='none';console.log(`oak limb: ${branches.length} woody sections`)},20)}document.querySelector('#gear').onclick=()=>document.querySelector('#panel').classList.toggle('show');document.querySelector('#regen').onclick=generate;document.querySelector('#newSeed').onclick=()=>{document.querySelector('#seedInput').value=Math.floor(1+Math.random()*999999999);generate()};function animate(){controls.update();renderer.render(scene,camera);requestAnimationFrame(animate)}animate();generate();addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});setTimeout(()=>document.querySelector('#hint').style.opacity=.24,6000);
+
+// 01 — SCENE
+const scene=new THREE.Scene();scene.background=new THREE.Color(0xcbd7c5);scene.fog=new THREE.FogExp2(0xcbd7c5,.0035);
+const camera=new THREE.PerspectiveCamera(40,innerWidth/innerHeight,.03,250);camera.position.set(15.5,8.2,24.5);
+const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});renderer.setPixelRatio(Math.min(devicePixelRatio,1.45));renderer.setSize(innerWidth,innerHeight);renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.06;renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;document.body.prepend(renderer.domElement);
+const controls=new OrbitControls(camera,renderer.domElement);controls.target.set(-4.0,5.1,-.25);controls.enableDamping=true;controls.dampingFactor=.06;controls.minDistance=.2;controls.maxDistance=60;controls.zoomToCursor=true;
+scene.add(new THREE.HemisphereLight(0xdce8d5,0x4a4237,1.55));const sun=new THREE.DirectionalLight(0xffefd0,3.0);sun.position.set(-15,25,12);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);sun.shadow.camera.left=-22;sun.shadow.camera.right=22;sun.shadow.camera.top=24;sun.shadow.camera.bottom=-7;scene.add(sun);
+const ground=new THREE.Mesh(new THREE.CircleGeometry(45,72),new THREE.MeshStandardMaterial({color:0x788861,roughness:1}));ground.rotation.x=-Math.PI/2;ground.receiveShadow=true;scene.add(ground);
+
+// 02 — MODEL + RANDOMNESS
+const mats=[0x493b30,0x514136,0x554437,0x594838,0x493b2f,0x353326].map(c=>new THREE.MeshStandardMaterial({color:c,roughness:1}));
+const treeRoot=new THREE.Group();scene.add(treeRoot);let meshes=[];const branches=[];let seed=88231,randomness=.42;
+function reset(v){seed=Math.max(1,Math.floor(v)||1)%2147483647;if(!seed)seed=1}function rnd(){seed=seed*16807%2147483647;return(seed-1)/2147483646}function rr(a,b){return a+(b-a)*rnd()}function jit(a){return(rnd()-.5)*a*randomness}
+function branch(points,r0,r1,order,parent=null){const b={points,r0,r1,order,parent,children:[],curve:new THREE.CatmullRomCurve3(points,false,'centripetal'),phase:rnd()*6.283};if(parent)parent.children.push(b);branches.push(b);return b}
+function pointAt(b,t){return b.curve.getPointAt(THREE.MathUtils.clamp(t,0,1))}function tangentAt(b,t){return b.curve.getTangentAt(THREE.MathUtils.clamp(t,0,1)).normalize()}function radiusAt(b,t){return b.r1+(b.r0-b.r1)*Math.pow(1-t,.76)}
+function frameAt(parent,t){const tan=tangentAt(parent,t),ref=Math.abs(tan.y)<.90?new THREE.Vector3(0,1,0):new THREE.Vector3(1,0,0),u=new THREE.Vector3().crossVectors(tan,ref).normalize(),v=new THREE.Vector3().crossVectors(u,tan).normalize();return{tan,u,v}}
+function dirAround(parent,t,azimuth,angle,verticalBias=0){const {tan,u,v}=frameAt(parent,t),radial=u.clone().multiplyScalar(Math.cos(azimuth)).add(v.clone().multiplyScalar(Math.sin(azimuth))).normalize(),d=tan.clone().multiplyScalar(Math.cos(angle)).add(radial.multiplyScalar(Math.sin(angle)));d.y+=verticalBias;return d.normalize()}
+
+// Child growth begins tangent to the parent, then gradually turns into its own axis.
+function growChild(parent,t,targetDir,len,r0,r1,order,{rise=0,droop=0,wander=1}={}){
+  const start=pointAt(parent,t),parentTan=tangentAt(parent,t),steps=order===2?12:order===3?10:order===4?8:6,pts=[start.clone()];let p=start.clone();
+  for(let i=1;i<=steps;i++){
+    const f=i/steps,ease=THREE.MathUtils.smoothstep(f,.08,.82),d=parentTan.clone().lerp(targetDir,ease),wig=(order===2?.018:order===3?.030:order===4?.042:.052)*wander;
+    d.x+=jit(wig);d.z+=jit(wig);d.y+=jit(wig*.55)+rise*Math.sin(Math.PI*f)-droop*f*f;d.normalize();
+    p=p.clone().add(d.multiplyScalar(len/steps*(.98+rr(-.025,.03))));pts.push(p.clone());
+  }
+  return branch(pts,r0,r1,order,parent);
+}
+
+// 03 — RENDER SMOOTH CONTINUOUS TAPER
+function render(){const buckets=Array.from({length:6},()=>[]);for(const b of branches){const seg=b.order===0?48:b.order===1?44:b.order===2?30:b.order===3?21:b.order===4?14:9,sides=b.order===0?14:b.order===1?12:b.order===2?10:b.order===3?8:b.order===4?6:5,g=new THREE.TubeGeometry(b.curve,seg,1,sides,false),pos=g.attributes.position,uv=g.attributes.uv,c=new THREE.Vector3(),v=new THREE.Vector3();for(let i=0;i<pos.count;i++){const t=uv.getX(i);b.curve.getPointAt(t,c);v.set(pos.getX(i),pos.getY(i),pos.getZ(i)).sub(c);const r=radiusAt(b,t)*(1+(b.order<3?.008:.004)*Math.sin(15*t+b.phase));v.multiplyScalar(r);pos.setXYZ(i,c.x+v.x,c.y+v.y,c.z+v.z)}g.computeVertexNormals();buckets[b.order].push(g)}buckets.forEach((gs,o)=>{if(!gs.length)return;const merged=mergeGeometries(gs,false);gs.forEach(g=>g.dispose());const m=new THREE.Mesh(merged,mats[o]);m.castShadow=o<5;m.receiveShadow=true;treeRoot.add(m);meshes.push(m)})}
+
+// 04 — ONE SCAFFOLD LIMB. Fewer, stronger branches first; fine growth comes later.
+function build(density){
+  branches.length=0;
+  const trunkPts=[new THREE.Vector3(0,0,0),new THREE.Vector3(.03,1.45,.01),new THREE.Vector3(.05,2.9,.03),new THREE.Vector3(.03,4.35,.05),new THREE.Vector3(-.01,5.75,.08),new THREE.Vector3(-.05,6.65,.10)];
+  const trunk=branch(trunkPts,1.05,.50,0,null);
+  const attach=pointAt(trunk,.64),tr=radiusAt(trunk,.64);
+
+  // Deliberately slightly crooked: massive near the trunk, then slowly settles and narrows.
+  const p=[attach.clone(),attach.clone().add(new THREE.Vector3(-.75,.30,-.03)),attach.clone().add(new THREE.Vector3(-1.70,.61,-.14)),attach.clone().add(new THREE.Vector3(-2.85,.83,-.34)),attach.clone().add(new THREE.Vector3(-4.10,.86,-.58)),attach.clone().add(new THREE.Vector3(-5.28,.69,-.76)),attach.clone().add(new THREE.Vector3(-6.35,.43,-.87)),attach.clone().add(new THREE.Vector3(-7.25,.27,-.83)),attach.clone().add(new THREE.Vector3(-8.05,.31,-.67))];
+  const primary=branch(p,tr*.60,.024,1,trunk);
+
+  // Major secondary scaffolds: one dominant upper limb, one lower/back limb, then progressively smaller outer limbs.
+  const specs=[
+    {t:.25,az:-1.20,angle:.67,len:4.25,bias:.12,base:.49,tip:.105},
+    {t:.39,az:1.78,angle:.73,len:3.55,bias:-.06,base:.43,tip:.095,droop:.05},
+    {t:.52,az:.45,angle:.64,len:3.35,bias:.16,base:.45,tip:.090},
+    {t:.66,az:-2.22,angle:.70,len:2.75,bias:.05,base:.37,tip:.082},
+    {t:.78,az:1.10,angle:.58,len:2.25,bias:.10,base:.33,tip:.075}
+  ];
+  const secondaries=[];
+  for(const s of specs){const r=radiusAt(primary,s.t),dir=dirAround(primary,s.t,s.az+jit(.06),s.angle+jit(.035),s.bias+jit(.025));secondaries.push(growChild(primary,s.t,dir,s.len*rr(.97,1.03),r*s.base,r*s.tip,2,{rise:s.bias>0?.008:0,droop:s.droop||0,wander:.65}))}
+
+  // The scaffold itself also runs out into a finer terminal axis rather than ending as a cut pipe.
+  const tipT=.86,tipR=radiusAt(primary,tipT),tipDir=tangentAt(primary,tipT).clone().add(new THREE.Vector3(-.03,.08,.10)).normalize();
+  secondaries.push(growChild(primary,tipT,tipDir,2.05,tipR*.55,tipR*.055,2,{rise:.006,wander:.55}));
+
+  function growSecondary(sec,index){
+    const n=Math.max(3,Math.round((3.0+rr(0,.9))*density));
+    for(let i=0;i<n;i++){
+      const t=.25+(i+1)/(n+1)*.60+jit(.020),r=radiusAt(sec,t),az=(i%2?1:-1)*rr(.72,1.55)+index*.44,angle=rr(.45,.70),bias=rr(-.025,.085),dir=dirAround(sec,t,az,angle,bias);
+      const ter=growChild(sec,t,dir,rr(1.45,2.20)*(1-.09*t),r*rr(.34,.43),r*rr(.075,.105),3,{rise:bias>0?.006:0,droop:bias<0?.018:0,wander:.78});growTertiary(ter,index+i);
+    }
+    const t=.965,r=radiusAt(sec,t),dir=tangentAt(sec,t).clone().add(new THREE.Vector3(jit(.025),.018,jit(.025))).normalize();
+    const ter=growChild(sec,t,dir,rr(1.25,1.65),r*.92,r*.12,3,{rise:.004,wander:.62});growTertiary(ter,index+8);
+  }
+
+  function growTertiary(ter,index){
+    const n=Math.max(2,Math.round((2.6+rr(0,.8))*density));
+    for(let i=0;i<n;i++){
+      const t=.34+(i+1)/(n+1)*.52+jit(.020),r=radiusAt(ter,t),az=(i%2?1:-1)*rr(.65,1.40)+index*.31,angle=rr(.40,.64),bias=rr(-.015,.065),dir=dirAround(ter,t,az,angle,bias);
+      const fine=growChild(ter,t,dir,rr(.78,1.22),r*rr(.31,.40),r*rr(.075,.105),4,{rise:bias>0?.004:0,droop:bias<0?.010:0,wander:.86});growFine(fine,index+i);
+    }
+    const t=.97,r=radiusAt(ter,t),dir=tangentAt(ter,t).clone().add(new THREE.Vector3(jit(.03),.014,jit(.03))).normalize();
+    const fine=growChild(ter,t,dir,rr(.72,1.00),r*.90,r*.12,4,{wander:.72});growFine(fine,index+6);
+  }
+
+  function growFine(fine,index){
+    const n=Math.max(2,Math.round((2.5+rr(0,.8))*density));
+    for(let i=0;i<n;i++){
+      const t=.48+(i+1)/(n+1)*.41+jit(.016),r=radiusAt(fine,t),az=(i%2?1:-1)*rr(.55,1.20)+index*.24,angle=rr(.28,.50),bias=rr(-.010,.045),dir=dirAround(fine,t,az,angle,bias);
+      growChild(fine,t,dir,rr(.32,.56),Math.max(.006,r*rr(.22,.30)),.0011,5,{rise:bias>0?.002:0,wander:.92});
+    }
+    const t=.978,r=radiusAt(fine,t),dir=tangentAt(fine,t).clone().add(new THREE.Vector3(jit(.022),.009,jit(.022))).normalize();
+    growChild(fine,t,dir,rr(.35,.55),Math.max(.006,r*.88),.0009,5,{wander:.82});
+  }
+  secondaries.forEach(growSecondary);
+}
+
+// 05 — UI
+function clear(){for(const m of meshes){if(m.geometry)m.geometry.dispose();treeRoot.remove(m)}meshes=[];while(treeRoot.children.length)treeRoot.remove(treeRoot.children[0])}
+function generate(){document.querySelector('#status').style.display='block';setTimeout(()=>{clear();randomness=+document.querySelector('#randomInput').value;reset(+document.querySelector('#seedInput').value);build(+document.querySelector('#densityInput').value);render();document.querySelector('#status').style.display='none';console.log(`oak limb: ${branches.length} woody sections`)},20)}
+document.querySelector('#gear').onclick=()=>document.querySelector('#panel').classList.toggle('show');document.querySelector('#regen').onclick=generate;document.querySelector('#newSeed').onclick=()=>{document.querySelector('#seedInput').value=Math.floor(1+Math.random()*999999999);generate()};
+function animate(){controls.update();renderer.render(scene,camera);requestAnimationFrame(animate)}animate();generate();addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});setTimeout(()=>document.querySelector('#hint').style.opacity=.24,6000);
 </script>
 </body>
 </html>
