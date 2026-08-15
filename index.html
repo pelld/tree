@@ -20,7 +20,7 @@
     touch-action: none;
     user-select: none;
     cursor: grab;
-    background: radial-gradient(circle at 50% 43%, #f4f7f1 0%, #e4ebe1 62%, #d8e2d5 100%);
+    background: #e8eee7;
   }
   #stage.grabbing { cursor: grabbing; }
   #tree {
@@ -142,7 +142,7 @@
   const resetButton = document.getElementById('reset');
   const hint = document.getElementById('hint');
 
-  let x = 0, y = 0, scale = 1, fitScale = 1, minScale = .2, maxScale = 8;
+  let x = 0, y = 0, scale = 1, fitScale = 1, minScale = 1, maxScale = 8;
   const pointers = new Map();
   let gesture = null;
   let hintTimer;
@@ -151,17 +151,38 @@
   const distance = (a, b) => Math.hypot(b.x - a.x, b.y - a.y);
   const midpoint = (a, b) => ({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 });
 
+  function constrainPosition() {
+    if (!tree.naturalWidth) return;
+
+    const imageWidth = tree.naturalWidth * scale;
+    const imageHeight = tree.naturalHeight * scale;
+
+    if (imageWidth <= stage.clientWidth) {
+      x = (stage.clientWidth - imageWidth) / 2;
+    } else {
+      x = clamp(x, stage.clientWidth - imageWidth, 0);
+    }
+
+    if (imageHeight <= stage.clientHeight) {
+      y = (stage.clientHeight - imageHeight) / 2;
+    } else {
+      y = clamp(y, stage.clientHeight - imageHeight, 0);
+    }
+  }
+
   function render() {
+    constrainPosition();
     tree.style.transform = `translate3d(${x}px, ${y}px, 0) scale(${scale})`;
     resetButton.textContent = `${Math.round(scale / fitScale * 100)}%`;
   }
 
   function fit() {
     if (!tree.naturalWidth) return;
-    const margin = window.innerWidth < 650 ? .97 : .94;
-    fitScale = Math.min(stage.clientWidth / tree.naturalWidth, stage.clientHeight / tree.naturalHeight) * margin;
+
+    // Cover the whole viewport rather than fitting the whole photograph inside it.
+    fitScale = Math.max(stage.clientWidth / tree.naturalWidth, stage.clientHeight / tree.naturalHeight);
     scale = fitScale;
-    minScale = fitScale * .55;
+    minScale = fitScale;
     maxScale = fitScale * 10;
     x = (stage.clientWidth - tree.naturalWidth * scale) / 2;
     y = (stage.clientHeight - tree.naturalHeight * scale) / 2;
