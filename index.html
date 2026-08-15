@@ -35,6 +35,7 @@ html, body {
 }
 
 #stage.grabbing { cursor: grabbing; }
+#stage.hotspot { cursor: pointer; }
 
 /* ========================================================================== */
 /* 01B. HIGH-RESOLUTION SOURCE IMAGE                                          */
@@ -122,7 +123,73 @@ html, body {
 .credit a:hover { text-decoration: underline; }
 
 /* ========================================================================== */
-/* 01D. LOADING STATE                                                         */
+/* 01D. CLICK-TO-LEARN INFORMATION CARD                                      */
+/* No markers are drawn over the photograph.  This card is hidden until a     */
+/* tap lands inside one of the invisible anatomical hit areas.                */
+/* ========================================================================== */
+#infoCard {
+  position: fixed;
+  left: 50%;
+  bottom: calc(max(13px, env(safe-area-inset-bottom)) + 58px);
+  z-index: 40;
+  width: min(390px, calc(100vw - 24px));
+  max-height: min(42vh, 340px);
+  overflow: auto;
+  padding: 16px 48px 15px 16px;
+  border: 1px solid rgba(23, 32, 24, 0.09);
+  border-radius: 18px;
+  background: rgba(250, 252, 248, 0.96);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 12px 40px rgba(18, 28, 19, 0.18);
+  opacity: 0;
+  transform: translate(-50%, 14px);
+  pointer-events: none;
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+#infoCard.open {
+  opacity: 1;
+  transform: translate(-50%, 0);
+  pointer-events: auto;
+}
+
+#infoTitle {
+  margin: 0 0 7px;
+  font: 600 22px/1.1 Georgia, serif;
+}
+
+#infoText {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+#infoSource {
+  display: inline-block;
+  margin-top: 11px;
+  color: #415342;
+  font-size: 11px;
+  text-underline-offset: 2px;
+}
+
+#infoClose {
+  position: absolute;
+  top: 9px;
+  right: 9px;
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: #263228;
+  font: 500 22px/1 system-ui, sans-serif;
+  cursor: pointer;
+}
+
+#infoClose:active { background: rgba(23, 32, 24, 0.08); }
+
+/* ========================================================================== */
+/* 01E. LOADING STATE                                                         */
 /* ========================================================================== */
 #loading {
   position: fixed;
@@ -139,12 +206,13 @@ html, body {
 #error { display: none; max-width: 340px; text-align: center; line-height: 1.35; }
 
 /* ========================================================================== */
-/* 01E. SMALL-SCREEN TUNING                                                   */
+/* 01F. SMALL-SCREEN TUNING                                                   */
 /* ========================================================================== */
 @media (max-width: 650px) {
   #title { padding: 8px 10px; }
   #title b { font-size: 18px; }
   .credit { max-width: 58vw; font-size: 9px; }
+  #infoCard { max-height: 38vh; }
 }
 </style>
 </head>
@@ -175,7 +243,17 @@ html, body {
 </div>
 
 <!-- ======================================================================== -->
-<!-- 02D. ATTRIBUTION AND INITIAL LOAD                                        -->
+<!-- 02D. CLICK-TO-LEARN CARD — HIDDEN UNTIL A BODY PART IS TAPPED            -->
+<!-- ======================================================================== -->
+<aside id="infoCard" aria-live="polite" aria-hidden="true">
+  <button id="infoClose" type="button" aria-label="Close information">×</button>
+  <h2 id="infoTitle"></h2>
+  <p id="infoText"></p>
+  <a id="infoSource" href="#" target="_blank" rel="noopener">Source</a>
+</aside>
+
+<!-- ======================================================================== -->
+<!-- 02E. ATTRIBUTION AND INITIAL LOAD                                        -->
 <!-- ======================================================================== -->
 <div class="credit">
   <a href="https://commons.wikimedia.org/wiki/File:Acrocinus_longimanus_MHNT_femelle.jpg" target="_blank" rel="noopener">Photo: Didier Descouens · CC BY-SA 3.0</a>
@@ -207,9 +285,14 @@ html, body {
   const loading = document.getElementById('loading');
   const loadingText = document.getElementById('loadingText');
   const error = document.getElementById('error');
+  const infoCard = document.getElementById('infoCard');
+  const infoTitle = document.getElementById('infoTitle');
+  const infoText = document.getElementById('infoText');
+  const infoSource = document.getElementById('infoSource');
+  const infoClose = document.getElementById('infoClose');
 
   /* ======================================================================== */
-  /* 10C. VIEW AND IMAGE STATE                                                */
+  /* 10C. VIEW, POINTER AND TAP STATE                                         */
   /* ======================================================================== */
   let x = 0;
   let y = 0;
@@ -221,19 +304,160 @@ html, body {
   let fullReady = false;
   let fullRequested = false;
   let source = 'preview';
+  let gesture = null;
+  let tapCandidate = null;
+  let multiTouchGesture = false;
 
   const pointers = new Map();
-  let gesture = null;
 
   /* ======================================================================== */
-  /* 11A. SMALL MATH HELPERS                                                  */
+  /* 11A. ANATOMICAL INFORMATION                                             */
+  /* Text remains invisible until the corresponding body area is tapped.      */
+  /* ======================================================================== */
+  const information = {
+    head: {
+      title: 'Head',
+      text: 'The head carries the compound eyes, mouthparts and the bases of the antennae. The powerful mandibles are useful when feeding and manipulating material on tree trunks.',
+      sourceLabel: 'Smithsonian · specimen taxonomy',
+      sourceUrl: 'https://www.si.edu/object/giant-harlequin-beetle-harlequin-beetle:nmnheducation_10866534'
+    },
+    antennae: {
+      title: 'Antennae',
+      text: 'This is a longhorn beetle — family Cerambycidae — named for its conspicuously long antennae. They are sensory organs, sampling touch and chemical information as the beetle explores its surroundings.',
+      sourceLabel: 'GBIF · Cerambycidae classification',
+      sourceUrl: 'https://www.gbif.org/species/1118064'
+    },
+    pronotum: {
+      title: 'Pronotum',
+      text: 'The shield-like section immediately behind the head is the pronotum, covering the prothorax. The first pair of legs attaches to this body segment.',
+      sourceLabel: 'Universidad Nacional de Colombia · morphology',
+      sourceUrl: 'https://historianatural.unal.edu.co/expo1/escarabajo_eng.html'
+    },
+    elytra: {
+      title: 'Elytra',
+      text: 'These patterned panels are hardened forewings called elytra. They form a protective shell over the delicate flight wings and abdomen. The bold black, orange and yellow pattern is what gives the species its “harlequin” name.',
+      sourceLabel: 'Universidad Nacional de Colombia · morphology',
+      sourceUrl: 'https://historianatural.unal.edu.co/expo1/escarabajo_eng.html'
+    },
+    forelegs: {
+      title: 'Front legs',
+      text: 'This specimen is female. Males have dramatically longer front legs: studies found male forelegs can be almost twice the length of female forelegs. Males use them in fights with rivals and while guarding females and egg-laying sites.',
+      sourceLabel: 'Zeh, Zeh & Tavakilian · Biotropica (1992)',
+      sourceUrl: 'https://doi.org/10.2307/2388476'
+    },
+    legs: {
+      title: 'Middle and hind legs',
+      text: 'Like all insects, the beetle has three pairs of jointed legs. The hooked claws at their tips help it grip bark and move over trunks and branches.',
+      sourceLabel: 'Universidad Nacional de Colombia · species overview',
+      sourceUrl: 'https://historianatural.unal.edu.co/expo1/escarabajo_eng.html'
+    }
+  };
+
+  /* ======================================================================== */
+  /* 11B. INVISIBLE HOTSPOTS                                                  */
+  /* Coordinates are normalised to the original image (0–1).  Ellipses cover  */
+  /* compact anatomy; capsules follow long thin structures such as antennae.  */
+  /* Nothing in this data is rendered, so the specimen photograph stays clean.*/
+  /* ======================================================================== */
+  const hotspots = [
+    { key: 'head', regions: [
+      { type: 'ellipse', x: 0.50, y: 0.285, rx: 0.070, ry: 0.052 }
+    ] },
+    { key: 'pronotum', regions: [
+      { type: 'ellipse', x: 0.50, y: 0.355, rx: 0.115, ry: 0.060 }
+    ] },
+    { key: 'forelegs', regions: [
+      { type: 'capsule', ax: 0.455, ay: 0.345, bx: 0.205, by: 0.225, r: 0.034 },
+      { type: 'capsule', ax: 0.545, ay: 0.345, bx: 0.795, by: 0.225, r: 0.034 }
+    ] },
+    { key: 'antennae', regions: [
+      { type: 'capsule', ax: 0.465, ay: 0.300, bx: 0.335, by: 0.430, r: 0.027 },
+      { type: 'capsule', ax: 0.335, ay: 0.430, bx: 0.205, by: 0.680, r: 0.027 },
+      { type: 'capsule', ax: 0.205, ay: 0.680, bx: 0.205, by: 0.885, r: 0.027 },
+      { type: 'capsule', ax: 0.535, ay: 0.300, bx: 0.665, by: 0.430, r: 0.027 },
+      { type: 'capsule', ax: 0.665, ay: 0.430, bx: 0.795, by: 0.680, r: 0.027 },
+      { type: 'capsule', ax: 0.795, ay: 0.680, bx: 0.795, by: 0.885, r: 0.027 }
+    ] },
+    { key: 'elytra', regions: [
+      { type: 'ellipse', x: 0.50, y: 0.585, rx: 0.145, ry: 0.225 }
+    ] },
+    { key: 'legs', regions: [
+      { type: 'capsule', ax: 0.435, ay: 0.430, bx: 0.285, by: 0.535, r: 0.032 },
+      { type: 'capsule', ax: 0.565, ay: 0.430, bx: 0.715, by: 0.535, r: 0.032 },
+      { type: 'capsule', ax: 0.430, ay: 0.625, bx: 0.300, by: 0.760, r: 0.032 },
+      { type: 'capsule', ax: 0.570, ay: 0.625, bx: 0.700, by: 0.760, r: 0.032 }
+    ] }
+  ];
+
+  /* ======================================================================== */
+  /* 12A. SMALL MATH HELPERS                                                  */
   /* ======================================================================== */
   const clamp = (value, minimum, maximum) => Math.max(minimum, Math.min(maximum, value));
   const distance = (a, b) => Math.hypot(b.x - a.x, b.y - a.y);
   const midpoint = (a, b) => ({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 });
 
+  function distanceToSegment(px, py, ax, ay, bx, by) {
+    const abX = bx - ax;
+    const abY = by - ay;
+    const abSquared = abX * abX + abY * abY;
+    const projection = abSquared ? clamp(((px - ax) * abX + (py - ay) * abY) / abSquared, 0, 1) : 0;
+    const closestX = ax + abX * projection;
+    const closestY = ay + abY * projection;
+    return Math.hypot(px - closestX, py - closestY);
+  }
+
   /* ======================================================================== */
-  /* 12A. KEEP THE IMAGE WITHIN THE VIEWPORT                                  */
+  /* 12B. HOTSPOT HIT TESTING                                                 */
+  /* ======================================================================== */
+  function pointInsideRegion(nx, ny, region) {
+    if (region.type === 'ellipse') {
+      const dx = (nx - region.x) / region.rx;
+      const dy = (ny - region.y) / region.ry;
+      return dx * dx + dy * dy <= 1;
+    }
+
+    if (region.type === 'capsule') {
+      return distanceToSegment(nx, ny, region.ax, region.ay, region.bx, region.by) <= region.r;
+    }
+
+    return false;
+  }
+
+  function hotspotAtClientPoint(clientX, clientY) {
+    const imageX = (clientX - x) / scale;
+    const imageY = (clientY - y) / scale;
+    const nx = imageX / FULL_WIDTH;
+    const ny = imageY / FULL_HEIGHT;
+
+    if (nx < 0 || nx > 1 || ny < 0 || ny > 1) return null;
+
+    return hotspots.find(hotspot => hotspot.regions.some(region => pointInsideRegion(nx, ny, region))) || null;
+  }
+
+  /* ======================================================================== */
+  /* 13A. INFORMATION CARD                                                    */
+  /* ======================================================================== */
+  function showInformation(key) {
+    const item = information[key];
+    if (!item) return;
+
+    infoTitle.textContent = item.title;
+    infoText.textContent = item.text;
+    infoSource.textContent = item.sourceLabel;
+    infoSource.href = item.sourceUrl;
+    infoCard.classList.add('open');
+    infoCard.setAttribute('aria-hidden', 'false');
+  }
+
+  function hideInformation() {
+    infoCard.classList.remove('open');
+    infoCard.setAttribute('aria-hidden', 'true');
+  }
+
+  infoClose.addEventListener('click', hideInformation);
+
+  /* ======================================================================== */
+  /* 14A. KEEP THE IMAGE WITHIN THE VIEWPORT                                  */
   /* ======================================================================== */
   function constrainPosition() {
     const drawnWidth = FULL_WIDTH * scale;
@@ -244,7 +468,7 @@ html, body {
   }
 
   /* ======================================================================== */
-  /* 12B. DRAW THE CURRENT VIEW                                               */
+  /* 14B. DRAW THE CURRENT VIEW                                               */
   /* ======================================================================== */
   function render() {
     constrainPosition();
@@ -255,11 +479,11 @@ html, body {
   }
 
   /* ======================================================================== */
-  /* 13A. HOME VIEW AND SHARPNESS-AWARE ZOOM LIMIT                            */
-  /* 100% means the entire insect photograph is visible.  While the preview   */
+  /* 15A. HOME VIEW AND SHARPNESS-AWARE ZOOM LIMIT                            */
+  /* 100% means the entire specimen photograph is visible.  While the preview */
   /* is active, zoom stops at its own native pixel limit.  Once the original   */
   /* arrives, maxScale becomes exactly 1: one source pixel per CSS pixel.      */
-  /* Nothing is ever digitally enlarged beyond the source photograph.         */
+  /* Nothing is digitally enlarged beyond the source photograph.              */
   /* ======================================================================== */
   function setZoomLimits() {
     minScale = homeScale;
@@ -273,11 +497,12 @@ html, body {
     x = (stage.clientWidth - FULL_WIDTH * scale) / 2;
     y = (stage.clientHeight - FULL_HEIGHT * scale) / 2;
     setZoomLimits();
+    hideInformation();
     render();
   }
 
   /* ======================================================================== */
-  /* 13B. ZOOM AROUND A POINT                                                 */
+  /* 15B. ZOOM AROUND A POINT                                                 */
   /* ======================================================================== */
   function zoomAt(px, py, factor) {
     const nextScale = clamp(scale * factor, minScale, maxScale);
@@ -289,11 +514,12 @@ html, body {
     scale = nextScale;
     x = px - imageX * scale;
     y = py - imageY * scale;
+    hideInformation();
     render();
   }
 
   /* ======================================================================== */
-  /* 14A. UPGRADE FROM PREVIEW TO THE FULL 5053 × 5718 ORIGINAL              */
+  /* 16A. UPGRADE FROM PREVIEW TO THE FULL 5053 × 5718 ORIGINAL              */
   /* ======================================================================== */
   function requestFullResolution() {
     if (fullRequested || fullReady) return;
@@ -319,7 +545,9 @@ html, body {
   }
 
   /* ======================================================================== */
-  /* 15A. START PAN OR PINCH GESTURE                                          */
+  /* 17A. START PAN OR PINCH GESTURE                                          */
+  /* A tapCandidate is retained only while the pointer moves less than 10px.  */
+  /* This prevents ordinary panning from accidentally opening information.    */
   /* ======================================================================== */
   function beginGesture() {
     const points = [...pointers.values()];
@@ -331,6 +559,9 @@ html, body {
     }
 
     if (points.length >= 2) {
+      multiTouchGesture = true;
+      tapCandidate = null;
+
       const a = points[0];
       const b = points[1];
       const centre = midpoint(a, b);
@@ -347,11 +578,17 @@ html, body {
   }
 
   /* ======================================================================== */
-  /* 15B. POINTER DOWN / MOVE                                                 */
+  /* 17B. POINTER DOWN / MOVE                                                 */
   /* ======================================================================== */
   stage.addEventListener('pointerdown', event => {
     stage.setPointerCapture(event.pointerId);
     pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+
+    if (pointers.size === 1) {
+      tapCandidate = { pointerId: event.pointerId, x: event.clientX, y: event.clientY, moved: false };
+      multiTouchGesture = false;
+    }
+
     beginGesture();
   });
 
@@ -359,6 +596,11 @@ html, body {
     if (!pointers.has(event.pointerId)) return;
 
     pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+
+    if (tapCandidate?.pointerId === event.pointerId && Math.hypot(event.clientX - tapCandidate.x, event.clientY - tapCandidate.y) > 10) {
+      tapCandidate.moved = true;
+    }
+
     const points = [...pointers.values()];
 
     if (points.length === 1 && gesture?.type === 'pan') {
@@ -382,23 +624,50 @@ html, body {
   });
 
   /* ======================================================================== */
-  /* 15C. END POINTER GESTURE                                                 */
+  /* 17C. END POINTER GESTURE AND RECOGNISE A TAP                             */
   /* ======================================================================== */
   function releasePointer(event) {
+    const wasTap = tapCandidate?.pointerId === event.pointerId && !tapCandidate.moved && !multiTouchGesture && pointers.size === 1;
+    const tapX = event.clientX;
+    const tapY = event.clientY;
+
     pointers.delete(event.pointerId);
 
-    if (pointers.size) beginGesture();
-    else {
-      gesture = null;
-      stage.classList.remove('grabbing');
+    if (pointers.size) {
+      beginGesture();
+      return;
     }
+
+    gesture = null;
+    stage.classList.remove('grabbing');
+
+    if (wasTap) {
+      const hotspot = hotspotAtClientPoint(tapX, tapY);
+      if (hotspot) showInformation(hotspot.key);
+      else hideInformation();
+    }
+
+    tapCandidate = null;
+    multiTouchGesture = false;
   }
 
   stage.addEventListener('pointerup', releasePointer);
   stage.addEventListener('pointercancel', releasePointer);
 
   /* ======================================================================== */
-  /* 16A. MOUSE WHEEL AND DOUBLE-CLICK                                        */
+  /* 17D. DESKTOP HOVER DISCOVERY WITHOUT VISIBLE MARKERS                     */
+  /* The pointer becomes a hand over a learnable region, but the photograph   */
+  /* itself remains completely unchanged.                                     */
+  /* ======================================================================== */
+  stage.addEventListener('pointermove', event => {
+    if (pointers.size || event.pointerType === 'touch') return;
+    stage.classList.toggle('hotspot', Boolean(hotspotAtClientPoint(event.clientX, event.clientY)));
+  });
+
+  stage.addEventListener('pointerleave', () => stage.classList.remove('hotspot'));
+
+  /* ======================================================================== */
+  /* 18A. MOUSE WHEEL AND DOUBLE-CLICK                                        */
   /* ======================================================================== */
   stage.addEventListener('wheel', event => {
     event.preventDefault();
@@ -412,7 +681,7 @@ html, body {
   });
 
   /* ======================================================================== */
-  /* 16B. BUTTONS AND RESIZE                                                  */
+  /* 18B. BUTTONS AND RESIZE                                                  */
   /* ======================================================================== */
   document.getElementById('plus').addEventListener('click', () => zoomAt(stage.clientWidth / 2, stage.clientHeight / 2, 1.5));
   document.getElementById('minus').addEventListener('click', () => zoomAt(stage.clientWidth / 2, stage.clientHeight / 2, 1 / 1.5));
@@ -425,18 +694,18 @@ html, body {
   });
 
   /* ======================================================================== */
-  /* 17A. IMAGE LOAD / ERROR HANDLING                                         */
+  /* 19A. IMAGE LOAD / ERROR HANDLING                                         */
   /* ======================================================================== */
-  subject.addEventListener('load', () => {
+  subject.onload = () => {
     if (!previewReady) {
       previewReady = true;
       home();
       loading.classList.add('hide');
       setTimeout(() => loading.remove(), 450);
     }
-  });
+  };
 
-  subject.addEventListener('error', () => {
+  subject.onerror = () => {
     if (source === 'preview') {
       source = 'full';
       subject.src = FULL;
@@ -445,17 +714,15 @@ html, body {
 
     loadingText.style.display = 'none';
     error.style.display = 'block';
-  });
+  };
 
   /* ======================================================================== */
-  /* 17B. STARTUP                                                             */
-  /* Load the preview immediately, then quietly fetch the full 3.66 MB source */
-  /* once the browser has spare time.                                         */
+  /* 19B. INITIALISE                                                         */
   /* ======================================================================== */
   subject.src = PREVIEW;
 
-  if ('requestIdleCallback' in window) requestIdleCallback(requestFullResolution, { timeout: 2500 });
-  else setTimeout(requestFullResolution, 1800);
+  if ('requestIdleCallback' in window) requestIdleCallback(requestFullResolution, { timeout: 6000 });
+  else setTimeout(requestFullResolution, 6000);
 })();
 </script>
 </body>
