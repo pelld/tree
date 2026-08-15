@@ -3,40 +3,61 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
-<title>English oak — deep zoom</title>
+<title>English oak — high-resolution zoom</title>
 <style>
-*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#dfe7dc;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#182018}#viewer{position:fixed;inset:0;background:#dfe7dc;touch-action:none}#title{position:fixed;left:max(16px,env(safe-area-inset-left));top:max(14px,env(safe-area-inset-top));z-index:20;padding:9px 11px;border-radius:12px;background:#f8faf6c9;backdrop-filter:blur(8px);box-shadow:0 2px 16px #1c271b18;pointer-events:none}#title b{display:block;font:600 21px/1.05 Georgia,serif}#title span{display:block;margin-top:3px;font-size:11px;opacity:.68}#controls{position:fixed;right:max(12px,env(safe-area-inset-right));bottom:max(13px,env(safe-area-inset-bottom));z-index:30;display:flex;align-items:center;gap:5px;padding:5px;border-radius:16px;background:#172018e8;box-shadow:0 4px 20px #0003}#controls button{height:38px;min-width:40px;border:0;border-radius:11px;padding:0 10px;background:transparent;color:#fff;font:600 20px/1 system-ui;touch-action:manipulation}#controls button:active{background:#ffffff22}#zoom{min-width:72px!important;font-size:12px!important}.credit{position:fixed;left:max(12px,env(safe-area-inset-left));bottom:max(12px,env(safe-area-inset-bottom));z-index:20;font-size:10px;background:#f8faf6c9;padding:5px 8px;border-radius:10px;backdrop-filter:blur(8px);color:#253027}.credit a{color:inherit;text-decoration:none}.credit a:hover{text-decoration:underline}#loading{position:fixed;inset:0;z-index:50;display:grid;place-items:center;background:#dfe7dc;transition:opacity .35s}#loading.hide{opacity:0;pointer-events:none}#loading div{padding:10px 14px;border-radius:999px;background:#fffddd;box-shadow:0 4px 18px #0001;font-size:13px}#error{display:none;max-width:320px;text-align:center;line-height:1.35}@media(max-width:650px){#title{padding:8px 10px}#title b{font-size:18px}.credit{font-size:9px;max-width:54vw}}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#dfe7dc;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#182018}
+#stage{position:fixed;inset:0;overflow:hidden;background:#dfe7dc;touch-action:none;user-select:none;cursor:grab}
+#stage.grabbing{cursor:grabbing}
+#tree{position:absolute;left:0;top:0;width:4000px;height:6000px;max-width:none;transform-origin:0 0;will-change:transform;pointer-events:none;-webkit-user-drag:none;image-rendering:auto}
+#title{position:fixed;left:max(16px,env(safe-area-inset-left));top:max(14px,env(safe-area-inset-top));z-index:20;padding:9px 11px;border-radius:12px;background:#f8faf6c9;backdrop-filter:blur(8px);box-shadow:0 2px 16px #1c271b18;pointer-events:none}
+#title b{display:block;font:600 21px/1.05 Georgia,serif}#title span{display:block;margin-top:3px;font-size:11px;opacity:.68}
+#controls{position:fixed;right:max(12px,env(safe-area-inset-right));bottom:max(13px,env(safe-area-inset-bottom));z-index:30;display:flex;align-items:center;gap:5px;padding:5px;border-radius:16px;background:#172018e8;box-shadow:0 4px 20px #0003}
+#controls button{height:38px;min-width:40px;border:0;border-radius:11px;padding:0 10px;background:transparent;color:#fff;font:600 20px/1 system-ui;touch-action:manipulation}
+#controls button:active{background:#ffffff22}#zoom{min-width:76px!important;font-size:12px!important}
+#quality{position:fixed;right:max(16px,env(safe-area-inset-right));bottom:calc(max(13px,env(safe-area-inset-bottom)) + 55px);z-index:25;padding:4px 7px;border-radius:9px;background:#172018bd;color:#fff;font-size:9px;letter-spacing:.03em;opacity:0;transition:opacity .2s;pointer-events:none}
+#quality.show{opacity:1}
+.credit{position:fixed;left:max(12px,env(safe-area-inset-left));bottom:max(12px,env(safe-area-inset-bottom));z-index:20;font-size:10px;background:#f8faf6c9;padding:5px 8px;border-radius:10px;backdrop-filter:blur(8px);color:#253027}.credit a{color:inherit;text-decoration:none}.credit a:hover{text-decoration:underline}
+#loading{position:fixed;inset:0;z-index:50;display:grid;place-items:center;background:#dfe7dc;transition:opacity .35s}#loading.hide{opacity:0;pointer-events:none}#loading div{padding:10px 14px;border-radius:999px;background:#fffddd;box-shadow:0 4px 18px #0001;font-size:13px}
+#error{display:none;max-width:330px;text-align:center;line-height:1.35}
+@media(max-width:650px){#title{padding:8px 10px}#title b{font-size:18px}.credit{font-size:9px;max-width:54vw}}
 </style>
 </head>
 <body>
-<div id="viewer" aria-label="Deep zoom photograph of an English oak"></div>
-<div id="title"><b>English oak</b><span>Quercus robur · deep zoom</span></div>
+<div id="stage" aria-label="High-resolution photograph of an English oak"><img id="tree" draggable="false" decoding="async" alt="A solitary mature English oak tree"></div>
+<div id="title"><b>English oak</b><span>Quercus robur · high-resolution zoom</span></div>
 <div id="controls"><button id="minus" aria-label="Zoom out">−</button><button id="zoom" aria-label="Reset zoom">100%</button><button id="plus" aria-label="Zoom in">+</button></div>
+<div id="quality">HD</div>
 <div class="credit"><a href="https://commons.wikimedia.org/wiki/File:Solitary_Quercus_robur.jpg" target="_blank" rel="noopener">Photo: Krzysztof Golik · CC BY-SA 4.0</a></div>
-<div id="loading"><div id="loadingText">Loading high-resolution oak…</div><div id="error">The high-resolution image service did not load. Refresh to try again.</div></div>
-<script src="https://cdn.jsdelivr.net/npm/openseadragon@6.0.2/build/openseadragon/openseadragon.min.js"></script>
+<div id="loading"><div id="loadingText">Loading oak…</div><div id="error">The tree image did not load. Refresh to try again.</div></div>
 <script>
 (()=>{
-const tileSource='https://tools.wmflabs.org/zoomviewer/proxy.php?iiif=Solitary_Quercus_robur.jpg/info.json';
-const loading=document.getElementById('loading'),loadingText=document.getElementById('loadingText'),error=document.getElementById('error'),zoomLabel=document.getElementById('zoom');
-let homeZoom=1,ready=false,clamping=false;
-const viewer=OpenSeadragon({
- id:'viewer',tileSources:tileSource,prefixUrl:'https://cdn.jsdelivr.net/npm/openseadragon@6.0.2/build/openseadragon/images/',
- showNavigationControl:false,gestureSettingsTouch:{pinchToZoom:true,flickEnabled:true,clickToZoom:false,dblClickToZoom:true},
- gestureSettingsMouse:{scrollToZoom:true,clickToZoom:false,dblClickToZoom:true},
- animationTime:.28,blendTime:.08,constrainDuringPan:true,visibilityRatio:1,homeFillsViewer:true,maxZoomPixelRatio:25,immediateRender:false
-});
-function pct(){if(!ready)return;zoomLabel.textContent=Math.round(viewer.viewport.getZoom()/homeZoom*100)+'%'}
-function clampMin(){if(!ready||clamping)return;const z=viewer.viewport.getZoom();if(z<homeZoom){clamping=true;viewer.viewport.zoomTo(homeZoom,null,true);viewer.viewport.applyConstraints(true);clamping=false}pct()}
-viewer.addHandler('open',()=>{
- viewer.viewport.goHome(true);homeZoom=viewer.viewport.getZoom();ready=true;viewer.viewport.minZoomLevel=homeZoom;viewer.viewport.applyConstraints(true);pct();loading.classList.add('hide');setTimeout(()=>loading.remove(),450);
-});
-viewer.addHandler('zoom',clampMin);viewer.addHandler('animation',pct);viewer.addHandler('animation-finish',()=>{viewer.viewport.applyConstraints(true);clampMin()});
-viewer.addHandler('open-failed',()=>{loadingText.style.display='none';error.style.display='block'});
-document.getElementById('plus').onclick=()=>{if(!ready)return;viewer.viewport.zoomBy(1.5);viewer.viewport.applyConstraints()};
-document.getElementById('minus').onclick=()=>{if(!ready)return;viewer.viewport.zoomBy(1/1.5);viewer.viewport.applyConstraints()};
-zoomLabel.onclick=()=>{if(!ready)return;viewer.viewport.goHome();};
-window.addEventListener('resize',()=>{if(!ready)return;setTimeout(()=>{viewer.viewport.goHome(true);homeZoom=viewer.viewport.getZoom();viewer.viewport.minZoomLevel=homeZoom;pct()},80)});
+const PREVIEW='https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Solitary_Quercus_robur.jpg/1365px-Solitary_Quercus_robur.jpg';
+const FULL='https://upload.wikimedia.org/wikipedia/commons/8/8e/Solitary_Quercus_robur.jpg';
+const W=4000,H=6000;
+const stage=document.getElementById('stage'),tree=document.getElementById('tree'),zoomLabel=document.getElementById('zoom'),loading=document.getElementById('loading'),loadingText=document.getElementById('loadingText'),error=document.getElementById('error'),quality=document.getElementById('quality');
+let x=0,y=0,scale=1,homeScale=1,minScale=1,maxScale=30,previewReady=false,fullReady=false,fullRequested=false,source='preview';
+const pointers=new Map();let gesture=null;
+const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
+const dist=(a,b)=>Math.hypot(b.x-a.x,b.y-a.y);
+const mid=(a,b)=>({x:(a.x+b.x)/2,y:(a.y+b.y)/2});
+function constrain(){const dw=W*scale,dh=H*scale;x=dw<=stage.clientWidth?(stage.clientWidth-dw)/2:clamp(x,stage.clientWidth-dw,0);y=dh<=stage.clientHeight?(stage.clientHeight-dh)/2:clamp(y,stage.clientHeight-dh,0)}
+function pct(){zoomLabel.textContent=Math.round(scale/homeScale*100)+'%'}
+function render(){constrain();tree.style.transform=`translate3d(${x}px,${y}px,0) scale(${scale})`;pct();if(scale/homeScale>=2.2)requestFull()}
+function home(){homeScale=Math.max(stage.clientWidth/W,stage.clientHeight/H);minScale=homeScale;maxScale=homeScale*30;scale=homeScale;x=(stage.clientWidth-W*scale)/2;y=(stage.clientHeight-H*scale)/2;render()}
+function zoomAt(px,py,factor){const next=clamp(scale*factor,minScale,maxScale);if(next===scale)return;const ix=(px-x)/scale,iy=(py-y)/scale;scale=next;x=px-ix*scale;y=py-iy*scale;render()}
+function requestFull(){if(fullRequested||fullReady)return;fullRequested=true;quality.textContent='HD loading…';quality.classList.add('show');const hi=new Image();hi.decoding='async';hi.onload=()=>{fullReady=true;source='full';tree.src=FULL;quality.textContent='HD';setTimeout(()=>quality.classList.remove('show'),1200)};hi.onerror=()=>{fullRequested=false;quality.textContent='preview';setTimeout(()=>quality.classList.remove('show'),1200)};hi.src=FULL}
+function begin(){const p=[...pointers.values()];if(p.length===1){gesture={type:'pan',px:p[0].x,py:p[0].y,x,y};stage.classList.add('grabbing')}else if(p.length>=2){const a=p[0],b=p[1],m=mid(a,b);gesture={type:'pinch',d:Math.max(1,dist(a,b)),scale,x,y,ix:(m.x-x)/scale,iy:(m.y-y)/scale};stage.classList.add('grabbing')}}
+stage.addEventListener('pointerdown',e=>{stage.setPointerCapture(e.pointerId);pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});begin()});
+stage.addEventListener('pointermove',e=>{if(!pointers.has(e.pointerId))return;pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});const p=[...pointers.values()];if(p.length===1&&gesture?.type==='pan'){x=gesture.x+p[0].x-gesture.px;y=gesture.y+p[0].y-gesture.py;render();return}if(p.length>=2){if(gesture?.type!=='pinch')begin();const a=p[0],b=p[1],m=mid(a,b),next=clamp(gesture.scale*dist(a,b)/gesture.d,minScale,maxScale);scale=next;x=m.x-gesture.ix*scale;y=m.y-gesture.iy*scale;render()}});
+function release(e){pointers.delete(e.pointerId);if(pointers.size)begin();else{gesture=null;stage.classList.remove('grabbing')}}stage.addEventListener('pointerup',release);stage.addEventListener('pointercancel',release);
+stage.addEventListener('wheel',e=>{e.preventDefault();zoomAt(e.clientX,e.clientY,Math.exp(-e.deltaY*.0015))},{passive:false});
+stage.addEventListener('dblclick',e=>zoomAt(e.clientX,e.clientY,1.8));
+document.getElementById('plus').onclick=()=>zoomAt(stage.clientWidth/2,stage.clientHeight/2,1.5);document.getElementById('minus').onclick=()=>zoomAt(stage.clientWidth/2,stage.clientHeight/2,1/1.5);zoomLabel.onclick=home;
+let rt;window.addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(home,100)});
+tree.onload=()=>{if(!previewReady){previewReady=true;home();loading.classList.add('hide');setTimeout(()=>loading.remove(),450)}};
+tree.onerror=()=>{if(source==='preview'){source='full';tree.src=FULL}else{loadingText.style.display='none';error.style.display='block'}};
+tree.src=PREVIEW;
+if('requestIdleCallback'in window)requestIdleCallback(()=>requestFull(),{timeout:7000});else setTimeout(requestFull,7000);
 })();
 </script>
 </body>
