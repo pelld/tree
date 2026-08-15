@@ -3,234 +3,220 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
-<title>Macro bee — high-detail insect zoom</title>
+<title>Harlequin beetle — high-detail insect zoom</title>
+
 <style>
-  * { box-sizing: border-box; }
-  html, body {
-    margin: 0;
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-    background: #dde5d8;
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    color: #182018;
-  }
+/* ========================================================================== */
+/* 00A. DOCUMENT                                                              */
+/* ========================================================================== */
+* { box-sizing: border-box; }
 
-  #stage {
-    position: fixed;
-    inset: 0;
-    overflow: hidden;
-    background: #dde5d8;
-    touch-action: none;
-    user-select: none;
-    cursor: grab;
-  }
+html, body {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #ffffff;
+  color: #171c18;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
 
-  #stage.grabbing { cursor: grabbing; }
+/* ========================================================================== */
+/* 01A. VIEWER STAGE                                                          */
+/* ========================================================================== */
+#stage {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: #ffffff;
+  touch-action: none;
+  user-select: none;
+  cursor: grab;
+}
 
-  #subject {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 4920px;
-    height: 3280px;
-    max-width: none;
-    transform-origin: 0 0;
-    will-change: transform;
-    pointer-events: none;
-    -webkit-user-drag: none;
-    image-rendering: auto;
-  }
+#stage.grabbing { cursor: grabbing; }
 
-  #title {
-    position: fixed;
-    left: max(16px, env(safe-area-inset-left));
-    top: max(14px, env(safe-area-inset-top));
-    z-index: 20;
-    padding: 9px 11px;
-    border-radius: 12px;
-    background: rgba(248, 250, 246, 0.78);
-    backdrop-filter: blur(8px);
-    box-shadow: 0 2px 16px rgba(28, 39, 27, 0.08);
-    pointer-events: none;
-  }
+/* ========================================================================== */
+/* 01B. HIGH-RESOLUTION SOURCE IMAGE                                          */
+/* The CSS dimensions are the native full-resolution dimensions.  This makes  */
+/* scale = 1 the hard detail ceiling: beyond that we would enlarge pixels.    */
+/* ========================================================================== */
+#subject {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 5053px;
+  height: 5718px;
+  max-width: none;
+  transform-origin: 0 0;
+  will-change: transform;
+  pointer-events: none;
+  -webkit-user-drag: none;
+  image-rendering: auto;
+}
 
-  #title b {
-    display: block;
-    font: 600 21px/1.05 Georgia, serif;
-  }
+/* ========================================================================== */
+/* 01C. TITLE, CONTROLS AND CREDIT                                            */
+/* ========================================================================== */
+#title {
+  position: fixed;
+  left: max(16px, env(safe-area-inset-left));
+  top: max(14px, env(safe-area-inset-top));
+  z-index: 20;
+  padding: 9px 11px;
+  border-radius: 12px;
+  background: rgba(248, 250, 246, 0.82);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 2px 16px rgba(28, 39, 27, 0.08);
+  pointer-events: none;
+}
 
-  #title span {
-    display: block;
-    margin-top: 3px;
-    font-size: 11px;
-    opacity: 0.68;
-  }
+#title b { display: block; font: 600 21px/1.05 Georgia, serif; }
+#title span { display: block; margin-top: 3px; font-size: 11px; opacity: 0.68; }
 
-  #controls {
-    position: fixed;
-    right: max(12px, env(safe-area-inset-right));
-    bottom: max(13px, env(safe-area-inset-bottom));
-    z-index: 30;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    padding: 5px;
-    border-radius: 16px;
-    background: rgba(23, 32, 24, 0.90);
-    box-shadow: 0 4px 20px rgba(0,0,0,0.18);
-  }
+#controls {
+  position: fixed;
+  right: max(12px, env(safe-area-inset-right));
+  bottom: max(13px, env(safe-area-inset-bottom));
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px;
+  border-radius: 16px;
+  background: rgba(23, 32, 24, 0.90);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.18);
+}
 
-  #controls button {
-    height: 38px;
-    min-width: 42px;
-    border: 0;
-    border-radius: 11px;
-    padding: 0 10px;
-    background: transparent;
-    color: #fff;
-    font: 600 20px/1 system-ui;
-    touch-action: manipulation;
-    cursor: pointer;
-  }
+#controls button {
+  height: 38px;
+  min-width: 42px;
+  border: 0;
+  border-radius: 11px;
+  padding: 0 10px;
+  background: transparent;
+  color: #ffffff;
+  font: 600 20px/1 system-ui, sans-serif;
+  touch-action: manipulation;
+  cursor: pointer;
+}
 
-  #controls button:active {
-    background: rgba(255,255,255,0.14);
-  }
+#controls button:active { background: rgba(255, 255, 255, 0.14); }
+#reset { min-width: 54px !important; font-size: 18px !important; }
 
-  #reset {
-    min-width: 54px !important;
-    font-size: 18px !important;
-  }
+.credit {
+  position: fixed;
+  left: max(12px, env(safe-area-inset-left));
+  bottom: max(12px, env(safe-area-inset-bottom));
+  z-index: 20;
+  max-width: 58vw;
+  padding: 5px 8px;
+  border-radius: 10px;
+  background: rgba(248, 250, 246, 0.82);
+  backdrop-filter: blur(8px);
+  color: #253027;
+  font-size: 10px;
+}
 
-  #quality {
-    position: fixed;
-    right: max(16px, env(safe-area-inset-right));
-    bottom: calc(max(13px, env(safe-area-inset-bottom)) + 56px);
-    z-index: 25;
-    padding: 4px 7px;
-    border-radius: 9px;
-    background: rgba(23, 32, 24, 0.75);
-    color: #fff;
-    font-size: 9px;
-    letter-spacing: .03em;
-    opacity: 0;
-    transition: opacity .2s ease;
-    pointer-events: none;
-  }
+.credit a { color: inherit; text-decoration: none; }
+.credit a:hover { text-decoration: underline; }
 
-  #quality.show { opacity: 1; }
+/* ========================================================================== */
+/* 01D. LOADING STATE                                                         */
+/* ========================================================================== */
+#loading {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  background: #ffffff;
+  transition: opacity 0.35s ease;
+}
 
-  .credit {
-    position: fixed;
-    left: max(12px, env(safe-area-inset-left));
-    bottom: max(12px, env(safe-area-inset-bottom));
-    z-index: 20;
-    font-size: 10px;
-    background: rgba(248, 250, 246, 0.78);
-    padding: 5px 8px;
-    border-radius: 10px;
-    backdrop-filter: blur(8px);
-    color: #253027;
-  }
+#loading.hide { opacity: 0; pointer-events: none; }
+#loading div { padding: 10px 14px; border-radius: 999px; background: #f4f6f2; box-shadow: 0 4px 18px rgba(0, 0, 0, 0.08); font-size: 13px; }
+#error { display: none; max-width: 340px; text-align: center; line-height: 1.35; }
 
-  .credit a {
-    color: inherit;
-    text-decoration: none;
-  }
-
-  .credit a:hover {
-    text-decoration: underline;
-  }
-
-  #loading {
-    position: fixed;
-    inset: 0;
-    z-index: 50;
-    display: grid;
-    place-items: center;
-    background: #dde5d8;
-    transition: opacity .35s ease;
-  }
-
-  #loading.hide {
-    opacity: 0;
-    pointer-events: none;
-  }
-
-  #loading div {
-    padding: 10px 14px;
-    border-radius: 999px;
-    background: #fffddd;
-    box-shadow: 0 4px 18px rgba(0,0,0,0.08);
-    font-size: 13px;
-  }
-
-  #error {
-    display: none;
-    max-width: 340px;
-    text-align: center;
-    line-height: 1.35;
-  }
-
-  @media (max-width: 650px) {
-    #title { padding: 8px 10px; }
-    #title b { font-size: 18px; }
-    .credit { font-size: 9px; max-width: 54vw; }
-  }
+/* ========================================================================== */
+/* 01E. SMALL-SCREEN TUNING                                                   */
+/* ========================================================================== */
+@media (max-width: 650px) {
+  #title { padding: 8px 10px; }
+  #title b { font-size: 18px; }
+  .credit { max-width: 58vw; font-size: 9px; }
+}
 </style>
 </head>
+
 <body>
-  <div id="stage" aria-label="High-resolution macro photograph of a bee">
-    <img id="subject" draggable="false" decoding="async" alt="Macro photograph of a bee on an orange flower">
-  </div>
+<!-- ======================================================================== -->
+<!-- 02A. VIEWER                                                              -->
+<!-- ======================================================================== -->
+<div id="stage" aria-label="High-resolution focus-stacked photograph of a harlequin beetle">
+  <img id="subject" draggable="false" decoding="async" alt="Female harlequin beetle, Acrocinus longimanus, viewed from above">
+</div>
 
-  <div id="title">
-    <b>Macro bee</b>
-    <span>High-detail insect zoom</span>
-  </div>
+<!-- ======================================================================== -->
+<!-- 02B. LABEL                                                               -->
+<!-- ======================================================================== -->
+<div id="title">
+  <b>Harlequin beetle</b>
+  <span><i>Acrocinus longimanus</i> · focus stacked</span>
+</div>
 
-  <div id="controls" aria-label="Zoom controls">
-    <button id="minus" aria-label="Zoom out">−</button>
-    <button id="reset" aria-label="Reset view">↺</button>
-    <button id="plus" aria-label="Zoom in">+</button>
-  </div>
+<!-- ======================================================================== -->
+<!-- 02C. SIMPLE CONTROLS — NO ZOOM PERCENTAGE                                -->
+<!-- ======================================================================== -->
+<div id="controls" aria-label="Zoom controls">
+  <button id="minus" type="button" aria-label="Zoom out">−</button>
+  <button id="reset" type="button" aria-label="Reset view">↺</button>
+  <button id="plus" type="button" aria-label="Zoom in">+</button>
+</div>
 
-  <div id="quality">HD</div>
+<!-- ======================================================================== -->
+<!-- 02D. ATTRIBUTION AND INITIAL LOAD                                        -->
+<!-- ======================================================================== -->
+<div class="credit">
+  <a href="https://commons.wikimedia.org/wiki/File:Acrocinus_longimanus_MHNT_femelle.jpg" target="_blank" rel="noopener">Photo: Didier Descouens · CC BY-SA 3.0</a>
+</div>
 
-  <div class="credit">
-    <a href="https://commons.wikimedia.org/wiki/File:Macro_Bee_(52369853728).jpg" target="_blank" rel="noopener">
-      Photo: Joshua Tree National Park / Carmen Aurrecoechea · Public domain
-    </a>
-  </div>
-
-  <div id="loading">
-    <div id="loadingText">Loading insect…</div>
-    <div id="error">The insect image did not load. Refresh to try again.</div>
-  </div>
+<div id="loading">
+  <div id="loadingText">Loading beetle…</div>
+  <div id="error">The insect image did not load. Refresh to try again.</div>
+</div>
 
 <script>
 (() => {
-  const PREVIEW = 'https://commons.wikimedia.org/wiki/Special:FilePath/Macro_Bee_(52369853728).jpg?width=1800';
-  const FULL = 'https://commons.wikimedia.org/wiki/Special:FilePath/Macro_Bee_(52369853728).jpg';
+  /* ======================================================================== */
+  /* 10A. IMAGE SOURCES AND NATIVE DIMENSIONS                                 */
+  /* The 1800px preview appears quickly.  The 5053px original is fetched in   */
+  /* the background and replaces it without changing the current view.        */
+  /* ======================================================================== */
+  const PREVIEW = 'https://commons.wikimedia.org/wiki/Special:FilePath/Acrocinus_longimanus_MHNT_femelle.jpg?width=1800';
+  const FULL = 'https://commons.wikimedia.org/wiki/Special:FilePath/Acrocinus_longimanus_MHNT_femelle.jpg';
+  const FULL_WIDTH = 5053;
+  const FULL_HEIGHT = 5718;
+  const PREVIEW_WIDTH = 1800;
 
-  const W = 4920;
-  const H = 3280;
-
+  /* ======================================================================== */
+  /* 10B. DOM REFERENCES                                                      */
+  /* ======================================================================== */
   const stage = document.getElementById('stage');
-  const img = document.getElementById('subject');
+  const subject = document.getElementById('subject');
   const loading = document.getElementById('loading');
   const loadingText = document.getElementById('loadingText');
   const error = document.getElementById('error');
-  const quality = document.getElementById('quality');
 
+  /* ======================================================================== */
+  /* 10C. VIEW AND IMAGE STATE                                                */
+  /* ======================================================================== */
   let x = 0;
   let y = 0;
   let scale = 1;
   let homeScale = 1;
   let minScale = 1;
   let maxScale = 1;
-
   let previewReady = false;
   let fullReady = false;
   let fullRequested = false;
@@ -239,145 +225,168 @@
   const pointers = new Map();
   let gesture = null;
 
-  const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
-  const dist = (a, b) => Math.hypot(b.x - a.x, b.y - a.y);
-  const mid = (a, b) => ({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 });
+  /* ======================================================================== */
+  /* 11A. SMALL MATH HELPERS                                                  */
+  /* ======================================================================== */
+  const clamp = (value, minimum, maximum) => Math.max(minimum, Math.min(maximum, value));
+  const distance = (a, b) => Math.hypot(b.x - a.x, b.y - a.y);
+  const midpoint = (a, b) => ({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 });
 
-  function showQuality(text) {
-    quality.textContent = text;
-    quality.classList.add('show');
-    clearTimeout(showQuality.timer);
-    showQuality.timer = setTimeout(() => quality.classList.remove('show'), 1200);
+  /* ======================================================================== */
+  /* 12A. KEEP THE IMAGE WITHIN THE VIEWPORT                                  */
+  /* ======================================================================== */
+  function constrainPosition() {
+    const drawnWidth = FULL_WIDTH * scale;
+    const drawnHeight = FULL_HEIGHT * scale;
+
+    x = drawnWidth <= stage.clientWidth ? (stage.clientWidth - drawnWidth) / 2 : clamp(x, stage.clientWidth - drawnWidth, 0);
+    y = drawnHeight <= stage.clientHeight ? (stage.clientHeight - drawnHeight) / 2 : clamp(y, stage.clientHeight - drawnHeight, 0);
   }
 
-  function constrain() {
-    const dw = W * scale;
-    const dh = H * scale;
-
-    if (dw <= stage.clientWidth) x = (stage.clientWidth - dw) / 2;
-    else x = clamp(x, stage.clientWidth - dw, 0);
-
-    if (dh <= stage.clientHeight) y = (stage.clientHeight - dh) / 2;
-    else y = clamp(y, stage.clientHeight - dh, 0);
-  }
-
+  /* ======================================================================== */
+  /* 12B. DRAW THE CURRENT VIEW                                               */
+  /* ======================================================================== */
   function render() {
-    constrain();
-    img.style.transform = `translate3d(${x}px, ${y}px, 0) scale(${scale})`;
+    constrainPosition();
+    subject.style.transform = `translate3d(${x}px, ${y}px, 0) scale(${scale})`;
 
-    if (scale / homeScale >= 1.35) requestFull();
+    /* Request the original almost as soon as the user starts inspecting. */
+    if (scale > homeScale * 1.08) requestFullResolution();
+  }
+
+  /* ======================================================================== */
+  /* 13A. HOME VIEW AND SHARPNESS-AWARE ZOOM LIMIT                            */
+  /* 100% means the entire insect photograph is visible.  While the preview   */
+  /* is active, zoom stops at its own native pixel limit.  Once the original   */
+  /* arrives, maxScale becomes exactly 1: one source pixel per CSS pixel.      */
+  /* Nothing is ever digitally enlarged beyond the source photograph.         */
+  /* ======================================================================== */
+  function setZoomLimits() {
+    minScale = homeScale;
+    maxScale = fullReady ? 1 : PREVIEW_WIDTH / FULL_WIDTH;
+    maxScale = Math.max(minScale, maxScale);
   }
 
   function home() {
-    homeScale = Math.max(stage.clientWidth / W, stage.clientHeight / H);
-    minScale = homeScale;
-
-    /* capped before blur gets too ugly */
-    maxScale = homeScale * 5;
-
+    homeScale = Math.min(stage.clientWidth / FULL_WIDTH, stage.clientHeight / FULL_HEIGHT);
     scale = homeScale;
-    x = (stage.clientWidth - W * scale) / 2;
-    y = (stage.clientHeight - H * scale) / 2;
+    x = (stage.clientWidth - FULL_WIDTH * scale) / 2;
+    y = (stage.clientHeight - FULL_HEIGHT * scale) / 2;
+    setZoomLimits();
     render();
   }
 
+  /* ======================================================================== */
+  /* 13B. ZOOM AROUND A POINT                                                 */
+  /* ======================================================================== */
   function zoomAt(px, py, factor) {
-    const next = clamp(scale * factor, minScale, maxScale);
-    if (next === scale) return;
+    const nextScale = clamp(scale * factor, minScale, maxScale);
+    if (nextScale === scale) return;
 
-    const ix = (px - x) / scale;
-    const iy = (py - y) / scale;
+    const imageX = (px - x) / scale;
+    const imageY = (py - y) / scale;
 
-    scale = next;
-    x = px - ix * scale;
-    y = py - iy * scale;
+    scale = nextScale;
+    x = px - imageX * scale;
+    y = py - imageY * scale;
     render();
   }
 
-  function requestFull() {
+  /* ======================================================================== */
+  /* 14A. UPGRADE FROM PREVIEW TO THE FULL 5053 × 5718 ORIGINAL              */
+  /* ======================================================================== */
+  function requestFullResolution() {
     if (fullRequested || fullReady) return;
-
     fullRequested = true;
-    showQuality('HD loading…');
 
-    const hi = new Image();
-    hi.decoding = 'async';
+    const highResolution = new Image();
+    highResolution.decoding = 'async';
 
-    hi.onload = () => {
+    highResolution.onload = () => {
       fullReady = true;
       source = 'full';
-      img.src = FULL;
-      showQuality('HD');
+      subject.src = FULL;
+      setZoomLimits();
+      render();
     };
 
-    hi.onerror = () => {
+    highResolution.onerror = () => {
       fullRequested = false;
-      showQuality('Preview only');
+      setZoomLimits();
     };
 
-    hi.src = FULL;
+    highResolution.src = FULL;
   }
 
+  /* ======================================================================== */
+  /* 15A. START PAN OR PINCH GESTURE                                          */
+  /* ======================================================================== */
   function beginGesture() {
-    const p = [...pointers.values()];
+    const points = [...pointers.values()];
 
-    if (p.length === 1) {
-      gesture = { type: 'pan', px: p[0].x, py: p[0].y, x, y };
+    if (points.length === 1) {
+      gesture = { type: 'pan', pointerX: points[0].x, pointerY: points[0].y, x, y };
       stage.classList.add('grabbing');
-    } else if (p.length >= 2) {
-      const a = p[0];
-      const b = p[1];
-      const m = mid(a, b);
+      return;
+    }
+
+    if (points.length >= 2) {
+      const a = points[0];
+      const b = points[1];
+      const centre = midpoint(a, b);
 
       gesture = {
         type: 'pinch',
-        d: Math.max(1, dist(a, b)),
+        distance: Math.max(1, distance(a, b)),
         scale,
-        x,
-        y,
-        ix: (m.x - x) / scale,
-        iy: (m.y - y) / scale
+        imageX: (centre.x - x) / scale,
+        imageY: (centre.y - y) / scale
       };
       stage.classList.add('grabbing');
     }
   }
 
-  stage.addEventListener('pointerdown', e => {
-    stage.setPointerCapture(e.pointerId);
-    pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  /* ======================================================================== */
+  /* 15B. POINTER DOWN / MOVE                                                 */
+  /* ======================================================================== */
+  stage.addEventListener('pointerdown', event => {
+    stage.setPointerCapture(event.pointerId);
+    pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
     beginGesture();
   });
 
-  stage.addEventListener('pointermove', e => {
-    if (!pointers.has(e.pointerId)) return;
+  stage.addEventListener('pointermove', event => {
+    if (!pointers.has(event.pointerId)) return;
 
-    pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
-    const p = [...pointers.values()];
+    pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+    const points = [...pointers.values()];
 
-    if (p.length === 1 && gesture?.type === 'pan') {
-      x = gesture.x + p[0].x - gesture.px;
-      y = gesture.y + p[0].y - gesture.py;
+    if (points.length === 1 && gesture?.type === 'pan') {
+      x = gesture.x + points[0].x - gesture.pointerX;
+      y = gesture.y + points[0].y - gesture.pointerY;
       render();
       return;
     }
 
-    if (p.length >= 2) {
+    if (points.length >= 2) {
       if (gesture?.type !== 'pinch') beginGesture();
 
-      const a = p[0];
-      const b = p[1];
-      const m = mid(a, b);
-      const next = clamp(gesture.scale * dist(a, b) / gesture.d, minScale, maxScale);
+      const centre = midpoint(points[0], points[1]);
+      const nextScale = clamp(gesture.scale * distance(points[0], points[1]) / gesture.distance, minScale, maxScale);
 
-      scale = next;
-      x = m.x - gesture.ix * scale;
-      y = m.y - gesture.iy * scale;
+      scale = nextScale;
+      x = centre.x - gesture.imageX * scale;
+      y = centre.y - gesture.imageY * scale;
       render();
     }
   });
 
-  function releasePointer(e) {
-    pointers.delete(e.pointerId);
+  /* ======================================================================== */
+  /* 15C. END POINTER GESTURE                                                 */
+  /* ======================================================================== */
+  function releasePointer(event) {
+    pointers.delete(event.pointerId);
+
     if (pointers.size) beginGesture();
     else {
       gesture = null;
@@ -388,30 +397,26 @@
   stage.addEventListener('pointerup', releasePointer);
   stage.addEventListener('pointercancel', releasePointer);
 
-  stage.addEventListener('wheel', e => {
-    e.preventDefault();
+  /* ======================================================================== */
+  /* 16A. MOUSE WHEEL AND DOUBLE-CLICK                                        */
+  /* ======================================================================== */
+  stage.addEventListener('wheel', event => {
+    event.preventDefault();
     const rect = stage.getBoundingClientRect();
-    zoomAt(
-      e.clientX - rect.left,
-      e.clientY - rect.top,
-      Math.exp(-e.deltaY * 0.0015)
-    );
+    zoomAt(event.clientX - rect.left, event.clientY - rect.top, Math.exp(-event.deltaY * 0.0015));
   }, { passive: false });
 
-  stage.addEventListener('dblclick', e => {
+  stage.addEventListener('dblclick', event => {
     const rect = stage.getBoundingClientRect();
-    zoomAt(e.clientX - rect.left, e.clientY - rect.top, 1.8);
+    zoomAt(event.clientX - rect.left, event.clientY - rect.top, 1.8);
   });
 
-  document.getElementById('plus').onclick = () => {
-    zoomAt(stage.clientWidth / 2, stage.clientHeight / 2, 1.5);
-  };
-
-  document.getElementById('minus').onclick = () => {
-    zoomAt(stage.clientWidth / 2, stage.clientHeight / 2, 1 / 1.5);
-  };
-
-  document.getElementById('reset').onclick = home;
+  /* ======================================================================== */
+  /* 16B. BUTTONS AND RESIZE                                                  */
+  /* ======================================================================== */
+  document.getElementById('plus').addEventListener('click', () => zoomAt(stage.clientWidth / 2, stage.clientHeight / 2, 1.5));
+  document.getElementById('minus').addEventListener('click', () => zoomAt(stage.clientWidth / 2, stage.clientHeight / 2, 1 / 1.5));
+  document.getElementById('reset').addEventListener('click', home);
 
   let resizeTimer;
   window.addEventListener('resize', () => {
@@ -419,32 +424,38 @@
     resizeTimer = setTimeout(home, 100);
   });
 
-  img.onload = () => {
+  /* ======================================================================== */
+  /* 17A. IMAGE LOAD / ERROR HANDLING                                         */
+  /* ======================================================================== */
+  subject.addEventListener('load', () => {
     if (!previewReady) {
       previewReady = true;
       home();
       loading.classList.add('hide');
       setTimeout(() => loading.remove(), 450);
     }
-  };
+  });
 
-  img.onerror = () => {
+  subject.addEventListener('error', () => {
     if (source === 'preview') {
       source = 'full';
-      img.src = FULL;
-    } else {
-      loadingText.style.display = 'none';
-      error.style.display = 'block';
+      subject.src = FULL;
+      return;
     }
-  };
 
-  img.src = PREVIEW;
+    loadingText.style.display = 'none';
+    error.style.display = 'block';
+  });
 
-  if ('requestIdleCallback' in window) {
-    requestIdleCallback(() => requestFull(), { timeout: 6000 });
-  } else {
-    setTimeout(requestFull, 6000);
-  }
+  /* ======================================================================== */
+  /* 17B. STARTUP                                                             */
+  /* Load the preview immediately, then quietly fetch the full 3.66 MB source */
+  /* once the browser has spare time.                                         */
+  /* ======================================================================== */
+  subject.src = PREVIEW;
+
+  if ('requestIdleCallback' in window) requestIdleCallback(requestFullResolution, { timeout: 2500 });
+  else setTimeout(requestFullResolution, 1800);
 })();
 </script>
 </body>
