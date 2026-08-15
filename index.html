@@ -2,26 +2,303 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>Lavender — 3D study</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>English oak — zoomable tree study</title>
 <style>
-*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#cfdcc4;font-family:system-ui;color:#182016}canvas{display:block;touch-action:none}#title{position:fixed;left:18px;top:15px;z-index:2;pointer-events:none;text-shadow:0 1px 8px #fff}#title b{display:block;font:600 22px Georgia,serif}#title span{font-size:12px;font-style:italic;opacity:.76}#hint{position:fixed;bottom:15px;left:50%;transform:translateX(-50%);background:#172117d9;color:#fff;border-radius:20px;padding:8px 13px;font-size:12px;z-index:2;white-space:nowrap;pointer-events:none;transition:opacity 1s}#status{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:5;padding:10px 14px;border-radius:20px;background:#ffffffdd;font-size:13px;box-shadow:0 4px 20px #0002;pointer-events:none}#gear{position:fixed;right:12px;top:12px;z-index:5;width:38px;height:38px;border:0;border-radius:19px;background:#172117cc;color:#fff;font-size:18px}#panel{display:none;position:fixed;right:12px;top:58px;z-index:5;width:220px;padding:12px;border-radius:12px;background:#f5f7f0ee;box-shadow:0 5px 22px #0003;font-size:12px}#panel.show{display:block}#panel label{display:grid;grid-template-columns:82px 1fr;align-items:center;gap:7px;margin:7px 0}#panel input{min-width:0;width:100%}#panel .buttons{display:flex;gap:7px;margin-top:10px}#panel button{flex:1;border:0;border-radius:8px;padding:8px;background:#263722;color:#fff}
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; }
+  body {
+    background: #e8eee7;
+    color: #172018;
+    font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+  #stage {
+    position: fixed;
+    inset: 0;
+    overflow: hidden;
+    touch-action: none;
+    user-select: none;
+    cursor: grab;
+    background: radial-gradient(circle at 50% 43%, #f4f7f1 0%, #e4ebe1 62%, #d8e2d5 100%);
+  }
+  #stage.grabbing { cursor: grabbing; }
+  #tree {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 1122px;
+    height: 1402px;
+    max-width: none;
+    transform-origin: 0 0;
+    will-change: transform;
+    pointer-events: none;
+    -webkit-user-drag: none;
+  }
+  #title {
+    position: fixed;
+    left: max(16px, env(safe-area-inset-left));
+    top: max(14px, env(safe-area-inset-top));
+    z-index: 4;
+    pointer-events: none;
+    padding: 9px 11px;
+    border-radius: 12px;
+    background: rgba(248, 250, 246, .76);
+    backdrop-filter: blur(8px);
+    box-shadow: 0 2px 16px rgba(28, 39, 27, .08);
+  }
+  #title b {
+    display: block;
+    font: 600 21px/1.05 Georgia, serif;
+    letter-spacing: -.01em;
+  }
+  #title span { display: block; margin-top: 3px; font-size: 11px; opacity: .68; }
+  #controls {
+    position: fixed;
+    z-index: 5;
+    right: max(12px, env(safe-area-inset-right));
+    bottom: max(13px, env(safe-area-inset-bottom));
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px;
+    border-radius: 16px;
+    background: rgba(23, 32, 24, .86);
+    box-shadow: 0 4px 20px rgba(0,0,0,.18);
+  }
+  #controls button {
+    height: 36px;
+    min-width: 36px;
+    border: 0;
+    border-radius: 11px;
+    padding: 0 10px;
+    background: transparent;
+    color: #fff;
+    font: 600 18px/1 system-ui, sans-serif;
+    cursor: pointer;
+  }
+  #controls button:active { background: rgba(255,255,255,.14); }
+  #reset { min-width: 60px !important; font-size: 11px !important; font-weight: 600 !important; }
+  #hint {
+    position: fixed;
+    z-index: 4;
+    left: 50%;
+    bottom: max(18px, env(safe-area-inset-bottom));
+    transform: translateX(-50%);
+    padding: 7px 11px;
+    border-radius: 999px;
+    background: rgba(248,250,246,.78);
+    color: #243025;
+    font-size: 11px;
+    white-space: nowrap;
+    pointer-events: none;
+    transition: opacity .7s ease;
+  }
+  #loading {
+    position: fixed;
+    inset: 0;
+    z-index: 8;
+    display: grid;
+    place-items: center;
+    background: #e8eee7;
+    transition: opacity .35s ease;
+  }
+  #loading.hidden { opacity: 0; pointer-events: none; }
+  #loading div {
+    padding: 10px 14px;
+    border-radius: 999px;
+    background: rgba(255,255,255,.86);
+    box-shadow: 0 4px 18px rgba(0,0,0,.08);
+    font-size: 13px;
+  }
+  @media (max-width: 650px) {
+    #hint { display: none; }
+    #title { padding: 8px 10px; }
+    #title b { font-size: 18px; }
+    #controls { bottom: max(11px, env(safe-area-inset-bottom)); }
+  }
 </style>
 </head>
 <body>
-<div id="title"><b>English lavender</b><span>Lavandula angustifolia · flowering clump</span></div>
-<div id="status">Growing lavender…</div>
-<div id="hint">Drag to orbit · pinch / scroll to inspect</div>
-<button id="gear">⚙</button>
-<div id="panel">
-<label><span>Seed</span><input id="seedInput" type="number" value="88231"></label>
-<label><span>Stems</span><input id="densityInput" type="range" min="0.6" max="1.5" step="0.05" value="1.0"></label>
-<label><span>Flowers</span><input id="flowerInput" type="range" min="0.6" max="1.6" step="0.05" value="1.05"></label>
-<label><span>Spread</span><input id="spreadInput" type="range" min="0.65" max="1.45" step="0.05" value="1.0"></label>
-<label><span>Randomness</span><input id="randomInput" type="range" min="0.05" max="0.45" step="0.02" value="0.18"></label>
-<div class="buttons"><button id="regen">Regenerate</button><button id="newSeed">New seed</button></div>
-</div>
-<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.179.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.179.1/examples/jsm/"}}</script>
-<script type="module" src="./tree.js"></script>
+  <div id="stage" aria-label="Zoomable English oak tree image">
+    <img id="tree" draggable="false" alt="A mature English oak tree with a broad crown and textured trunk">
+  </div>
+
+  <div id="title"><b>English oak</b><span>Zoomable tree study</span></div>
+  <div id="hint">Drag to pan · pinch / scroll to zoom · double-click to zoom</div>
+  <div id="controls" aria-label="Zoom controls">
+    <button id="minus" type="button" aria-label="Zoom out">−</button>
+    <button id="reset" type="button" aria-label="Reset zoom">100%</button>
+    <button id="plus" type="button" aria-label="Zoom in">+</button>
+  </div>
+  <div id="loading"><div id="loadingText">Loading tree…</div></div>
+
+<script>
+(() => {
+  const stage = document.getElementById('stage');
+  const tree = document.getElementById('tree');
+  const loading = document.getElementById('loading');
+  const loadingText = document.getElementById('loadingText');
+  const resetButton = document.getElementById('reset');
+  const hint = document.getElementById('hint');
+
+  let x = 0, y = 0, scale = 1, fitScale = 1, minScale = .2, maxScale = 8;
+  const pointers = new Map();
+  let gesture = null;
+  let hintTimer;
+
+  const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
+  const distance = (a, b) => Math.hypot(b.x - a.x, b.y - a.y);
+  const midpoint = (a, b) => ({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 });
+
+  function render() {
+    tree.style.transform = `translate3d(${x}px, ${y}px, 0) scale(${scale})`;
+    resetButton.textContent = `${Math.round(scale / fitScale * 100)}%`;
+  }
+
+  function fit() {
+    if (!tree.naturalWidth) return;
+    const margin = window.innerWidth < 650 ? .97 : .94;
+    fitScale = Math.min(stage.clientWidth / tree.naturalWidth, stage.clientHeight / tree.naturalHeight) * margin;
+    scale = fitScale;
+    minScale = fitScale * .55;
+    maxScale = fitScale * 10;
+    x = (stage.clientWidth - tree.naturalWidth * scale) / 2;
+    y = (stage.clientHeight - tree.naturalHeight * scale) / 2;
+    render();
+  }
+
+  function zoomAt(px, py, factor) {
+    const next = clamp(scale * factor, minScale, maxScale);
+    if (next === scale) return;
+    const imageX = (px - x) / scale;
+    const imageY = (py - y) / scale;
+    x = px - imageX * next;
+    y = py - imageY * next;
+    scale = next;
+    render();
+    fadeHint();
+  }
+
+  function fadeHint() {
+    clearTimeout(hintTimer);
+    hint.style.opacity = '.22';
+    hintTimer = setTimeout(() => { hint.style.opacity = '1'; }, 1100);
+  }
+
+  function beginGesture() {
+    const pts = [...pointers.values()];
+    if (pts.length === 1) {
+      gesture = { type: 'pan', px: pts[0].x, py: pts[0].y, x, y };
+      stage.classList.add('grabbing');
+    } else if (pts.length >= 2) {
+      const a = pts[0], b = pts[1];
+      const mid = midpoint(a, b);
+      gesture = {
+        type: 'pinch',
+        distance: Math.max(1, distance(a, b)),
+        mid,
+        x,
+        y,
+        scale,
+        imageX: (mid.x - x) / scale,
+        imageY: (mid.y - y) / scale
+      };
+      stage.classList.add('grabbing');
+    }
+  }
+
+  stage.addEventListener('pointerdown', e => {
+    stage.setPointerCapture(e.pointerId);
+    pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    beginGesture();
+  });
+
+  stage.addEventListener('pointermove', e => {
+    if (!pointers.has(e.pointerId)) return;
+    pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    const pts = [...pointers.values()];
+
+    if (pts.length === 1 && gesture?.type === 'pan') {
+      x = gesture.x + pts[0].x - gesture.px;
+      y = gesture.y + pts[0].y - gesture.py;
+      render();
+      fadeHint();
+      return;
+    }
+
+    if (pts.length >= 2) {
+      if (gesture?.type !== 'pinch') beginGesture();
+      const a = pts[0], b = pts[1];
+      const mid = midpoint(a, b);
+      const next = clamp(gesture.scale * distance(a, b) / gesture.distance, minScale, maxScale);
+      x = mid.x - gesture.imageX * next;
+      y = mid.y - gesture.imageY * next;
+      scale = next;
+      render();
+      fadeHint();
+    }
+  });
+
+  function releasePointer(e) {
+    pointers.delete(e.pointerId);
+    if (pointers.size) beginGesture();
+    else {
+      gesture = null;
+      stage.classList.remove('grabbing');
+    }
+  }
+  stage.addEventListener('pointerup', releasePointer);
+  stage.addEventListener('pointercancel', releasePointer);
+
+  stage.addEventListener('wheel', e => {
+    e.preventDefault();
+    const rect = stage.getBoundingClientRect();
+    zoomAt(e.clientX - rect.left, e.clientY - rect.top, Math.exp(-e.deltaY * .0015));
+  }, { passive: false });
+
+  stage.addEventListener('dblclick', e => {
+    const rect = stage.getBoundingClientRect();
+    zoomAt(e.clientX - rect.left, e.clientY - rect.top, 1.8);
+  });
+
+  document.getElementById('plus').addEventListener('click', () => zoomAt(stage.clientWidth / 2, stage.clientHeight / 2, 1.5));
+  document.getElementById('minus').addEventListener('click', () => zoomAt(stage.clientWidth / 2, stage.clientHeight / 2, 1 / 1.5));
+  resetButton.addEventListener('click', fit);
+
+  let resizeTimer;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(fit, 120);
+  });
+
+  tree.addEventListener('load', () => {
+    fit();
+    loading.classList.add('hidden');
+    setTimeout(() => loading.remove(), 450);
+  });
+
+  tree.addEventListener('error', () => {
+    loadingText.textContent = 'Could not load the tree image.';
+  });
+
+  async function loadTree() {
+    try {
+      const urls = Array.from({ length: 10 }, (_, i) => `./assets/tree-${String(i).padStart(2, '0')}.txt`);
+      const pieces = await Promise.all(urls.map(async url => {
+        const response = await fetch(url, { cache: 'force-cache' });
+        if (!response.ok) throw new Error(`Failed to load ${url}`);
+        return response.text();
+      }));
+      tree.src = `data:image/avif;base64,${pieces.join('')}`;
+    } catch (error) {
+      console.error(error);
+      loadingText.textContent = 'Could not load the tree image.';
+    }
+  }
+
+  loadTree();
+})();
+</script>
 </body>
 </html>
