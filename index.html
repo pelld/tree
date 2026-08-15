@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
-<title>Natural history — high-detail creature zoom</title>
+<title>Creature zoom collection</title>
 <link rel="stylesheet" href="./styles.css">
 <script defer src="./app.js"></script>
 </head>
@@ -18,9 +18,7 @@
 
 <!-- ======================================================================== -->
 <!-- 02B. SPECIES TITLE + HIDDEN COLLECTION SWITCHER                          -->
-<!-- The existing title is now the only permanent navigation control.         -->
-<!-- Tapping it reveals the species choices; otherwise the photograph stays   -->
-<!-- uncluttered.                                                              -->
+<!-- The title doubles as the species selector so the photograph stays clean. -->
 <!-- ======================================================================== -->
 <div id="speciesPanel">
   <button id="speciesButton" type="button" aria-expanded="false" aria-controls="speciesMenu">
@@ -42,12 +40,20 @@
 
 <!-- ======================================================================== -->
 <!-- 02C. CLICK-TO-LEARN CARD                                                 -->
-<!-- The information source deliberately sits after the topic buttons.        -->
+<!-- Any simple tap on the image opens the overview. Deeper information is    -->
+<!-- found from the searchable topic menu; there are no anatomical hotspots.  -->
+<!-- The source deliberately sits at the very bottom, below the topic menu.   -->
 <!-- ======================================================================== -->
 <aside id="infoCard" aria-live="polite" aria-hidden="true">
   <button id="infoClose" type="button" aria-label="Close information">×</button>
   <h2 id="infoTitle"></h2>
   <p id="infoText"></p>
+
+  <div id="infoTools">
+    <label id="infoSearchLabel" for="infoSearch">Find a topic</label>
+    <input id="infoSearch" type="search" autocomplete="off" placeholder="Search: antennae, wings, life cycle…">
+  </div>
+
   <div id="infoNav" aria-label="More about this creature"></div>
   <a id="infoSource" href="#" target="_blank" rel="noopener">Source</a>
 </aside>
@@ -55,11 +61,13 @@
 <!-- ======================================================================== -->
 <!-- 02D. IMAGE ATTRIBUTION + INITIAL LOAD                                    -->
 <!-- ======================================================================== -->
-<div class="credit"><a id="photoCredit" href="#" target="_blank" rel="noopener"></a></div>
+<div class="credit">
+  <a id="photoCredit" href="#" target="_blank" rel="noopener"></a>
+</div>
 
 <div id="loading">
-  <div id="loadingText">Loading specimen…</div>
-  <div id="error">The specimen image did not load. Refresh to try again.</div>
+  <div id="loadingText">Loading creature…</div>
+  <div id="error">The image did not load. Refresh to try again.</div>
 </div>
 </body>
 </html>
