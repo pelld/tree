@@ -1,19 +1,15 @@
 (() => {
-  /* ======================================================================== */
-  /* 10A. CREATURE COLLECTION                                                 */
-  /* Each creature owns its image sources, native dimensions, credit and      */
-  /* detailed reading topics. There are deliberately NO anatomical hotspots.  */
-  /* ======================================================================== */
-  const SPECIES = {
-    /* ---------------------------------------------------------------------- */
-    /* 10A-1. HARLEQUIN BEETLE                                                */
-    /* ---------------------------------------------------------------------- */
+  /* ====================================================================== */
+  /* 10A. CREATURE DATA                                                     */
+  /* ====================================================================== */
+  const CREATURES = {
+    /* -------------------------------------------------------------------- */
+    /* 10A-1. HARLEQUIN BEETLE                                              */
+    /* -------------------------------------------------------------------- */
     beetle: {
       name: 'Harlequin beetle',
       scientific: 'Acrocinus longimanus',
       meta: 'focus stacked',
-      aria: 'High-resolution focus-stacked photograph of a harlequin beetle',
-      alt: 'Female harlequin beetle, Acrocinus longimanus, viewed from above',
       preview: 'https://commons.wikimedia.org/wiki/Special:FilePath/Acrocinus_longimanus_MHNT_femelle.jpg?width=1800',
       full: 'https://commons.wikimedia.org/wiki/Special:FilePath/Acrocinus_longimanus_MHNT_femelle.jpg',
       width: 5053,
@@ -21,194 +17,149 @@
       previewWidth: 1800,
       credit: 'Photo: Didier Descouens · CC BY-SA 3.0',
       creditUrl: 'https://commons.wikimedia.org/wiki/File:Acrocinus_longimanus_MHNT_femelle.jpg',
+      aria: 'High-resolution harlequin beetle photograph on a white background',
+      alt: 'Female harlequin beetle on a white background',
       defaultInfo: 'overview',
-      nav: ['overview', 'range', 'size', 'life', 'behaviour', 'pattern', 'bodyplan', 'head', 'antennae', 'pronotum', 'elytra', 'legs', 'hitchhikers'],
+      nav: ['overview', 'range', 'life', 'pattern', 'head', 'antennae', 'elytra', 'legs', 'hitchhikers'],
       information: {
         overview: {
           title: 'Harlequin beetle',
-          text: 'Acrocinus longimanus is a large Neotropical longhorn beetle in the family Cerambycidae. Its cream, orange-red and black pattern makes it one of the most distinctive tropical beetles. Adults are mainly nocturnal and spend much of their time on trunks and branches. This photograph shows a female; males are even more extraordinary because their front legs can become dramatically elongated.',
+          text: 'Acrocinus longimanus is a large Neotropical longhorn beetle with a striking cream, orange-red and black pattern. Adults are mainly nocturnal and spend much of their time on trunks and branches. This photographed specimen is female; males can have much more exaggerated front legs.',
           sourceLabel: 'Smithsonian · species record',
           sourceUrl: 'https://www.si.edu/object/giant-harlequin-beetle-harlequin-beetle:nmnheducation_10866534'
         },
         range: {
           title: 'Range and habitat',
-          text: 'Harlequin beetles occur from Mexico through Central America and across a large part of tropical South America, extending south into Argentina. They are forest insects, but their reproduction is especially tied to freshly dead, dying or damaged trees. Those trees provide both a meeting place for adults and the wood in which the next generation develops.',
+          text: 'It occurs from Mexico through Central America and across much of tropical South America. It is associated with forest habitats, especially weakened, dying or recently dead trees, which provide both meeting places for adults and food for developing larvae.',
           sourceLabel: 'Valle, Chatellenaz & Damborsky (2017)',
           sourceUrl: 'https://doi.org/10.15560/13.6.987'
-        },
-        size: {
-          title: 'Size',
-          text: 'The species is a genuinely large beetle. Body length is several centimetres even before the long antennae and legs are considered. Males can look much larger than females because the front legs are disproportionately extended, so total span is a poor guide to body size. The female shown here has the more compact leg proportions.',
-          sourceLabel: 'Smithsonian · species record',
-          sourceUrl: 'https://www.si.edu/object/giant-harlequin-beetle-harlequin-beetle:nmnheducation_10866534'
         },
         life: {
           title: 'Life cycle',
-          text: 'Females select recently dead, dying or weakened trees for egg laying. After hatching, the larvae bore into the wood and feed there, hidden from view, for most of their development. They eventually pupate within the timber and later emerge as winged adults. The conspicuous adult therefore represents only the mobile reproductive phase of a life largely spent inside wood.',
+          text: 'Eggs are laid on suitable wood. Larvae bore into the timber and spend most of their development hidden there, feeding and growing before pupating and emerging as adults. The visible adult is therefore only the final reproductive stage of a much longer wood-boring life.',
           sourceLabel: 'Valle, Chatellenaz & Damborsky (2017)',
           sourceUrl: 'https://doi.org/10.15560/13.6.987'
         },
-        behaviour: {
-          title: 'Behaviour and sex differences',
-          text: 'Adults are primarily nocturnal. Males use their exceptionally long front legs in contests with rival males and while guarding females or suitable egg-laying sites. The exaggerated male limbs are a striking example of sexual selection: a structure can become extreme not because it helps ordinary movement, but because it improves success in competition for mates.',
-          sourceLabel: 'Zeh, Zeh & Tavakilian · Biotropica (1992)',
-          sourceUrl: 'https://doi.org/10.2307/2388476'
-        },
         pattern: {
           title: 'Colour and pattern',
-          text: 'The harlequin pattern is built from sharply contrasting black, pale yellow or cream and orange-red areas across the upper surface. The exact appearance varies between individuals, but the bold mosaic is characteristic enough to inspire the common name. At high zoom you can also see that the apparently smooth coloured fields are textured parts of the beetle’s hardened exoskeleton.',
+          text: 'The dramatic surface pattern is why the species is called the harlequin beetle. At high zoom the apparently flat colour fields resolve into textured parts of the hardened exoskeleton rather than smooth painted surfaces.',
           sourceLabel: 'Smithsonian · species record',
           sourceUrl: 'https://www.si.edu/object/giant-harlequin-beetle-harlequin-beetle:nmnheducation_10866534'
         },
-        bodyplan: {
-          title: 'Body plan',
-          text: 'Like every beetle, the harlequin beetle has a head, a three-part thorax and an abdomen. Three pairs of legs attach to the thorax. The first pair of wings has been transformed into hardened covers called elytra; the delicate flight wings fold beneath them. That beetle body plan combines strong armour with the ability to fly.',
-          sourceLabel: 'Universidad Nacional de Colombia · species overview',
-          sourceUrl: 'https://historianatural.unal.edu.co/expo1/escarabajo_eng.html'
-        },
         head: {
           title: 'Head',
-          text: 'The head carries the compound eyes, the bases of the long antennae and the biting mouthparts. The mandibles are robust structures used to grip and manipulate material. Because the antennae originate close to the eyes, the front of a longhorn beetle can look crowded and highly mechanical when magnified.',
+          text: 'The head carries compound eyes, the bases of the long antennae and strong biting mouthparts. In close view it looks densely engineered, with the antennae arising close to the eyes and the mandibles creating a powerful front end.',
           sourceLabel: 'Smithsonian · species record',
           sourceUrl: 'https://www.si.edu/object/giant-harlequin-beetle-harlequin-beetle:nmnheducation_10866534'
         },
         antennae: {
           title: 'Antennae',
-          text: 'Cerambycidae are called longhorn beetles because long antennae are one of the family’s defining features. The many jointed segments form sensitive organs for touch and chemical detection. Antennae help the beetle investigate bark, orient itself in darkness and detect biologically important chemical cues without needing to see them.',
-          sourceLabel: 'GBIF · Cerambycidae classification',
+          text: 'As a longhorn beetle, this species has exceptionally long antennae. These segmented structures are major sensory organs for touch and chemical detection and help the beetle explore bark and detect biologically important cues.',
+          sourceLabel: 'GBIF · Cerambycidae',
           sourceUrl: 'https://www.gbif.org/species/1118064'
         },
-        pronotum: {
-          title: 'Pronotum',
-          text: 'The pronotum is the shield-like upper plate immediately behind the head. It belongs to the first thoracic segment, the segment that carries the front pair of legs. Its shape, markings and surface texture are useful identification features in beetles, and under magnification it forms a clear structural transition between head and wing cases.',
-          sourceLabel: 'Universidad Nacional de Colombia · morphology',
-          sourceUrl: 'https://historianatural.unal.edu.co/expo1/escarabajo_eng.html'
-        },
         elytra: {
-          title: 'Elytra and flight wings',
-          text: 'The patterned structures covering most of the back are the elytra — the hardened first pair of wings. They act as armour for the soft abdomen and the folded flight wings beneath. When the beetle flies, the elytra lift away from the body while the much thinner hind wings unfold and provide the actual aerodynamic surface.',
+          title: 'Elytra',
+          text: 'The patterned covers over the back are elytra: the hardened first pair of wings. They protect the folded flight wings and abdomen beneath. When the beetle flies, the true aerodynamic wings unfold from underneath.',
           sourceLabel: 'Universidad Nacional de Colombia · species overview',
           sourceUrl: 'https://historianatural.unal.edu.co/expo1/escarabajo_eng.html'
         },
         legs: {
           title: 'Legs',
-          text: 'Like all insects, the beetle has six jointed legs. Strong claws at the ends help it grip irregular bark and branches. In females the three pairs are relatively balanced; in adult males the front pair can become enormously elongated and are used in competitive interactions as well as movement. The difference between the sexes is one of the species’ most remarkable features.',
+          text: 'Like all insects it has six jointed legs. Strong claws help it grip bark and branches. In males the front legs can become extremely elongated and are used in contests as well as locomotion.',
           sourceLabel: 'Zeh, Zeh & Tavakilian · Biotropica (1992)',
           sourceUrl: 'https://doi.org/10.2307/2388476'
         },
         hitchhikers: {
           title: 'Tiny hitchhikers',
-          text: 'Harlequin beetles can carry pseudoscorpions — tiny arachnids that cling to the much larger beetle and use it as transport between dead trees. This relationship is called phoresy. Some pseudoscorpions even court and mate while travelling, meaning a single beetle can function simultaneously as aircraft, meeting place and mating arena for organisms only a fraction of its size.',
+          text: 'Harlequin beetles sometimes transport pseudoscorpions, tiny arachnids that cling to the much larger beetle and use it as a vehicle between dead trees. This relationship is called phoresy.',
           sourceLabel: 'Annals of the Entomological Society of America · phoresy review',
           sourceUrl: 'https://academic.oup.com/aesa/article/115/3/219/6506186'
         }
       }
     },
 
-    /* ---------------------------------------------------------------------- */
-    /* 10A-2. GIANT PEACOCK MOTH — NATURAL BACKGROUND                        */
-    /* ---------------------------------------------------------------------- */
-    moth: {
-      name: 'Giant peacock moth',
-      scientific: 'Saturnia pyri',
-      meta: 'natural photograph',
-      aria: 'High-resolution photograph of a giant peacock moth on a natural background',
-      alt: 'Giant peacock moth, Saturnia pyri, resting with its wings open',
-      preview: 'https://commons.wikimedia.org/wiki/Special:FilePath/Saturnia_pyri_(Giant_Peacock_moth).jpg?width=1800',
-      full: 'https://commons.wikimedia.org/wiki/Special:FilePath/Saturnia_pyri_(Giant_Peacock_moth).jpg',
-      width: 9248,
-      height: 6944,
+    /* -------------------------------------------------------------------- */
+    /* 10A-2. BLUE MORPHO BUTTERFLY                                         */
+    /* This is a focus-stacked dorsal specimen photographed on white.       */
+    /* -------------------------------------------------------------------- */
+    butterfly: {
+      name: 'Blue morpho butterfly',
+      scientific: 'Morpho helenor',
+      meta: 'white-background specimen',
+      preview: 'https://commons.wikimedia.org/wiki/Special:FilePath/Morpho_helenor_helenor_MHNT_dos.jpg?width=1800',
+      full: 'https://commons.wikimedia.org/wiki/Special:FilePath/Morpho_helenor_helenor_MHNT_dos.jpg',
+      width: 4437,
+      height: 3689,
       previewWidth: 1800,
-      credit: 'Photo: Vegard Nossum · CC BY-SA 4.0',
-      creditUrl: 'https://commons.wikimedia.org/wiki/File:Saturnia_pyri_(Giant_Peacock_moth).jpg',
+      credit: 'Photo: Didier Descouens · CC BY-SA 4.0',
+      creditUrl: 'https://commons.wikimedia.org/wiki/File:Morpho_helenor_helenor_MHNT_dos.jpg',
+      aria: 'High-resolution blue morpho butterfly photograph on a white background',
+      alt: 'Blue morpho butterfly, Morpho helenor, dorsal view on a white background',
       defaultInfo: 'overview',
-      nav: ['overview', 'range', 'size', 'life', 'caterpillar', 'adult', 'pheromones', 'head', 'antennae', 'wings', 'scales', 'eyespots', 'abdomen'],
+      nav: ['overview', 'range', 'size', 'life', 'head', 'antennae', 'wings', 'scales', 'blue'],
       information: {
         overview: {
-          title: 'Giant peacock moth',
-          text: 'Saturnia pyri is the largest moth in Europe and one of the most impressive members of the giant silk moth family Saturniidae. Its broad grey-brown wings, thick furry body and four enormous eye-like markings make it unmistakable. Adults fly mainly around dusk and at night, and the adult stage is surprisingly brief compared with the long period spent growing as a caterpillar.',
-          sourceLabel: 'LPO · Grand paon de nuit',
-          sourceUrl: 'https://www.lpo.fr/decouvrir-la-nature/fiches-especes/fiches-especes/invertebres/papillons/grand-paon-de-nuit'
+          title: 'Blue morpho butterfly',
+          text: 'Morpho helenor is one of the best-known Neotropical blue morpho butterflies. Even as a museum specimen on a plain white background it appears almost luminous because the upper wing surface reflects intense blue. Morphos are iconic tropical butterflies, famous for both their size and the visual effect created by their colour.',
+          sourceLabel: 'Wikimedia Commons · specimen page',
+          sourceUrl: 'https://commons.wikimedia.org/wiki/File:Morpho_helenor_helenor_MHNT_dos.jpg'
         },
         range: {
           title: 'Range and habitat',
-          text: 'The giant peacock moth occurs across southern Europe and parts of central Europe, as well as North Africa and western Asia. It favours landscapes containing suitable deciduous host trees: traditional orchards, gardens, parks, open woodland and scrub can all provide habitat. The species is not native to Britain, although occasional records have occurred there.',
-          sourceLabel: 'LPO · Grand paon de nuit',
-          sourceUrl: 'https://www.lpo.fr/decouvrir-la-nature/fiches-especes/fiches-especes/invertebres/papillons/grand-paon-de-nuit'
+          text: 'Morpho helenor occurs in the Neotropics, from parts of Central America into tropical South America. It is associated with humid forest habitats including lowland rainforest and forest edges. The specimen shown here was collected in French Guiana.',
+          sourceLabel: 'Wikimedia Commons · locality and classification',
+          sourceUrl: 'https://commons.wikimedia.org/wiki/File:Morpho_helenor_helenor_MHNT_dos.jpg'
         },
         size: {
-          title: 'Europe’s largest moth',
-          text: 'A large giant peacock moth can exceed 15 centimetres in wingspan, and exceptional individuals approach 20 centimetres. That makes the species large enough to be briefly mistaken for a small bird or bat when it flies at dusk. Much of this apparent size comes from the expansive wings; the central body remains comparatively compact.',
-          sourceLabel: 'LPO · description',
-          sourceUrl: 'https://www.lpo.fr/decouvrir-la-nature/fiches-especes/fiches-especes/invertebres/papillons/grand-paon-de-nuit'
+          title: 'Size',
+          text: 'Blue morphos are large butterflies with broad wings. Their scale alone makes them conspicuous, and in life the combination of size and colour creates a memorable slow, powerful flight impression as bright blue surfaces repeatedly catch the light.',
+          sourceLabel: 'Morpho helenor · species overview',
+          sourceUrl: 'https://en.wikipedia.org/wiki/Morpho_helenor'
         },
         life: {
           title: 'Life cycle',
-          text: 'Females lay eggs on or near suitable food plants. The caterpillars hatch, grow through several stages and eventually become very large green larvae. When growth is complete, a caterpillar spins a strong silken cocoon and pupates. The species commonly overwinters as a pupa, with the adult moth emerging when conditions are suitable the following spring.',
-          sourceLabel: 'LPO · life cycle',
-          sourceUrl: 'https://www.lpo.fr/decouvrir-la-nature/fiches-especes/fiches-especes/invertebres/papillons/grand-paon-de-nuit'
-        },
-        caterpillar: {
-          title: 'The caterpillar',
-          text: 'The larva looks very different from the adult. It becomes a huge green caterpillar decorated with rows of turquoise-blue tubercles bearing hairs. It feeds on the leaves of a variety of deciduous trees, including fruit trees such as pear, apple and plum. All of the energy required for the non-feeding adult stage must ultimately be collected during this growing phase.',
-          sourceLabel: 'LPO · caterpillar description',
-          sourceUrl: 'https://www.lpo.fr/decouvrir-la-nature/fiches-especes/fiches-especes/invertebres/papillons/grand-paon-de-nuit'
-        },
-        adult: {
-          title: 'A brief adult life',
-          text: 'The adult moth has no functional feeding proboscis and therefore does not eat. It survives entirely on energy reserves accumulated while it was a caterpillar. Adult life is consequently short and highly focused: emerge, locate a mate, reproduce and, for the female, place eggs where the next generation can find suitable food.',
-          sourceLabel: 'LPO · adult biology',
-          sourceUrl: 'https://www.lpo.fr/decouvrir-la-nature/fiches-especes/fiches-especes/invertebres/papillons/grand-paon-de-nuit'
-        },
-        pheromones: {
-          title: 'Finding a mate by scent',
-          text: 'Female giant peacock moths release sex pheromones into the air. Males can detect extraordinarily small amounts of those chemicals and follow the scent plume toward a female. This long-range chemical communication explains why the male’s antennae are so elaborate: they provide an enormous sensory surface for detecting molecules carried on the wind.',
-          sourceLabel: 'LPO · reproduction',
-          sourceUrl: 'https://www.lpo.fr/decouvrir-la-nature/fiches-especes/fiches-especes/invertebres/papillons/grand-paon-de-nuit'
+          text: 'Like other butterflies, Morpho helenor passes through egg, caterpillar, pupa and adult stages. The larva is the main feeding and growing stage; the pupa is a period of radical reorganisation; and the adult seen here is the winged reproductive stage.',
+          sourceLabel: 'Butterfly · life-cycle overview',
+          sourceUrl: 'https://en.wikipedia.org/wiki/Butterfly'
         },
         head: {
-          title: 'Head',
-          text: 'The head is small compared with the vast wings and furry thorax. It carries the compound eyes and the bases of the antennae. The adult mouthparts are reduced and there is no functional feeding proboscis, a reminder that this stage is not designed for feeding and growth but for dispersal and reproduction.',
-          sourceLabel: 'LPO · adult biology',
-          sourceUrl: 'https://www.lpo.fr/decouvrir-la-nature/fiches-especes/fiches-especes/invertebres/papillons/grand-paon-de-nuit'
+          title: 'Head and eyes',
+          text: 'The head carries compound eyes, antennae and the coiled proboscis. Compound eyes are built from many repeating visual units, giving butterflies excellent motion detection and a very different visual experience from our own.',
+          sourceLabel: 'Butterfly · anatomy overview',
+          sourceUrl: 'https://en.wikipedia.org/wiki/Butterfly'
         },
         antennae: {
-          title: 'Feathered antennae',
-          text: 'Male giant peacock moths have spectacular comb-like or feathered antennae. Each side branch increases the total sensory surface area, creating an extremely sensitive chemical detector. The antennae allow males to recognise and track female pheromones over long distances, even when the female is hidden and the night is dark.',
-          sourceLabel: 'LPO · reproduction',
-          sourceUrl: 'https://www.lpo.fr/decouvrir-la-nature/fiches-especes/fiches-especes/invertebres/papillons/grand-paon-de-nuit'
+          title: 'Antennae',
+          text: 'Butterfly antennae are characteristically clubbed at their tips. They are important sensory organs involved in smell, orientation and the detection of air movement, helping the animal read its surroundings even when visual information is limited.',
+          sourceLabel: 'Butterfly · anatomy overview',
+          sourceUrl: 'https://en.wikipedia.org/wiki/Butterfly'
         },
         wings: {
           title: 'Wings',
-          text: 'Four broad wings create the moth’s enormous span. The forewings and hindwings overlap at rest, making the whole animal look almost like one continuous patterned surface. The wings are thin membranes strengthened by veins, but from above that structure is hidden beneath a dense covering of microscopic scales that create the visible colours and patterns.',
-          sourceLabel: 'LPO · description',
-          sourceUrl: 'https://www.lpo.fr/decouvrir-la-nature/fiches-especes/fiches-especes/invertebres/papillons/grand-paon-de-nuit'
+          text: 'The butterfly has two forewings and two hindwings. Together they form both the flight surface and the main visual display. Veins support the wings while a dense covering of tiny scales creates their colour, texture and much of their optical behaviour.',
+          sourceLabel: 'Wikimedia Commons · specimen page',
+          sourceUrl: 'https://commons.wikimedia.org/wiki/File:Morpho_helenor_helenor_MHNT_dos.jpg'
         },
         scales: {
           title: 'Wing scales',
-          text: 'The colours are not painted onto a smooth wing. Lepidoptera — moths and butterflies — are named for the tiny scales that overlap across their wings like roof tiles. Different scales carry pigments and microscopic structures, building up the mottled greys, browns, cream bands and coloured eyespots. At high magnification the apparently continuous design resolves into a textured surface.',
-          sourceLabel: 'LPO · species description',
-          sourceUrl: 'https://www.lpo.fr/decouvrir-la-nature/fiches-especes/fiches-especes/invertebres/papillons/grand-paon-de-nuit'
+          text: 'Butterfly wings are covered in countless tiny overlapping scales. Under magnification the surface is not smooth at all: it becomes a layered mosaic of minute structures. These scales are responsible for both pigment colours and many structural optical effects.',
+          sourceLabel: 'Butterfly · wing structure overview',
+          sourceUrl: 'https://en.wikipedia.org/wiki/Butterfly'
         },
-        eyespots: {
-          title: 'Four “peacock eyes”',
-          text: 'Every wing bears a large ocellus — an eye-like marking with concentric dark, pale and reddish rings. These four spots give the moth its common name. Eyespots are widely interpreted as defensive signals: when suddenly revealed they may startle a predator, draw an attack away from the body or make the moth look like something larger and less straightforward to tackle.',
-          sourceLabel: 'LPO · identification',
-          sourceUrl: 'https://www.lpo.fr/decouvrir-la-nature/fiches-especes/fiches-especes/invertebres/papillons/grand-paon-de-nuit'
-        },
-        abdomen: {
-          title: 'Abdomen',
-          text: 'The abdomen is thick and densely clothed in hair-like scales. It contains the reproductive organs and, critically, part of the energy reserve carried over from larval life. Because the adult cannot refuel by eating, every flight and reproductive activity spends a finite resource accumulated before the moth ever emerged from its cocoon.',
-          sourceLabel: 'LPO · adult biology',
-          sourceUrl: 'https://www.lpo.fr/decouvrir-la-nature/fiches-especes/fiches-especes/invertebres/papillons/grand-paon-de-nuit'
+        blue: {
+          title: 'Where the blue comes from',
+          text: 'Much of the brilliant morpho blue is structural colour rather than simple pigment. Microscopic architecture in the wing scales reflects blue wavelengths very strongly, producing the shimmering effect for which morphos are famous. The colour can flare, deepen or nearly vanish as the viewing angle changes.',
+          sourceLabel: 'Structural colour · overview',
+          sourceUrl: 'https://en.wikipedia.org/wiki/Structural_coloration'
         }
       }
     }
   };
 
-  /* ======================================================================== */
-  /* 10B. DOM REFERENCES                                                      */
-  /* ======================================================================== */
+  /* ====================================================================== */
+  /* 10B. DOM REFERENCES                                                    */
+  /* ====================================================================== */
   const stage = document.getElementById('stage');
   const subject = document.getElementById('subject');
   const speciesButton = document.getElementById('speciesButton');
@@ -226,44 +177,36 @@
   const loadingText = document.getElementById('loadingText');
   const error = document.getElementById('error');
 
-  /* ======================================================================== */
-  /* 10C. CURRENT CREATURE, VIEW AND INPUT STATE                              */
-  /* ======================================================================== */
+  /* ====================================================================== */
+  /* 10C. CURRENT CREATURE + VIEW STATE                                     */
+  /* ====================================================================== */
   let speciesKey = 'beetle';
-  let current = SPECIES[speciesKey];
+  let current = CREATURES[speciesKey];
   let selectedInfoKey = current.defaultInfo;
   let loadToken = 0;
   let idleLoadHandle = null;
-
   let x = 0;
   let y = 0;
   let scale = 1;
   let homeScale = 1;
   let minScale = 1;
   let maxScale = 1;
-
   let previewReady = false;
   let fullReady = false;
   let fullRequested = false;
   let source = 'preview';
-
   let gesture = null;
   let tapCandidate = null;
   let multiTouch = false;
   const pointers = new Map();
 
-  /* ======================================================================== */
-  /* 11A. SMALL MATH HELPERS                                                  */
-  /* ======================================================================== */
   const clamp = (value, minimum, maximum) => Math.max(minimum, Math.min(maximum, value));
   const distance = (a, b) => Math.hypot(b.x - a.x, b.y - a.y);
   const midpoint = (a, b) => ({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 });
 
-  /* ======================================================================== */
-  /* 12A. SEARCHABLE INFORMATION MENU                                         */
-  /* Anatomy and general biology are deliberately treated the same way:       */
-  /* open the guide, then choose or search the topic you want.                */
-  /* ======================================================================== */
+  /* ====================================================================== */
+  /* 11A. INFORMATION PANEL                                                 */
+  /* ====================================================================== */
   function buildInfoNavigation() {
     const query = infoSearch.value.trim().toLowerCase();
     infoNav.replaceChildren();
@@ -271,9 +214,8 @@
     current.nav.forEach(key => {
       const item = current.information[key];
       if (!item) return;
-
-      const searchableText = `${item.title} ${item.text}`.toLowerCase();
-      if (query && !searchableText.includes(query)) return;
+      const haystack = `${item.title} ${item.text}`.toLowerCase();
+      if (query && !haystack.includes(query)) return;
 
       const button = document.createElement('button');
       button.type = 'button';
@@ -291,17 +233,15 @@
     }
   }
 
-  function showInformation(key = current.defaultInfo) {
+  function showInformation(key) {
     const item = current.information[key];
     if (!item) return;
-
     selectedInfoKey = key;
     infoTitle.textContent = item.title;
     infoText.textContent = item.text;
     infoSource.textContent = `Source: ${item.sourceLabel}`;
     infoSource.href = item.sourceUrl;
     buildInfoNavigation();
-
     infoCard.classList.add('open');
     infoCard.setAttribute('aria-hidden', 'false');
   }
@@ -312,17 +252,15 @@
   }
 
   document.getElementById('infoClose').addEventListener('click', hideInformation);
-
+  infoSearch.addEventListener('input', buildInfoNavigation);
   infoNav.addEventListener('click', event => {
     const button = event.target.closest('button[data-info-key]');
     if (button) showInformation(button.dataset.infoKey);
   });
 
-  infoSearch.addEventListener('input', buildInfoNavigation);
-
-  /* ======================================================================== */
-  /* 12B. SPECIES SWITCHER                                                    */
-  /* ======================================================================== */
+  /* ====================================================================== */
+  /* 11B. SPECIES SWITCHER                                                  */
+  /* ====================================================================== */
   function setSpeciesMenu(open) {
     speciesMenu.classList.toggle('open', open);
     speciesMenu.setAttribute('aria-hidden', String(!open));
@@ -343,11 +281,9 @@
     if (!event.target.closest('#speciesPanel')) setSpeciesMenu(false);
   });
 
-  /* ======================================================================== */
-  /* 13A. IMAGE BOUNDS, POSITION CONSTRAINTS AND NATIVE-PIXEL LIMIT           */
-  /* A tap anywhere inside the displayed photograph opens the guide. There    */
-  /* are no body-part hit tests.                                              */
-  /* ======================================================================== */
+  /* ====================================================================== */
+  /* 12A. VIEWER + SHARPNESS-AWARE ZOOM                                    */
+  /* ====================================================================== */
   function pointInsideImage(clientX, clientY) {
     return clientX >= x && clientX <= x + current.width * scale && clientY >= y && clientY <= y + current.height * scale;
   }
@@ -355,7 +291,6 @@
   function constrainPosition() {
     const drawnWidth = current.width * scale;
     const drawnHeight = current.height * scale;
-
     x = drawnWidth <= stage.clientWidth ? (stage.clientWidth - drawnWidth) / 2 : clamp(x, stage.clientWidth - drawnWidth, 0);
     y = drawnHeight <= stage.clientHeight ? (stage.clientHeight - drawnHeight) / 2 : clamp(y, stage.clientHeight - drawnHeight, 0);
   }
@@ -384,10 +319,8 @@
   function zoomAt(px, py, factor) {
     const nextScale = clamp(scale * factor, minScale, maxScale);
     if (nextScale === scale) return;
-
     const imageX = (px - x) / scale;
     const imageY = (py - y) / scale;
-
     scale = nextScale;
     x = px - imageX * scale;
     y = py - imageY * scale;
@@ -395,14 +328,11 @@
     render();
   }
 
-  /* ======================================================================== */
-  /* 14A. FULL-RESOLUTION UPGRADE                                             */
-  /* The preview arrives quickly. The original is loaded later, then the      */
-  /* zoom ceiling rises to scale = 1: one source pixel per CSS pixel.         */
-  /* ======================================================================== */
+  /* ====================================================================== */
+  /* 12B. FULL-RESOLUTION UPGRADE                                           */
+  /* ====================================================================== */
   function requestFullResolution() {
     if (fullRequested || fullReady) return;
-
     fullRequested = true;
     const requestToken = loadToken;
     const requestedSpecies = speciesKey;
@@ -432,22 +362,19 @@
     const run = () => {
       if (requestToken === loadToken) requestFullResolution();
     };
-
     if ('requestIdleCallback' in window) idleLoadHandle = requestIdleCallback(run, { timeout: 6000 });
     else idleLoadHandle = setTimeout(run, 5000);
   }
 
-  /* ======================================================================== */
-  /* 14B. APPLY A CREATURE                                                    */
-  /* ======================================================================== */
+  /* ====================================================================== */
+  /* 12C. APPLY A CREATURE                                                  */
+  /* ====================================================================== */
   function switchSpecies(key) {
-    if (!SPECIES[key]) return;
-
+    if (!CREATURES[key]) return;
     loadToken += 1;
     speciesKey = key;
-    current = SPECIES[key];
+    current = CREATURES[key];
     selectedInfoKey = current.defaultInfo;
-
     previewReady = false;
     fullReady = false;
     fullRequested = false;
@@ -475,7 +402,6 @@
     subject.alt = current.alt;
     subject.style.width = `${current.width}px`;
     subject.style.height = `${current.height}px`;
-
     photoCredit.textContent = current.credit;
     photoCredit.href = current.creditUrl;
 
@@ -487,13 +413,12 @@
     loadingText.style.display = '';
     error.style.display = 'none';
     loadingText.textContent = `Loading ${current.name.toLowerCase()}…`;
-
     subject.src = current.preview;
   }
 
-  /* ======================================================================== */
-  /* 15A. IMAGE LOAD / FALLBACK HANDLING                                      */
-  /* ======================================================================== */
+  /* ====================================================================== */
+  /* 13A. IMAGE LOAD / FALLBACK                                             */
+  /* ====================================================================== */
   subject.addEventListener('load', () => {
     if (source === 'preview' && !previewReady) {
       previewReady = true;
@@ -503,8 +428,6 @@
       return;
     }
 
-    /* If the preview failed and we fell directly back to the original, make  */
-    /* sure the viewer still initialises rather than remaining on Loading….    */
     if (source === 'full' && !previewReady) {
       previewReady = true;
       fullReady = true;
@@ -520,17 +443,15 @@
       subject.src = current.full;
       return;
     }
-
     loadingText.style.display = 'none';
     error.style.display = 'block';
   });
 
-  /* ======================================================================== */
-  /* 16A. START PAN OR PINCH                                                  */
-  /* ======================================================================== */
+  /* ====================================================================== */
+  /* 13B. PAN, PINCH AND TAP                                               */
+  /* ====================================================================== */
   function beginGesture() {
     const points = [...pointers.values()];
-
     if (points.length === 1) {
       gesture = { type: 'pan', pointerX: points[0].x, pointerY: points[0].y, x, y };
       stage.classList.add('grabbing');
@@ -541,7 +462,6 @@
       multiTouch = true;
       tapCandidate = null;
       const centre = midpoint(points[0], points[1]);
-
       gesture = {
         type: 'pinch',
         distance: Math.max(1, distance(points[0], points[1])),
@@ -549,32 +469,23 @@
         imageX: (centre.x - x) / scale,
         imageY: (centre.y - y) / scale
       };
-
       stage.classList.add('grabbing');
     }
   }
 
-  /* ======================================================================== */
-  /* 16B. POINTER DOWN / MOVE                                                 */
-  /* A tap is accepted only when it moves less than 10px and never becomes a  */
-  /* multi-touch gesture, so dragging and pinching do not open the guide.     */
-  /* ======================================================================== */
   stage.addEventListener('pointerdown', event => {
     setSpeciesMenu(false);
     stage.setPointerCapture(event.pointerId);
     pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
-
     if (pointers.size === 1) {
       tapCandidate = { id: event.pointerId, x: event.clientX, y: event.clientY, moved: false };
       multiTouch = false;
     }
-
     beginGesture();
   });
 
   stage.addEventListener('pointermove', event => {
     if (!pointers.has(event.pointerId)) return;
-
     pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
 
     if (tapCandidate?.id === event.pointerId && Math.hypot(event.clientX - tapCandidate.x, event.clientY - tapCandidate.y) > 10) {
@@ -582,7 +493,6 @@
     }
 
     const points = [...pointers.values()];
-
     if (points.length === 1 && gesture?.type === 'pan') {
       x = gesture.x + points[0].x - gesture.pointerX;
       y = gesture.y + points[0].y - gesture.pointerY;
@@ -592,11 +502,8 @@
 
     if (points.length >= 2) {
       if (gesture?.type !== 'pinch') beginGesture();
-
       const centre = midpoint(points[0], points[1]);
-      const nextScale = clamp(gesture.scale * distance(points[0], points[1]) / gesture.distance, minScale, maxScale);
-
-      scale = nextScale;
+      scale = clamp(gesture.scale * distance(points[0], points[1]) / gesture.distance, minScale, maxScale);
       x = centre.x - gesture.imageX * scale;
       y = centre.y - gesture.imageY * scale;
       hideInformation();
@@ -604,14 +511,10 @@
     }
   });
 
-  /* ======================================================================== */
-  /* 16C. POINTER UP — TAP ANYWHERE ON THE IMAGE TO OPEN                      */
-  /* ======================================================================== */
   function releasePointer(event) {
     const wasTap = tapCandidate?.id === event.pointerId && !tapCandidate.moved && !multiTouch;
     const tapX = event.clientX;
     const tapY = event.clientY;
-
     pointers.delete(event.pointerId);
 
     if (pointers.size) {
@@ -634,10 +537,9 @@
   stage.addEventListener('pointerup', releasePointer);
   stage.addEventListener('pointercancel', releasePointer);
 
-  /* ======================================================================== */
-  /* 17A. WHEEL + DOUBLE-CLICK ZOOM                                           */
-  /* There is deliberately no permanent zoom control on the page.             */
-  /* ======================================================================== */
+  /* ====================================================================== */
+  /* 13C. WHEEL / DOUBLE-CLICK / RESIZE                                     */
+  /* ====================================================================== */
   stage.addEventListener('wheel', event => {
     event.preventDefault();
     const rect = stage.getBoundingClientRect();
@@ -649,17 +551,14 @@
     zoomAt(event.clientX - rect.left, event.clientY - rect.top, 1.8);
   });
 
-  /* ======================================================================== */
-  /* 17B. RESIZE                                                              */
-  /* ======================================================================== */
   let resizeTimer;
   window.addEventListener('resize', () => {
     clearTimeout(resizeTimer);
     resizeTimer = setTimeout(home, 100);
   });
 
-  /* ======================================================================== */
-  /* 18A. INITIALISE THE COLLECTION                                           */
-  /* ======================================================================== */
+  /* ====================================================================== */
+  /* 14A. INITIALISE                                                        */
+  /* ====================================================================== */
   switchSpecies('beetle');
 })();
