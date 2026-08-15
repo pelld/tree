@@ -1,6 +1,9 @@
 (() => {
   /* ====================================================================== */
   /* 10A. CREATURE DATA                                                     */
+  /* Every creature uses a high-resolution white-background specimen.       */
+  /* There are deliberately no anatomical hotspots: tap the image, then    */
+  /* explore anatomy and biology from the searchable information panel.     */
   /* ====================================================================== */
   const CREATURES = {
     /* -------------------------------------------------------------------- */
@@ -22,66 +25,20 @@
       defaultInfo: 'overview',
       nav: ['overview', 'range', 'life', 'pattern', 'head', 'antennae', 'elytra', 'legs', 'hitchhikers'],
       information: {
-        overview: {
-          title: 'Harlequin beetle',
-          text: 'Acrocinus longimanus is a large Neotropical longhorn beetle with a striking cream, orange-red and black pattern. Adults are mainly nocturnal and spend much of their time on trunks and branches. This photographed specimen is female; males can have much more exaggerated front legs.',
-          sourceLabel: 'Smithsonian · species record',
-          sourceUrl: 'https://www.si.edu/object/giant-harlequin-beetle-harlequin-beetle:nmnheducation_10866534'
-        },
-        range: {
-          title: 'Range and habitat',
-          text: 'It occurs from Mexico through Central America and across much of tropical South America. It is associated with forest habitats, especially weakened, dying or recently dead trees, which provide both meeting places for adults and food for developing larvae.',
-          sourceLabel: 'Valle, Chatellenaz & Damborsky (2017)',
-          sourceUrl: 'https://doi.org/10.15560/13.6.987'
-        },
-        life: {
-          title: 'Life cycle',
-          text: 'Eggs are laid on suitable wood. Larvae bore into the timber and spend most of their development hidden there, feeding and growing before pupating and emerging as adults. The visible adult is therefore only the final reproductive stage of a much longer wood-boring life.',
-          sourceLabel: 'Valle, Chatellenaz & Damborsky (2017)',
-          sourceUrl: 'https://doi.org/10.15560/13.6.987'
-        },
-        pattern: {
-          title: 'Colour and pattern',
-          text: 'The dramatic surface pattern is why the species is called the harlequin beetle. At high zoom the apparently flat colour fields resolve into textured parts of the hardened exoskeleton rather than smooth painted surfaces.',
-          sourceLabel: 'Smithsonian · species record',
-          sourceUrl: 'https://www.si.edu/object/giant-harlequin-beetle-harlequin-beetle:nmnheducation_10866534'
-        },
-        head: {
-          title: 'Head',
-          text: 'The head carries compound eyes, the bases of the long antennae and strong biting mouthparts. In close view it looks densely engineered, with the antennae arising close to the eyes and the mandibles creating a powerful front end.',
-          sourceLabel: 'Smithsonian · species record',
-          sourceUrl: 'https://www.si.edu/object/giant-harlequin-beetle-harlequin-beetle:nmnheducation_10866534'
-        },
-        antennae: {
-          title: 'Antennae',
-          text: 'As a longhorn beetle, this species has exceptionally long antennae. These segmented structures are major sensory organs for touch and chemical detection and help the beetle explore bark and detect biologically important cues.',
-          sourceLabel: 'GBIF · Cerambycidae',
-          sourceUrl: 'https://www.gbif.org/species/1118064'
-        },
-        elytra: {
-          title: 'Elytra',
-          text: 'The patterned covers over the back are elytra: the hardened first pair of wings. They protect the folded flight wings and abdomen beneath. When the beetle flies, the true aerodynamic wings unfold from underneath.',
-          sourceLabel: 'Universidad Nacional de Colombia · species overview',
-          sourceUrl: 'https://historianatural.unal.edu.co/expo1/escarabajo_eng.html'
-        },
-        legs: {
-          title: 'Legs',
-          text: 'Like all insects it has six jointed legs. Strong claws help it grip bark and branches. In males the front legs can become extremely elongated and are used in contests as well as locomotion.',
-          sourceLabel: 'Zeh, Zeh & Tavakilian · Biotropica (1992)',
-          sourceUrl: 'https://doi.org/10.2307/2388476'
-        },
-        hitchhikers: {
-          title: 'Tiny hitchhikers',
-          text: 'Harlequin beetles sometimes transport pseudoscorpions, tiny arachnids that cling to the much larger beetle and use it as a vehicle between dead trees. This relationship is called phoresy.',
-          sourceLabel: 'Annals of the Entomological Society of America · phoresy review',
-          sourceUrl: 'https://academic.oup.com/aesa/article/115/3/219/6506186'
-        }
+        overview: { title: 'Harlequin beetle', text: 'Acrocinus longimanus is a large Neotropical longhorn beetle with a striking cream, orange-red and black pattern. Adults are mainly nocturnal and spend much of their time on trunks and branches. This photographed specimen is female; males can have much more exaggerated front legs.', sourceLabel: 'Smithsonian · species record', sourceUrl: 'https://www.si.edu/object/giant-harlequin-beetle-harlequin-beetle:nmnheducation_10866534' },
+        range: { title: 'Range and habitat', text: 'It occurs from Mexico through Central America and across much of tropical South America. It is associated with forest habitats, especially weakened, dying or recently dead trees, which provide both meeting places for adults and food for developing larvae.', sourceLabel: 'Valle, Chatellenaz & Damborsky (2017)', sourceUrl: 'https://doi.org/10.15560/13.6.987' },
+        life: { title: 'Life cycle', text: 'Eggs are laid on suitable wood. Larvae bore into the timber and spend most of their development hidden there, feeding and growing before pupating and emerging as adults. The visible adult is therefore only the final reproductive stage of a much longer wood-boring life.', sourceLabel: 'Valle, Chatellenaz & Damborsky (2017)', sourceUrl: 'https://doi.org/10.15560/13.6.987' },
+        pattern: { title: 'Colour and pattern', text: 'The dramatic surface pattern is why the species is called the harlequin beetle. At high zoom the apparently flat colour fields resolve into textured parts of the hardened exoskeleton rather than smooth painted surfaces.', sourceLabel: 'Smithsonian · species record', sourceUrl: 'https://www.si.edu/object/giant-harlequin-beetle-harlequin-beetle:nmnheducation_10866534' },
+        head: { title: 'Head', text: 'The head carries compound eyes, the bases of the long antennae and strong biting mouthparts. In close view it looks densely engineered, with the antennae arising close to the eyes and the mandibles creating a powerful front end.', sourceLabel: 'Smithsonian · species record', sourceUrl: 'https://www.si.edu/object/giant-harlequin-beetle-harlequin-beetle:nmnheducation_10866534' },
+        antennae: { title: 'Antennae', text: 'As a longhorn beetle, this species has exceptionally long antennae. These segmented structures are major sensory organs for touch and chemical detection and help the beetle explore bark and detect biologically important cues.', sourceLabel: 'GBIF · Cerambycidae', sourceUrl: 'https://www.gbif.org/species/1118064' },
+        elytra: { title: 'Elytra', text: 'The patterned covers over the back are elytra: the hardened first pair of wings. They protect the folded flight wings and abdomen beneath. When the beetle flies, the true aerodynamic wings unfold from underneath.', sourceLabel: 'Universidad Nacional de Colombia · species overview', sourceUrl: 'https://historianatural.unal.edu.co/expo1/escarabajo_eng.html' },
+        legs: { title: 'Legs', text: 'Like all insects it has six jointed legs. Strong claws help it grip bark and branches. In males the front legs can become extremely elongated and are used in contests as well as locomotion.', sourceLabel: 'Zeh, Zeh & Tavakilian · Biotropica (1992)', sourceUrl: 'https://doi.org/10.2307/2388476' },
+        hitchhikers: { title: 'Tiny hitchhikers', text: 'Harlequin beetles sometimes transport pseudoscorpions, tiny arachnids that cling to the much larger beetle and use it as a vehicle between dead trees. This relationship is called phoresy.', sourceLabel: 'Annals of the Entomological Society of America · phoresy review', sourceUrl: 'https://academic.oup.com/aesa/article/115/3/219/6506186' }
       }
     },
 
     /* -------------------------------------------------------------------- */
     /* 10A-2. BLUE MORPHO BUTTERFLY                                         */
-    /* This is a focus-stacked dorsal specimen photographed on white.       */
     /* -------------------------------------------------------------------- */
     butterfly: {
       name: 'Blue morpho butterfly',
@@ -99,60 +56,48 @@
       defaultInfo: 'overview',
       nav: ['overview', 'range', 'size', 'life', 'head', 'antennae', 'wings', 'scales', 'blue'],
       information: {
-        overview: {
-          title: 'Blue morpho butterfly',
-          text: 'Morpho helenor is one of the best-known Neotropical blue morpho butterflies. Even as a museum specimen on a plain white background it appears almost luminous because the upper wing surface reflects intense blue. Morphos are iconic tropical butterflies, famous for both their size and the visual effect created by their colour.',
-          sourceLabel: 'Wikimedia Commons · specimen page',
-          sourceUrl: 'https://commons.wikimedia.org/wiki/File:Morpho_helenor_helenor_MHNT_dos.jpg'
-        },
-        range: {
-          title: 'Range and habitat',
-          text: 'Morpho helenor occurs in the Neotropics, from parts of Central America into tropical South America. It is associated with humid forest habitats including lowland rainforest and forest edges. The specimen shown here was collected in French Guiana.',
-          sourceLabel: 'Wikimedia Commons · locality and classification',
-          sourceUrl: 'https://commons.wikimedia.org/wiki/File:Morpho_helenor_helenor_MHNT_dos.jpg'
-        },
-        size: {
-          title: 'Size',
-          text: 'Blue morphos are large butterflies with broad wings. Their scale alone makes them conspicuous, and in life the combination of size and colour creates a memorable slow, powerful flight impression as bright blue surfaces repeatedly catch the light.',
-          sourceLabel: 'Morpho helenor · species overview',
-          sourceUrl: 'https://en.wikipedia.org/wiki/Morpho_helenor'
-        },
-        life: {
-          title: 'Life cycle',
-          text: 'Like other butterflies, Morpho helenor passes through egg, caterpillar, pupa and adult stages. The larva is the main feeding and growing stage; the pupa is a period of radical reorganisation; and the adult seen here is the winged reproductive stage.',
-          sourceLabel: 'Butterfly · life-cycle overview',
-          sourceUrl: 'https://en.wikipedia.org/wiki/Butterfly'
-        },
-        head: {
-          title: 'Head and eyes',
-          text: 'The head carries compound eyes, antennae and the coiled proboscis. Compound eyes are built from many repeating visual units, giving butterflies excellent motion detection and a very different visual experience from our own.',
-          sourceLabel: 'Butterfly · anatomy overview',
-          sourceUrl: 'https://en.wikipedia.org/wiki/Butterfly'
-        },
-        antennae: {
-          title: 'Antennae',
-          text: 'Butterfly antennae are characteristically clubbed at their tips. They are important sensory organs involved in smell, orientation and the detection of air movement, helping the animal read its surroundings even when visual information is limited.',
-          sourceLabel: 'Butterfly · anatomy overview',
-          sourceUrl: 'https://en.wikipedia.org/wiki/Butterfly'
-        },
-        wings: {
-          title: 'Wings',
-          text: 'The butterfly has two forewings and two hindwings. Together they form both the flight surface and the main visual display. Veins support the wings while a dense covering of tiny scales creates their colour, texture and much of their optical behaviour.',
-          sourceLabel: 'Wikimedia Commons · specimen page',
-          sourceUrl: 'https://commons.wikimedia.org/wiki/File:Morpho_helenor_helenor_MHNT_dos.jpg'
-        },
-        scales: {
-          title: 'Wing scales',
-          text: 'Butterfly wings are covered in countless tiny overlapping scales. Under magnification the surface is not smooth at all: it becomes a layered mosaic of minute structures. These scales are responsible for both pigment colours and many structural optical effects.',
-          sourceLabel: 'Butterfly · wing structure overview',
-          sourceUrl: 'https://en.wikipedia.org/wiki/Butterfly'
-        },
-        blue: {
-          title: 'Where the blue comes from',
-          text: 'Much of the brilliant morpho blue is structural colour rather than simple pigment. Microscopic architecture in the wing scales reflects blue wavelengths very strongly, producing the shimmering effect for which morphos are famous. The colour can flare, deepen or nearly vanish as the viewing angle changes.',
-          sourceLabel: 'Structural colour · overview',
-          sourceUrl: 'https://en.wikipedia.org/wiki/Structural_coloration'
-        }
+        overview: { title: 'Blue morpho butterfly', text: 'Morpho helenor is one of the best-known Neotropical blue morpho butterflies. Even as a museum specimen on plain white it appears almost luminous because the upper wing surface reflects intense blue. Morphos are iconic tropical butterflies, famous for both their size and the visual effect created by their colour.', sourceLabel: 'Wikimedia Commons · specimen page', sourceUrl: 'https://commons.wikimedia.org/wiki/File:Morpho_helenor_helenor_MHNT_dos.jpg' },
+        range: { title: 'Range and habitat', text: 'Morpho helenor occurs in the Neotropics, from parts of Central America into tropical South America. It is associated with humid forest habitats including lowland rainforest and forest edges. The specimen shown here was collected in French Guiana.', sourceLabel: 'Wikimedia Commons · specimen page', sourceUrl: 'https://commons.wikimedia.org/wiki/File:Morpho_helenor_helenor_MHNT_dos.jpg' },
+        size: { title: 'Size', text: 'Blue morphos are large butterflies with broad wings. Their scale alone makes them conspicuous, and in life the combination of size and colour creates a memorable flight impression as bright blue surfaces repeatedly catch the light.', sourceLabel: 'Morpho helenor · species overview', sourceUrl: 'https://en.wikipedia.org/wiki/Morpho_helenor' },
+        life: { title: 'Life cycle', text: 'Like other butterflies, Morpho helenor passes through egg, caterpillar, pupa and adult stages. The larva is the main feeding and growing stage; the pupa is a period of radical reorganisation; and the adult seen here is the winged reproductive stage.', sourceLabel: 'Butterfly · life-cycle overview', sourceUrl: 'https://en.wikipedia.org/wiki/Butterfly' },
+        head: { title: 'Head and eyes', text: 'The head carries compound eyes, antennae and the coiled proboscis. Compound eyes are built from many repeating visual units, giving butterflies excellent motion detection and a very different visual experience from our own.', sourceLabel: 'Butterfly · anatomy overview', sourceUrl: 'https://en.wikipedia.org/wiki/Butterfly' },
+        antennae: { title: 'Antennae', text: 'Butterfly antennae are characteristically clubbed at their tips. They are important sensory organs involved in smell, orientation and the detection of air movement.', sourceLabel: 'Butterfly · anatomy overview', sourceUrl: 'https://en.wikipedia.org/wiki/Butterfly' },
+        wings: { title: 'Wings', text: 'The butterfly has two forewings and two hindwings. Together they form both the flight surface and the main visual display. Veins support the wings while a dense covering of tiny scales creates their colour and texture.', sourceLabel: 'Wikimedia Commons · specimen page', sourceUrl: 'https://commons.wikimedia.org/wiki/File:Morpho_helenor_helenor_MHNT_dos.jpg' },
+        scales: { title: 'Wing scales', text: 'Butterfly wings are covered in countless tiny overlapping scales. Under magnification the surface is not smooth at all: it becomes a layered mosaic of minute structures.', sourceLabel: 'Butterfly · wing structure overview', sourceUrl: 'https://en.wikipedia.org/wiki/Butterfly' },
+        blue: { title: 'Where the blue comes from', text: 'Much of the brilliant morpho blue is structural colour rather than simple pigment. Microscopic architecture in the wing scales reflects blue wavelengths strongly, producing the shimmering effect for which morphos are famous.', sourceLabel: 'Structural colour · overview', sourceUrl: 'https://en.wikipedia.org/wiki/Structural_coloration' }
+      }
+    },
+
+    /* -------------------------------------------------------------------- */
+    /* 10A-3. COMMON COCKCHAFER                                             */
+    /* Single dorsal specimen, white background, 3485 × 5648 source pixels. */
+    /* -------------------------------------------------------------------- */
+    cockchafer: {
+      name: 'Common cockchafer',
+      scientific: 'Melolontha melolontha',
+      meta: 'white-background specimen',
+      preview: 'https://commons.wikimedia.org/wiki/Special:FilePath/Melolontha_melolontha_MHNT.jpg?width=1800',
+      full: 'https://commons.wikimedia.org/wiki/Special:FilePath/Melolontha_melolontha_MHNT.jpg',
+      width: 3485,
+      height: 5648,
+      previewWidth: 1800,
+      credit: 'Photo: Didier Descouens · CC BY-SA 4.0',
+      creditUrl: 'https://commons.wikimedia.org/wiki/File:Melolontha_melolontha_MHNT.jpg',
+      aria: 'High-resolution common cockchafer photograph on a white background',
+      alt: 'Male common cockchafer, Melolontha melolontha, dorsal view on a white background',
+      defaultInfo: 'overview',
+      nav: ['overview', 'size', 'adult', 'life', 'antennae', 'head', 'thorax', 'elytra', 'legs', 'grubs'],
+      information: {
+        overview: { title: 'Common cockchafer', text: 'Melolontha melolontha — the common cockchafer or May bug — is a large scarab beetle. The adult has reddish-brown wing cases, a hairy body and extraordinary fan-like antennae. The specimen shown here is male, which is especially useful because the male antennae have the larger sensory fans.', sourceLabel: 'Natural History Museum · cockchafer guide', sourceUrl: 'https://www.nhm.ac.uk/discover/how-to-identify-cockchafer-may-bug.html' },
+        size: { title: 'Size', text: 'Adults are roughly 2.5–3 centimetres long, making the common cockchafer one of the larger familiar beetles in Britain. The combination of a bulky body, strong legs and large antennae makes it appear even more substantial when viewed close up.', sourceLabel: 'Natural History Museum · cockchafer guide', sourceUrl: 'https://www.nhm.ac.uk/discover/how-to-identify-cockchafer-may-bug.html' },
+        adult: { title: 'Adult life', text: 'Adult cockchafers live for only about five or six weeks. During this short phase they search for mates and feed on leaves in treetops. They fly mainly at dusk on warm evenings, produce a noticeable humming sound and are strongly attracted to lights.', sourceLabel: 'Natural History Museum · cockchafer guide', sourceUrl: 'https://www.nhm.ac.uk/discover/how-to-identify-cockchafer-may-bug.html' },
+        life: { title: 'Life cycle', text: 'Most of a cockchafer’s life happens underground. The larvae spend several years in the soil before pupating and emerging as adults. This means the conspicuous flying beetle is only a brief final stage after a much longer hidden juvenile life.', sourceLabel: 'Natural History Museum · cockchafer guide', sourceUrl: 'https://www.nhm.ac.uk/discover/how-to-identify-cockchafer-may-bug.html' },
+        antennae: { title: 'Fan-like antennae', text: 'The orange antennae end in a remarkable fan of movable plates called lamellae. They dramatically increase the sensory surface area. Males have larger fans than females, helping them detect chemical cues while searching for mates.', sourceLabel: 'Woodland Trust · cockchafer beetle', sourceUrl: 'https://www.woodlandtrust.org.uk/trees-woods-and-wildlife/animals/beetles/cockchafer-beetle/' },
+        head: { title: 'Head', text: 'The compact head carries the compound eyes, chewing mouthparts and the bases of those elaborate antennae. At high magnification the contrast between the smooth eye, articulated antenna and heavily sculptured mouthparts becomes particularly clear.', sourceLabel: 'Natural History Museum · cockchafer guide', sourceUrl: 'https://www.nhm.ac.uk/discover/how-to-identify-cockchafer-may-bug.html' },
+        thorax: { title: 'Hairy thorax', text: 'The thorax is densely covered with fine hairs and contains the muscles that power the legs and wings. Its texture contrasts strongly with the smoother brown wing cases behind it, making it one of the most rewarding areas to inspect at full resolution.', sourceLabel: 'Natural History Museum · cockchafer guide', sourceUrl: 'https://www.nhm.ac.uk/discover/how-to-identify-cockchafer-may-bug.html' },
+        elytra: { title: 'Elytra and wings', text: 'The reddish-brown covers over the back are hardened forewings called elytra. They protect the more delicate flight wings underneath. When the beetle flies, the elytra lift while the membranous hind wings unfold and do the aerodynamic work.', sourceLabel: 'Natural History Museum · cockchafer guide', sourceUrl: 'https://www.nhm.ac.uk/discover/how-to-identify-cockchafer-may-bug.html' },
+        legs: { title: 'Legs and claws', text: 'Six sturdy jointed legs carry prominent spines and hooked claws for gripping vegetation and rough surfaces. At close range the legs look far more mechanical than they do to the naked eye, with sharply defined joints, hairs and claws.', sourceLabel: 'Wikimedia Commons · specimen page', sourceUrl: 'https://commons.wikimedia.org/wiki/File:Melolontha_melolontha_MHNT.jpg' },
+        grubs: { title: 'Underground grubs', text: 'Cockchafer larvae are large white C-shaped grubs with brown heads and six legs. They live underground for three to four years and feed on plant roots. In large numbers they can damage grassland and crops, while also providing food for other animals.', sourceLabel: 'Natural History Museum · cockchafer guide', sourceUrl: 'https://www.nhm.ac.uk/discover/how-to-identify-cockchafer-may-bug.html' }
       }
     }
   };
@@ -185,21 +130,10 @@
   let selectedInfoKey = current.defaultInfo;
   let loadToken = 0;
   let idleLoadHandle = null;
-  let x = 0;
-  let y = 0;
-  let scale = 1;
-  let homeScale = 1;
-  let minScale = 1;
-  let maxScale = 1;
-  let previewReady = false;
-  let fullReady = false;
-  let fullRequested = false;
-  let source = 'preview';
-  let gesture = null;
-  let tapCandidate = null;
-  let multiTouch = false;
+  let x = 0, y = 0, scale = 1, homeScale = 1, minScale = 1, maxScale = 1;
+  let previewReady = false, fullReady = false, fullRequested = false, source = 'preview';
+  let gesture = null, tapCandidate = null, multiTouch = false;
   const pointers = new Map();
-
   const clamp = (value, minimum, maximum) => Math.max(minimum, Math.min(maximum, value));
   const distance = (a, b) => Math.hypot(b.x - a.x, b.y - a.y);
   const midpoint = (a, b) => ({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 });
@@ -210,13 +144,10 @@
   function buildInfoNavigation() {
     const query = infoSearch.value.trim().toLowerCase();
     infoNav.replaceChildren();
-
     current.nav.forEach(key => {
       const item = current.information[key];
       if (!item) return;
-      const haystack = `${item.title} ${item.text}`.toLowerCase();
-      if (query && !haystack.includes(query)) return;
-
+      if (query && !`${item.title} ${item.text}`.toLowerCase().includes(query)) return;
       const button = document.createElement('button');
       button.type = 'button';
       button.dataset.infoKey = key;
@@ -224,7 +155,6 @@
       button.classList.toggle('active', key === selectedInfoKey);
       infoNav.appendChild(button);
     });
-
     if (!infoNav.children.length) {
       const empty = document.createElement('div');
       empty.className = 'empty';
@@ -338,7 +268,6 @@
     const requestedSpecies = speciesKey;
     const highResolution = new Image();
     highResolution.decoding = 'async';
-
     highResolution.onload = () => {
       if (requestToken !== loadToken || requestedSpecies !== speciesKey) return;
       fullReady = true;
@@ -347,21 +276,17 @@
       setZoomLimits();
       render();
     };
-
     highResolution.onerror = () => {
       if (requestToken !== loadToken || requestedSpecies !== speciesKey) return;
       fullRequested = false;
       setZoomLimits();
     };
-
     highResolution.src = current.full;
   }
 
   function scheduleFullResolution() {
     const requestToken = loadToken;
-    const run = () => {
-      if (requestToken === loadToken) requestFullResolution();
-    };
+    const run = () => { if (requestToken === loadToken) requestFullResolution(); };
     if ('requestIdleCallback' in window) idleLoadHandle = requestIdleCallback(run, { timeout: 6000 });
     else idleLoadHandle = setTimeout(run, 5000);
   }
@@ -383,18 +308,15 @@
     gesture = null;
     tapCandidate = null;
     multiTouch = false;
-
     if (idleLoadHandle !== null) {
       if ('cancelIdleCallback' in window) cancelIdleCallback(idleLoadHandle);
       else clearTimeout(idleLoadHandle);
       idleLoadHandle = null;
     }
-
     hideInformation();
     setSpeciesMenu(false);
     infoSearch.value = '';
     buildInfoNavigation();
-
     document.title = `${current.name} — high-detail creature zoom`;
     speciesName.textContent = current.name;
     speciesMeta.innerHTML = `<i>${current.scientific}</i> · ${current.meta}`;
@@ -404,11 +326,9 @@
     subject.style.height = `${current.height}px`;
     photoCredit.textContent = current.credit;
     photoCredit.href = current.creditUrl;
-
     speciesMenu.querySelectorAll('button[data-species]').forEach(button => {
       button.classList.toggle('active', button.dataset.species === speciesKey);
     });
-
     loading.classList.remove('hide');
     loadingText.style.display = '';
     error.style.display = 'none';
@@ -427,7 +347,6 @@
       scheduleFullResolution();
       return;
     }
-
     if (source === 'full' && !previewReady) {
       previewReady = true;
       fullReady = true;
@@ -457,18 +376,11 @@
       stage.classList.add('grabbing');
       return;
     }
-
     if (points.length >= 2) {
       multiTouch = true;
       tapCandidate = null;
       const centre = midpoint(points[0], points[1]);
-      gesture = {
-        type: 'pinch',
-        distance: Math.max(1, distance(points[0], points[1])),
-        scale,
-        imageX: (centre.x - x) / scale,
-        imageY: (centre.y - y) / scale
-      };
+      gesture = { type: 'pinch', distance: Math.max(1, distance(points[0], points[1])), scale, imageX: (centre.x - x) / scale, imageY: (centre.y - y) / scale };
       stage.classList.add('grabbing');
     }
   }
@@ -487,11 +399,7 @@
   stage.addEventListener('pointermove', event => {
     if (!pointers.has(event.pointerId)) return;
     pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
-
-    if (tapCandidate?.id === event.pointerId && Math.hypot(event.clientX - tapCandidate.x, event.clientY - tapCandidate.y) > 10) {
-      tapCandidate.moved = true;
-    }
-
+    if (tapCandidate?.id === event.pointerId && Math.hypot(event.clientX - tapCandidate.x, event.clientY - tapCandidate.y) > 10) tapCandidate.moved = true;
     const points = [...pointers.values()];
     if (points.length === 1 && gesture?.type === 'pan') {
       x = gesture.x + points[0].x - gesture.pointerX;
@@ -499,7 +407,6 @@
       render();
       return;
     }
-
     if (points.length >= 2) {
       if (gesture?.type !== 'pinch') beginGesture();
       const centre = midpoint(points[0], points[1]);
@@ -516,20 +423,16 @@
     const tapX = event.clientX;
     const tapY = event.clientY;
     pointers.delete(event.pointerId);
-
     if (pointers.size) {
       beginGesture();
       return;
     }
-
     gesture = null;
     stage.classList.remove('grabbing');
-
     if (wasTap) {
       if (pointInsideImage(tapX, tapY)) showInformation(current.defaultInfo);
       else hideInformation();
     }
-
     tapCandidate = null;
     multiTouch = false;
   }
