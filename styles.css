@@ -1,0 +1,197 @@
+/* ========================================================================== */
+/* 00A. DOCUMENT                                                              */
+/* ========================================================================== */
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #ffffff;
+  color: #171c18;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+/* ========================================================================== */
+/* 01A. VIEWER STAGE                                                          */
+/* ========================================================================== */
+#stage {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: #ffffff;
+  touch-action: none;
+  user-select: none;
+  cursor: grab;
+}
+
+#stage.grabbing { cursor: grabbing; }
+#stage.hotspot { cursor: pointer; }
+
+/* ========================================================================== */
+/* 01B. HIGH-RESOLUTION SOURCE IMAGE                                          */
+/* The CSS dimensions are the native full-resolution dimensions.  This makes  */
+/* scale = 1 the hard detail ceiling: beyond that we would enlarge pixels.    */
+/* ========================================================================== */
+#subject {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 5053px;
+  height: 5718px;
+  max-width: none;
+  transform-origin: 0 0;
+  will-change: transform;
+  pointer-events: none;
+  -webkit-user-drag: none;
+  image-rendering: auto;
+}
+
+/* ========================================================================== */
+/* 01C. TITLE AND CREDIT                                                      */
+/* ========================================================================== */
+#title {
+  position: fixed;
+  left: max(16px, env(safe-area-inset-left));
+  top: max(14px, env(safe-area-inset-top));
+  z-index: 20;
+  padding: 9px 11px;
+  border-radius: 12px;
+  background: rgba(248, 250, 246, 0.82);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 2px 16px rgba(28, 39, 27, 0.08);
+  pointer-events: none;
+}
+
+#title b { display: block; font: 600 21px/1.05 Georgia, serif; }
+#title span { display: block; margin-top: 3px; font-size: 11px; opacity: 0.68; }
+
+.credit {
+  position: fixed;
+  left: max(12px, env(safe-area-inset-left));
+  bottom: max(12px, env(safe-area-inset-bottom));
+  z-index: 20;
+  max-width: 58vw;
+  padding: 5px 8px;
+  border-radius: 10px;
+  background: rgba(248, 250, 246, 0.82);
+  backdrop-filter: blur(8px);
+  color: #253027;
+  font-size: 10px;
+}
+
+.credit a { color: inherit; text-decoration: none; }
+.credit a:hover { text-decoration: underline; }
+
+/* ========================================================================== */
+/* 01D. CLICK-TO-LEARN INFORMATION CARD                                      */
+/* No markers are drawn over the photograph.  This card is hidden until a     */
+/* tap lands inside one of the invisible learnable areas.                     */
+/* ========================================================================== */
+#infoCard {
+  position: fixed;
+  left: 50%;
+  bottom: max(14px, env(safe-area-inset-bottom));
+  z-index: 40;
+  width: min(390px, calc(100vw - 24px));
+  max-height: min(42vh, 340px);
+  overflow: auto;
+  padding: 16px 48px 15px 16px;
+  border: 1px solid rgba(23, 32, 24, 0.09);
+  border-radius: 18px;
+  background: rgba(250, 252, 248, 0.96);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 12px 40px rgba(18, 28, 19, 0.18);
+  opacity: 0;
+  transform: translate(-50%, 14px);
+  pointer-events: none;
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+#infoCard.open {
+  opacity: 1;
+  transform: translate(-50%, 0);
+  pointer-events: auto;
+}
+
+#infoTitle {
+  margin: 0 0 7px;
+  font: 600 22px/1.1 Georgia, serif;
+}
+
+#infoText {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+#infoSource {
+  display: inline-block;
+  margin-top: 11px;
+  color: #415342;
+  font-size: 11px;
+  text-underline-offset: 2px;
+}
+
+#infoClose {
+  position: absolute;
+  top: 9px;
+  right: 9px;
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: #263228;
+  font: 500 22px/1 system-ui, sans-serif;
+  cursor: pointer;
+}
+
+#infoClose:active { background: rgba(23, 32, 24, 0.08); }
+
+#infoNav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 13px;
+}
+
+#infoNav button {
+  border: 1px solid rgba(23, 32, 24, 0.13);
+  border-radius: 999px;
+  padding: 7px 10px;
+  background: rgba(255, 255, 255, 0.72);
+  color: #263228;
+  font: 600 11px/1 system-ui, sans-serif;
+  cursor: pointer;
+}
+
+#infoNav button:active { background: rgba(23, 32, 24, 0.08); }
+
+/* ========================================================================== */
+/* 01E. LOADING STATE                                                         */
+/* ========================================================================== */
+#loading {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  background: #ffffff;
+  transition: opacity 0.35s ease;
+}
+
+#loading.hide { opacity: 0; pointer-events: none; }
+#loading div { padding: 10px 14px; border-radius: 999px; background: #f4f6f2; box-shadow: 0 4px 18px rgba(0, 0, 0, 0.08); font-size: 13px; }
+#error { display: none; max-width: 340px; text-align: center; line-height: 1.35; }
+
+/* ========================================================================== */
+/* 01F. SMALL-SCREEN TUNING                                                   */
+/* ========================================================================== */
+@media (max-width: 650px) {
+  #title { padding: 8px 10px; }
+  #title b { font-size: 18px; }
+  .credit { max-width: 58vw; font-size: 9px; }
+  #infoCard { max-height: 38vh; }
+}
