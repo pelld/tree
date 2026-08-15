@@ -3,322 +3,40 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
-<title>English oak — zoomable tree study</title>
+<title>English oak — deep zoom</title>
 <style>
-  :root { color-scheme: light; }
-  * { box-sizing: border-box; }
-  html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; }
-  body {
-    background: #e8eee7;
-    color: #172018;
-    font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  }
-  #stage {
-    position: fixed;
-    inset: 0;
-    overflow: hidden;
-    touch-action: none;
-    user-select: none;
-    cursor: grab;
-    background: #e8eee7;
-  }
-  #stage.grabbing { cursor: grabbing; }
-  #tree {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 1122px;
-    height: 1402px;
-    max-width: none;
-    transform-origin: 0 0;
-    will-change: transform;
-    pointer-events: none;
-    -webkit-user-drag: none;
-  }
-  #title {
-    position: fixed;
-    left: max(16px, env(safe-area-inset-left));
-    top: max(14px, env(safe-area-inset-top));
-    z-index: 4;
-    pointer-events: none;
-    padding: 9px 11px;
-    border-radius: 12px;
-    background: rgba(248, 250, 246, .76);
-    backdrop-filter: blur(8px);
-    box-shadow: 0 2px 16px rgba(28, 39, 27, .08);
-  }
-  #title b {
-    display: block;
-    font: 600 21px/1.05 Georgia, serif;
-    letter-spacing: -.01em;
-  }
-  #title span { display: block; margin-top: 3px; font-size: 11px; opacity: .68; }
-  #controls {
-    position: fixed;
-    z-index: 5;
-    right: max(12px, env(safe-area-inset-right));
-    bottom: max(13px, env(safe-area-inset-bottom));
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    padding: 5px;
-    border-radius: 16px;
-    background: rgba(23, 32, 24, .86);
-    box-shadow: 0 4px 20px rgba(0,0,0,.18);
-  }
-  #controls button {
-    height: 36px;
-    min-width: 36px;
-    border: 0;
-    border-radius: 11px;
-    padding: 0 10px;
-    background: transparent;
-    color: #fff;
-    font: 600 18px/1 system-ui, sans-serif;
-    cursor: pointer;
-  }
-  #controls button:active { background: rgba(255,255,255,.14); }
-  #reset { min-width: 60px !important; font-size: 11px !important; font-weight: 600 !important; }
-  #hint {
-    position: fixed;
-    z-index: 4;
-    left: 50%;
-    bottom: max(18px, env(safe-area-inset-bottom));
-    transform: translateX(-50%);
-    padding: 7px 11px;
-    border-radius: 999px;
-    background: rgba(248,250,246,.78);
-    color: #243025;
-    font-size: 11px;
-    white-space: nowrap;
-    pointer-events: none;
-    transition: opacity .7s ease;
-  }
-  #loading {
-    position: fixed;
-    inset: 0;
-    z-index: 8;
-    display: grid;
-    place-items: center;
-    background: #e8eee7;
-    transition: opacity .35s ease;
-  }
-  #loading.hidden { opacity: 0; pointer-events: none; }
-  #loading div {
-    padding: 10px 14px;
-    border-radius: 999px;
-    background: rgba(255,255,255,.86);
-    box-shadow: 0 4px 18px rgba(0,0,0,.08);
-    font-size: 13px;
-  }
-  @media (max-width: 650px) {
-    #hint { display: none; }
-    #title { padding: 8px 10px; }
-    #title b { font-size: 18px; }
-    #controls { bottom: max(11px, env(safe-area-inset-bottom)); }
-  }
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#dfe7dc;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#182018}#viewer{position:fixed;inset:0;background:#dfe7dc;touch-action:none}#title{position:fixed;left:max(16px,env(safe-area-inset-left));top:max(14px,env(safe-area-inset-top));z-index:20;padding:9px 11px;border-radius:12px;background:#f8faf6c9;backdrop-filter:blur(8px);box-shadow:0 2px 16px #1c271b18;pointer-events:none}#title b{display:block;font:600 21px/1.05 Georgia,serif}#title span{display:block;margin-top:3px;font-size:11px;opacity:.68}#controls{position:fixed;right:max(12px,env(safe-area-inset-right));bottom:max(13px,env(safe-area-inset-bottom));z-index:30;display:flex;align-items:center;gap:5px;padding:5px;border-radius:16px;background:#172018e8;box-shadow:0 4px 20px #0003}#controls button{height:38px;min-width:40px;border:0;border-radius:11px;padding:0 10px;background:transparent;color:#fff;font:600 20px/1 system-ui;touch-action:manipulation}#controls button:active{background:#ffffff22}#zoom{min-width:72px!important;font-size:12px!important}.credit{position:fixed;left:max(12px,env(safe-area-inset-left));bottom:max(12px,env(safe-area-inset-bottom));z-index:20;font-size:10px;background:#f8faf6c9;padding:5px 8px;border-radius:10px;backdrop-filter:blur(8px);color:#253027}.credit a{color:inherit;text-decoration:none}.credit a:hover{text-decoration:underline}#loading{position:fixed;inset:0;z-index:50;display:grid;place-items:center;background:#dfe7dc;transition:opacity .35s}#loading.hide{opacity:0;pointer-events:none}#loading div{padding:10px 14px;border-radius:999px;background:#fffddd;box-shadow:0 4px 18px #0001;font-size:13px}#error{display:none;max-width:320px;text-align:center;line-height:1.35}@media(max-width:650px){#title{padding:8px 10px}#title b{font-size:18px}.credit{font-size:9px;max-width:54vw}}
 </style>
 </head>
 <body>
-  <div id="stage" aria-label="Zoomable English oak tree image">
-    <img id="tree" draggable="false" alt="A mature English oak tree with a broad crown and textured trunk">
-  </div>
-
-  <div id="title"><b>English oak</b><span>Zoomable tree study</span></div>
-  <div id="hint">Drag to pan · pinch / scroll to zoom · double-click to zoom</div>
-  <div id="controls" aria-label="Zoom controls">
-    <button id="minus" type="button" aria-label="Zoom out">−</button>
-    <button id="reset" type="button" aria-label="Reset zoom">100%</button>
-    <button id="plus" type="button" aria-label="Zoom in">+</button>
-  </div>
-  <div id="loading"><div id="loadingText">Loading tree…</div></div>
-
+<div id="viewer" aria-label="Deep zoom photograph of an English oak"></div>
+<div id="title"><b>English oak</b><span>Quercus robur · deep zoom</span></div>
+<div id="controls"><button id="minus" aria-label="Zoom out">−</button><button id="zoom" aria-label="Reset zoom">100%</button><button id="plus" aria-label="Zoom in">+</button></div>
+<div class="credit"><a href="https://commons.wikimedia.org/wiki/File:Solitary_Quercus_robur.jpg" target="_blank" rel="noopener">Photo: Krzysztof Golik · CC BY-SA 4.0</a></div>
+<div id="loading"><div id="loadingText">Loading high-resolution oak…</div><div id="error">The high-resolution image service did not load. Refresh to try again.</div></div>
+<script src="https://cdn.jsdelivr.net/npm/openseadragon@6.0.2/build/openseadragon/openseadragon.min.js"></script>
 <script>
-(() => {
-  const stage = document.getElementById('stage');
-  const tree = document.getElementById('tree');
-  const loading = document.getElementById('loading');
-  const loadingText = document.getElementById('loadingText');
-  const resetButton = document.getElementById('reset');
-  const hint = document.getElementById('hint');
-
-  let x = 0, y = 0, scale = 1, fitScale = 1, minScale = 1, maxScale = 8;
-  const pointers = new Map();
-  let gesture = null;
-  let hintTimer;
-
-  const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
-  const distance = (a, b) => Math.hypot(b.x - a.x, b.y - a.y);
-  const midpoint = (a, b) => ({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 });
-
-  function constrainPosition() {
-    if (!tree.naturalWidth) return;
-
-    const imageWidth = tree.naturalWidth * scale;
-    const imageHeight = tree.naturalHeight * scale;
-
-    if (imageWidth <= stage.clientWidth) {
-      x = (stage.clientWidth - imageWidth) / 2;
-    } else {
-      x = clamp(x, stage.clientWidth - imageWidth, 0);
-    }
-
-    if (imageHeight <= stage.clientHeight) {
-      y = (stage.clientHeight - imageHeight) / 2;
-    } else {
-      y = clamp(y, stage.clientHeight - imageHeight, 0);
-    }
-  }
-
-  function render() {
-    constrainPosition();
-    tree.style.transform = `translate3d(${x}px, ${y}px, 0) scale(${scale})`;
-    resetButton.textContent = `${Math.round(scale / fitScale * 100)}%`;
-  }
-
-  function fit() {
-    if (!tree.naturalWidth) return;
-
-    // Cover the whole viewport rather than fitting the whole photograph inside it.
-    fitScale = Math.max(stage.clientWidth / tree.naturalWidth, stage.clientHeight / tree.naturalHeight);
-    scale = fitScale;
-    minScale = fitScale;
-    maxScale = fitScale * 10;
-    x = (stage.clientWidth - tree.naturalWidth * scale) / 2;
-    y = (stage.clientHeight - tree.naturalHeight * scale) / 2;
-    render();
-  }
-
-  function zoomAt(px, py, factor) {
-    const next = clamp(scale * factor, minScale, maxScale);
-    if (next === scale) return;
-    const imageX = (px - x) / scale;
-    const imageY = (py - y) / scale;
-    x = px - imageX * next;
-    y = py - imageY * next;
-    scale = next;
-    render();
-    fadeHint();
-  }
-
-  function fadeHint() {
-    clearTimeout(hintTimer);
-    hint.style.opacity = '.22';
-    hintTimer = setTimeout(() => { hint.style.opacity = '1'; }, 1100);
-  }
-
-  function beginGesture() {
-    const pts = [...pointers.values()];
-    if (pts.length === 1) {
-      gesture = { type: 'pan', px: pts[0].x, py: pts[0].y, x, y };
-      stage.classList.add('grabbing');
-    } else if (pts.length >= 2) {
-      const a = pts[0], b = pts[1];
-      const mid = midpoint(a, b);
-      gesture = {
-        type: 'pinch',
-        distance: Math.max(1, distance(a, b)),
-        mid,
-        x,
-        y,
-        scale,
-        imageX: (mid.x - x) / scale,
-        imageY: (mid.y - y) / scale
-      };
-      stage.classList.add('grabbing');
-    }
-  }
-
-  stage.addEventListener('pointerdown', e => {
-    stage.setPointerCapture(e.pointerId);
-    pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
-    beginGesture();
-  });
-
-  stage.addEventListener('pointermove', e => {
-    if (!pointers.has(e.pointerId)) return;
-    pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
-    const pts = [...pointers.values()];
-
-    if (pts.length === 1 && gesture?.type === 'pan') {
-      x = gesture.x + pts[0].x - gesture.px;
-      y = gesture.y + pts[0].y - gesture.py;
-      render();
-      fadeHint();
-      return;
-    }
-
-    if (pts.length >= 2) {
-      if (gesture?.type !== 'pinch') beginGesture();
-      const a = pts[0], b = pts[1];
-      const mid = midpoint(a, b);
-      const next = clamp(gesture.scale * distance(a, b) / gesture.distance, minScale, maxScale);
-      x = mid.x - gesture.imageX * next;
-      y = mid.y - gesture.imageY * next;
-      scale = next;
-      render();
-      fadeHint();
-    }
-  });
-
-  function releasePointer(e) {
-    pointers.delete(e.pointerId);
-    if (pointers.size) beginGesture();
-    else {
-      gesture = null;
-      stage.classList.remove('grabbing');
-    }
-  }
-  stage.addEventListener('pointerup', releasePointer);
-  stage.addEventListener('pointercancel', releasePointer);
-
-  stage.addEventListener('wheel', e => {
-    e.preventDefault();
-    const rect = stage.getBoundingClientRect();
-    zoomAt(e.clientX - rect.left, e.clientY - rect.top, Math.exp(-e.deltaY * .0015));
-  }, { passive: false });
-
-  stage.addEventListener('dblclick', e => {
-    const rect = stage.getBoundingClientRect();
-    zoomAt(e.clientX - rect.left, e.clientY - rect.top, 1.8);
-  });
-
-  document.getElementById('plus').addEventListener('click', () => zoomAt(stage.clientWidth / 2, stage.clientHeight / 2, 1.5));
-  document.getElementById('minus').addEventListener('click', () => zoomAt(stage.clientWidth / 2, stage.clientHeight / 2, 1 / 1.5));
-  resetButton.addEventListener('click', fit);
-
-  let resizeTimer;
-  window.addEventListener('resize', () => {
-    clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(fit, 120);
-  });
-
-  tree.addEventListener('load', () => {
-    fit();
-    loading.classList.add('hidden');
-    setTimeout(() => loading.remove(), 450);
-  });
-
-  tree.addEventListener('error', () => {
-    loadingText.textContent = 'Could not load the tree image.';
-  });
-
-  async function loadTree() {
-    try {
-      const urls = Array.from({ length: 10 }, (_, i) => `./assets/tree-${String(i).padStart(2, '0')}.txt`);
-      const pieces = await Promise.all(urls.map(async url => {
-        const response = await fetch(url, { cache: 'force-cache' });
-        if (!response.ok) throw new Error(`Failed to load ${url}`);
-        return response.text();
-      }));
-      tree.src = `data:image/avif;base64,${pieces.join('')}`;
-    } catch (error) {
-      console.error(error);
-      loadingText.textContent = 'Could not load the tree image.';
-    }
-  }
-
-  loadTree();
+(()=>{
+const tileSource='https://tools.wmflabs.org/zoomviewer/proxy.php?iiif=Solitary_Quercus_robur.jpg/info.json';
+const loading=document.getElementById('loading'),loadingText=document.getElementById('loadingText'),error=document.getElementById('error'),zoomLabel=document.getElementById('zoom');
+let homeZoom=1,ready=false,clamping=false;
+const viewer=OpenSeadragon({
+ id:'viewer',tileSources:tileSource,prefixUrl:'https://cdn.jsdelivr.net/npm/openseadragon@6.0.2/build/openseadragon/images/',
+ showNavigationControl:false,gestureSettingsTouch:{pinchToZoom:true,flickEnabled:true,clickToZoom:false,dblClickToZoom:true},
+ gestureSettingsMouse:{scrollToZoom:true,clickToZoom:false,dblClickToZoom:true},
+ animationTime:.28,blendTime:.08,constrainDuringPan:true,visibilityRatio:1,homeFillsViewer:true,maxZoomPixelRatio:25,immediateRender:false
+});
+function pct(){if(!ready)return;zoomLabel.textContent=Math.round(viewer.viewport.getZoom()/homeZoom*100)+'%'}
+function clampMin(){if(!ready||clamping)return;const z=viewer.viewport.getZoom();if(z<homeZoom){clamping=true;viewer.viewport.zoomTo(homeZoom,null,true);viewer.viewport.applyConstraints(true);clamping=false}pct()}
+viewer.addHandler('open',()=>{
+ viewer.viewport.goHome(true);homeZoom=viewer.viewport.getZoom();ready=true;viewer.viewport.minZoomLevel=homeZoom;viewer.viewport.applyConstraints(true);pct();loading.classList.add('hide');setTimeout(()=>loading.remove(),450);
+});
+viewer.addHandler('zoom',clampMin);viewer.addHandler('animation',pct);viewer.addHandler('animation-finish',()=>{viewer.viewport.applyConstraints(true);clampMin()});
+viewer.addHandler('open-failed',()=>{loadingText.style.display='none';error.style.display='block'});
+document.getElementById('plus').onclick=()=>{if(!ready)return;viewer.viewport.zoomBy(1.5);viewer.viewport.applyConstraints()};
+document.getElementById('minus').onclick=()=>{if(!ready)return;viewer.viewport.zoomBy(1/1.5);viewer.viewport.applyConstraints()};
+zoomLabel.onclick=()=>{if(!ready)return;viewer.viewport.goHome();};
+window.addEventListener('resize',()=>{if(!ready)return;setTimeout(()=>{viewer.viewport.goHome(true);homeZoom=viewer.viewport.getZoom();viewer.viewport.minZoomLevel=homeZoom;pct()},80)});
 })();
 </script>
 </body>
