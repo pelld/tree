@@ -13,8 +13,6 @@ html, body {
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
-button, a { -webkit-tap-highlight-color: transparent; }
-
 /* ========================================================================== */
 /* 01A. VIEWER STAGE                                                          */
 /* ========================================================================== */
@@ -29,12 +27,10 @@ button, a { -webkit-tap-highlight-color: transparent; }
 }
 
 #stage.grabbing { cursor: grabbing; }
-#stage.hotspot { cursor: pointer; }
 
 /* ========================================================================== */
 /* 01B. HIGH-RESOLUTION SOURCE IMAGE                                          */
-/* Width and height are set from JavaScript for each specimen so scale = 1    */
-/* always corresponds to the native source dimensions.                        */
+/* Dimensions are assigned from JavaScript for the active species.            */
 /* ========================================================================== */
 #subject {
   position: absolute;
@@ -49,98 +45,201 @@ button, a { -webkit-tap-highlight-color: transparent; }
 }
 
 /* ========================================================================== */
-/* 01C. SPECIES TITLE + COLLECTION SWITCHER                                   */
+/* 01C. SPECIES PANEL                                                         */
+/* The existing title is the only permanent collection control.               */
 /* ========================================================================== */
 #speciesPanel {
   position: fixed;
   left: max(16px, env(safe-area-inset-left));
   top: max(14px, env(safe-area-inset-top));
-  z-index: 35;
+  z-index: 30;
+  width: min(420px, calc(100vw - 32px));
 }
 
 #speciesButton {
-  display: block;
-  min-width: 0;
-  padding: 9px 11px;
+  width: 100%;
   border: 0;
-  border-radius: 12px;
-  background: rgba(248, 250, 246, 0.84);
-  backdrop-filter: blur(8px);
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: rgba(248, 250, 246, 0.88);
+  backdrop-filter: blur(10px);
   box-shadow: 0 2px 16px rgba(28, 39, 27, 0.08);
-  color: #171c18;
+  color: #1b241d;
   text-align: left;
   cursor: pointer;
 }
 
-#speciesButton b {
-  display: block;
-  padding-right: 18px;
-  font: 600 21px/1.05 Georgia, serif;
-}
-
-#speciesButton b::after {
-  content: '⌄';
-  position: absolute;
-  margin-left: 7px;
-  font: 500 13px/1.2 system-ui, sans-serif;
-  opacity: 0.48;
-}
-
-#speciesButton span {
-  display: block;
-  margin-top: 3px;
-  font-size: 11px;
-  opacity: 0.68;
-}
+#speciesButton b { display: block; font: 600 21px/1.05 Georgia, serif; }
+#speciesButton span { display: block; margin-top: 3px; font-size: 11px; opacity: 0.72; }
 
 #speciesMenu {
-  display: grid;
-  gap: 5px;
-  width: min(285px, calc(100vw - 32px));
-  margin-top: 6px;
-  padding: 6px;
-  border: 1px solid rgba(23, 32, 24, 0.08);
+  margin-top: 8px;
+  padding: 8px;
   border-radius: 14px;
   background: rgba(250, 252, 248, 0.97);
   backdrop-filter: blur(12px);
-  box-shadow: 0 10px 30px rgba(18, 28, 19, 0.14);
+  box-shadow: 0 10px 34px rgba(18, 28, 19, 0.14);
   opacity: 0;
-  transform: translateY(-5px);
+  transform: translateY(-8px);
   pointer-events: none;
-  transition: opacity 0.15s ease, transform 0.15s ease;
+  transition: opacity 0.18s ease, transform 0.18s ease;
 }
 
-#speciesMenu.open {
-  opacity: 1;
-  transform: translateY(0);
-  pointer-events: auto;
-}
+#speciesMenu.open { opacity: 1; transform: translateY(0); pointer-events: auto; }
 
 #speciesMenu button {
   width: 100%;
-  padding: 10px 11px;
-  border: 0;
-  border-radius: 10px;
-  background: transparent;
-  color: #202921;
+  border: 1px solid rgba(23, 32, 24, 0.09);
+  border-radius: 12px;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.82);
+  color: #1d271f;
   text-align: left;
   cursor: pointer;
 }
 
-#speciesMenu button:active,
-#speciesMenu button.active { background: rgba(23, 32, 24, 0.07); }
-#speciesMenu b { display: block; font-size: 13px; }
-#speciesMenu span { display: block; margin-top: 2px; font-size: 10px; opacity: 0.62; }
+#speciesMenu button + button { margin-top: 8px; }
+#speciesMenu button.active { border-color: rgba(38, 62, 42, 0.25); background: rgba(232, 239, 233, 0.95); }
+#speciesMenu button b { display: block; font: 600 15px/1.15 Georgia, serif; }
+#speciesMenu button span { display: block; margin-top: 4px; font-size: 11px; opacity: 0.74; }
 
 /* ========================================================================== */
-/* 01D. PHOTO ATTRIBUTION                                                     */
+/* 01D. LARGE LEFT-HAND INFORMATION CARD                                      */
+/* This is intentionally a reading panel rather than a small floating tooltip. */
+/* It remains hidden until the user taps the image.                            */
+/* ========================================================================== */
+#infoCard {
+  position: fixed;
+  left: max(16px, env(safe-area-inset-left));
+  top: calc(max(14px, env(safe-area-inset-top)) + 88px);
+  z-index: 40;
+  width: min(520px, calc(100vw - 32px));
+  max-height: min(78vh, 720px);
+  overflow: auto;
+  padding: 20px 20px 18px;
+  border: 1px solid rgba(23, 32, 24, 0.09);
+  border-radius: 18px;
+  background: rgba(250, 252, 248, 0.97);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 12px 40px rgba(18, 28, 19, 0.18);
+  opacity: 0;
+  transform: translateX(-12px);
+  pointer-events: none;
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+#infoCard.open { opacity: 1; transform: translateX(0); pointer-events: auto; }
+
+#infoClose {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: #263228;
+  font: 500 23px/1 system-ui, sans-serif;
+  cursor: pointer;
+}
+
+#infoClose:active { background: rgba(23, 32, 24, 0.08); }
+
+#infoTitle {
+  margin: 0 48px 11px 0;
+  font: 600 29px/1.1 Georgia, serif;
+}
+
+#infoText {
+  margin: 0 0 18px;
+  font-size: 15px;
+  line-height: 1.62;
+  color: #1b231d;
+}
+
+/* ========================================================================== */
+/* 01E. SEARCH + TOPIC MENU                                                   */
+/* Anatomy and broader biology now live here instead of in image hotspots.    */
+/* ========================================================================== */
+#infoTools { margin-top: 8px; }
+
+#infoSearchLabel {
+  display: block;
+  margin-bottom: 7px;
+  color: #324034;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+#infoSearch {
+  width: 100%;
+  border: 1px solid rgba(23, 32, 24, 0.15);
+  border-radius: 12px;
+  padding: 11px 12px;
+  background: rgba(255, 255, 255, 0.88);
+  color: #172018;
+  font: 500 14px/1.25 system-ui, sans-serif;
+  outline: none;
+}
+
+#infoSearch:focus { border-color: rgba(45, 76, 50, 0.45); box-shadow: 0 0 0 3px rgba(45, 76, 50, 0.08); }
+#infoSearch::placeholder { color: rgba(23, 32, 24, 0.47); }
+
+#infoNav {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 8px;
+  margin-top: 12px;
+}
+
+#infoNav button {
+  min-height: 42px;
+  border: 1px solid rgba(23, 32, 24, 0.13);
+  border-radius: 12px;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.78);
+  color: #263228;
+  font: 600 12px/1.2 system-ui, sans-serif;
+  text-align: left;
+  cursor: pointer;
+}
+
+#infoNav button.active { border-color: rgba(37, 67, 45, 0.30); background: rgba(228, 236, 229, 0.98); }
+#infoNav button:active { background: rgba(23, 32, 24, 0.08); }
+
+#infoNav .empty {
+  grid-column: 1 / -1;
+  border: 1px dashed rgba(23, 32, 24, 0.14);
+  border-radius: 12px;
+  padding: 12px;
+  color: #56665a;
+  font-size: 13px;
+}
+
+/* ========================================================================== */
+/* 01F. INFORMATION SOURCE — ALWAYS AFTER THE TOPIC OPTIONS                   */
+/* ========================================================================== */
+#infoSource {
+  display: block;
+  margin-top: 18px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(23, 32, 24, 0.10);
+  color: #415342;
+  font-size: 12px;
+  line-height: 1.35;
+  text-underline-offset: 2px;
+}
+
+/* ========================================================================== */
+/* 01G. PHOTO CREDIT                                                          */
 /* ========================================================================== */
 .credit {
   position: fixed;
-  left: max(12px, env(safe-area-inset-left));
+  left: max(16px, env(safe-area-inset-left));
   bottom: max(12px, env(safe-area-inset-bottom));
   z-index: 20;
-  max-width: 58vw;
+  max-width: 60vw;
   padding: 5px 8px;
   border-radius: 10px;
   background: rgba(248, 250, 246, 0.82);
@@ -151,100 +250,6 @@ button, a { -webkit-tap-highlight-color: transparent; }
 
 .credit a { color: inherit; text-decoration: none; }
 .credit a:hover { text-decoration: underline; }
-
-/* ========================================================================== */
-/* 01E. CLICK-TO-LEARN INFORMATION CARD                                      */
-/* No markers are drawn over the photograph. The card appears only after a    */
-/* tap on a learnable part of the current specimen.                           */
-/* ========================================================================== */
-#infoCard {
-  position: fixed;
-  left: 50%;
-  bottom: max(14px, env(safe-area-inset-bottom));
-  z-index: 40;
-  width: min(390px, calc(100vw - 24px));
-  max-height: min(46vh, 380px);
-  overflow: auto;
-  padding: 16px 48px 15px 16px;
-  border: 1px solid rgba(23, 32, 24, 0.09);
-  border-radius: 18px;
-  background: rgba(250, 252, 248, 0.97);
-  backdrop-filter: blur(12px);
-  box-shadow: 0 12px 40px rgba(18, 28, 19, 0.18);
-  opacity: 0;
-  transform: translate(-50%, 14px);
-  pointer-events: none;
-  transition: opacity 0.18s ease, transform 0.18s ease;
-}
-
-#infoCard.open {
-  opacity: 1;
-  transform: translate(-50%, 0);
-  pointer-events: auto;
-}
-
-#infoTitle {
-  margin: 0 0 7px;
-  font: 600 22px/1.1 Georgia, serif;
-}
-
-#infoText {
-  margin: 0;
-  font-size: 14px;
-  line-height: 1.45;
-}
-
-#infoClose {
-  position: absolute;
-  top: 9px;
-  right: 9px;
-  width: 34px;
-  height: 34px;
-  border: 0;
-  border-radius: 50%;
-  background: transparent;
-  color: #263228;
-  font: 500 22px/1 system-ui, sans-serif;
-  cursor: pointer;
-}
-
-#infoClose:active { background: rgba(23, 32, 24, 0.08); }
-
-/* ========================================================================== */
-/* 01F. INFORMATION TOPIC BUTTONS                                             */
-/* ========================================================================== */
-#infoNav {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 13px;
-}
-
-#infoNav button {
-  border: 1px solid rgba(23, 32, 24, 0.13);
-  border-radius: 999px;
-  padding: 7px 10px;
-  background: rgba(255, 255, 255, 0.72);
-  color: #263228;
-  font: 600 11px/1 system-ui, sans-serif;
-  cursor: pointer;
-}
-
-#infoNav button:active,
-#infoNav button.active { background: rgba(23, 32, 24, 0.09); }
-
-/* ========================================================================== */
-/* 01G. SOURCE — DELIBERATELY BELOW THE TOPIC OPTIONS                         */
-/* ========================================================================== */
-#infoSource {
-  display: inline-block;
-  margin-top: 14px;
-  padding-top: 10px;
-  border-top: 1px solid rgba(23, 32, 24, 0.10);
-  color: #415342;
-  font-size: 11px;
-  text-underline-offset: 2px;
-}
 
 /* ========================================================================== */
 /* 01H. LOADING STATE                                                         */
@@ -265,11 +270,23 @@ button, a { -webkit-tap-highlight-color: transparent; }
 
 /* ========================================================================== */
 /* 01I. SMALL-SCREEN TUNING                                                   */
+/* On phones the panel remains anchored on the left and uses most of the      */
+/* width, while leaving the top species title visible.                         */
 /* ========================================================================== */
 @media (max-width: 650px) {
-  #speciesPanel { left: max(12px, env(safe-area-inset-left)); top: max(10px, env(safe-area-inset-top)); }
-  #speciesButton { padding: 8px 10px; }
+  #speciesPanel { left: 12px; top: max(12px, env(safe-area-inset-top)); width: calc(100vw - 24px); }
   #speciesButton b { font-size: 18px; }
-  .credit { max-width: 60vw; font-size: 9px; }
-  #infoCard { max-height: 42vh; }
+
+  #infoCard {
+    left: 12px;
+    top: calc(max(12px, env(safe-area-inset-top)) + 82px);
+    width: calc(100vw - 24px);
+    max-height: 72vh;
+    padding: 18px 16px 16px;
+  }
+
+  #infoTitle { font-size: 25px; }
+  #infoText { font-size: 14px; line-height: 1.56; }
+  #infoNav { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .credit { max-width: 64vw; font-size: 9px; }
 }
