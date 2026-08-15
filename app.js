@@ -10,19 +10,14 @@
     /* 10A-1. HARLEQUIN BEETLE                                              */
     /* -------------------------------------------------------------------- */
     beetle: {
-      name: 'Harlequin beetle',
-      scientific: 'Acrocinus longimanus',
-      meta: 'focus stacked',
+      name: 'Harlequin beetle', scientific: 'Acrocinus longimanus', meta: 'focus stacked',
       preview: 'https://commons.wikimedia.org/wiki/Special:FilePath/Acrocinus_longimanus_MHNT_femelle.jpg?width=1800',
       full: 'https://commons.wikimedia.org/wiki/Special:FilePath/Acrocinus_longimanus_MHNT_femelle.jpg',
-      width: 5053,
-      height: 5718,
-      previewWidth: 1800,
+      width: 5053, height: 5718, previewWidth: 1800,
       credit: 'Photo: Didier Descouens · CC BY-SA 3.0',
       creditUrl: 'https://commons.wikimedia.org/wiki/File:Acrocinus_longimanus_MHNT_femelle.jpg',
       aria: 'High-resolution harlequin beetle photograph on a white background',
-      alt: 'Female harlequin beetle on a white background',
-      defaultInfo: 'overview',
+      alt: 'Female harlequin beetle on a white background', defaultInfo: 'overview',
       nav: ['overview', 'range', 'life', 'pattern', 'head', 'antennae', 'elytra', 'legs', 'hitchhikers'],
       information: {
         overview: { title: 'Harlequin beetle', text: 'Acrocinus longimanus is a large Neotropical longhorn beetle with a striking cream, orange-red and black pattern. Adults are mainly nocturnal and spend much of their time on trunks and branches. This photographed specimen is female; males can have much more exaggerated front legs.', sourceLabel: 'Smithsonian · species record', sourceUrl: 'https://www.si.edu/object/giant-harlequin-beetle-harlequin-beetle:nmnheducation_10866534' },
@@ -41,19 +36,14 @@
     /* 10A-2. BLUE MORPHO BUTTERFLY                                         */
     /* -------------------------------------------------------------------- */
     butterfly: {
-      name: 'Blue morpho butterfly',
-      scientific: 'Morpho helenor',
-      meta: 'white-background specimen',
+      name: 'Blue morpho butterfly', scientific: 'Morpho helenor', meta: 'white-background specimen',
       preview: 'https://commons.wikimedia.org/wiki/Special:FilePath/Morpho_helenor_helenor_MHNT_dos.jpg?width=1800',
       full: 'https://commons.wikimedia.org/wiki/Special:FilePath/Morpho_helenor_helenor_MHNT_dos.jpg',
-      width: 4437,
-      height: 3689,
-      previewWidth: 1800,
+      width: 4437, height: 3689, previewWidth: 1800,
       credit: 'Photo: Didier Descouens · CC BY-SA 4.0',
       creditUrl: 'https://commons.wikimedia.org/wiki/File:Morpho_helenor_helenor_MHNT_dos.jpg',
       aria: 'High-resolution blue morpho butterfly photograph on a white background',
-      alt: 'Blue morpho butterfly, Morpho helenor, dorsal view on a white background',
-      defaultInfo: 'overview',
+      alt: 'Blue morpho butterfly, Morpho helenor, dorsal view on a white background', defaultInfo: 'overview',
       nav: ['overview', 'range', 'size', 'life', 'head', 'antennae', 'wings', 'scales', 'blue'],
       information: {
         overview: { title: 'Blue morpho butterfly', text: 'Morpho helenor is one of the best-known Neotropical blue morpho butterflies. Even as a museum specimen on plain white it appears almost luminous because the upper wing surface reflects intense blue. Morphos are iconic tropical butterflies, famous for both their size and the visual effect created by their colour.', sourceLabel: 'Wikimedia Commons · specimen page', sourceUrl: 'https://commons.wikimedia.org/wiki/File:Morpho_helenor_helenor_MHNT_dos.jpg' },
@@ -70,22 +60,16 @@
 
     /* -------------------------------------------------------------------- */
     /* 10A-3. COMMON COCKCHAFER                                             */
-    /* Single dorsal specimen, white background, 3485 × 5648 source pixels. */
     /* -------------------------------------------------------------------- */
     cockchafer: {
-      name: 'Common cockchafer',
-      scientific: 'Melolontha melolontha',
-      meta: 'white-background specimen',
+      name: 'Common cockchafer', scientific: 'Melolontha melolontha', meta: 'white-background specimen',
       preview: 'https://commons.wikimedia.org/wiki/Special:FilePath/Melolontha_melolontha_MHNT.jpg?width=1800',
       full: 'https://commons.wikimedia.org/wiki/Special:FilePath/Melolontha_melolontha_MHNT.jpg',
-      width: 3485,
-      height: 5648,
-      previewWidth: 1800,
+      width: 3485, height: 5648, previewWidth: 1800,
       credit: 'Photo: Didier Descouens · CC BY-SA 4.0',
       creditUrl: 'https://commons.wikimedia.org/wiki/File:Melolontha_melolontha_MHNT.jpg',
       aria: 'High-resolution common cockchafer photograph on a white background',
-      alt: 'Male common cockchafer, Melolontha melolontha, dorsal view on a white background',
-      defaultInfo: 'overview',
+      alt: 'Male common cockchafer, Melolontha melolontha, dorsal view on a white background', defaultInfo: 'overview',
       nav: ['overview', 'size', 'adult', 'life', 'antennae', 'head', 'thorax', 'elytra', 'legs', 'grubs'],
       information: {
         overview: { title: 'Common cockchafer', text: 'Melolontha melolontha — the common cockchafer or May bug — is a large scarab beetle. The adult has reddish-brown wing cases, a hairy body and extraordinary fan-like antennae. The specimen shown here is male, which is especially useful because the male antennae have the larger sensory fans.', sourceLabel: 'Natural History Museum · cockchafer guide', sourceUrl: 'https://www.nhm.ac.uk/discover/how-to-identify-cockchafer-may-bug.html' },
@@ -105,6 +89,9 @@
   /* ====================================================================== */
   /* 10B. DOM REFERENCES                                                    */
   /* ====================================================================== */
+  const homeScreen = document.getElementById('homeScreen');
+  const viewerShell = document.getElementById('viewerShell');
+  const collectionButton = document.getElementById('collectionButton');
   const stage = document.getElementById('stage');
   const subject = document.getElementById('subject');
   const speciesButton = document.getElementById('speciesButton');
@@ -125,9 +112,9 @@
   /* ====================================================================== */
   /* 10C. CURRENT CREATURE + VIEW STATE                                     */
   /* ====================================================================== */
-  let speciesKey = 'beetle';
-  let current = CREATURES[speciesKey];
-  let selectedInfoKey = current.defaultInfo;
+  let speciesKey = null;
+  let current = null;
+  let selectedInfoKey = null;
   let loadToken = 0;
   let idleLoadHandle = null;
   let x = 0, y = 0, scale = 1, homeScale = 1, minScale = 1, maxScale = 1;
@@ -139,9 +126,65 @@
   const midpoint = (a, b) => ({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 });
 
   /* ====================================================================== */
-  /* 11A. INFORMATION PANEL                                                 */
+  /* 11A. HOME / VIEWER ROUTING                                             */
+  /* The root URL is the collection. Hashes create useful deep links and    */
+  /* allow the browser Back button to return naturally to the home page.    */
+  /* ====================================================================== */
+  function showCollection() {
+    loadToken += 1;
+    if (idleLoadHandle !== null) {
+      if ('cancelIdleCallback' in window) cancelIdleCallback(idleLoadHandle);
+      else clearTimeout(idleLoadHandle);
+      idleLoadHandle = null;
+    }
+    pointers.clear();
+    gesture = null;
+    tapCandidate = null;
+    multiTouch = false;
+    setSpeciesMenu(false);
+    hideInformation();
+    viewerShell.hidden = true;
+    homeScreen.hidden = false;
+    document.body.classList.remove('viewer-mode');
+    document.body.classList.add('home-mode');
+    document.title = 'Natural history close-up collection';
+  }
+
+  function showViewer(key) {
+    if (!CREATURES[key]) {
+      showCollection();
+      return;
+    }
+    homeScreen.hidden = true;
+    viewerShell.hidden = false;
+    document.body.classList.remove('home-mode');
+    document.body.classList.add('viewer-mode');
+    switchSpecies(key);
+  }
+
+  function routeFromHash() {
+    const key = location.hash.replace(/^#/, '').trim();
+    if (CREATURES[key]) showViewer(key);
+    else showCollection();
+  }
+
+  document.querySelectorAll('[data-open-species]').forEach(button => {
+    button.addEventListener('click', () => { location.hash = button.dataset.openSpecies; });
+  });
+
+  collectionButton.addEventListener('click', () => {
+    history.pushState(null, '', `${location.pathname}${location.search}`);
+    showCollection();
+  });
+
+  window.addEventListener('hashchange', routeFromHash);
+  window.addEventListener('popstate', routeFromHash);
+
+  /* ====================================================================== */
+  /* 11B. INFORMATION PANEL                                                 */
   /* ====================================================================== */
   function buildInfoNavigation() {
+    if (!current) return;
     const query = infoSearch.value.trim().toLowerCase();
     infoNav.replaceChildren();
     current.nav.forEach(key => {
@@ -164,6 +207,7 @@
   }
 
   function showInformation(key) {
+    if (!current) return;
     const item = current.information[key];
     if (!item) return;
     selectedInfoKey = key;
@@ -189,7 +233,7 @@
   });
 
   /* ====================================================================== */
-  /* 11B. SPECIES SWITCHER                                                  */
+  /* 11C. SPECIES SWITCHER                                                  */
   /* ====================================================================== */
   function setSpeciesMenu(open) {
     speciesMenu.classList.toggle('open', open);
@@ -204,7 +248,10 @@
 
   speciesMenu.addEventListener('click', event => {
     const button = event.target.closest('button[data-species]');
-    if (button) switchSpecies(button.dataset.species);
+    if (!button) return;
+    const next = button.dataset.species;
+    if (next === speciesKey) setSpeciesMenu(false);
+    else location.hash = next;
   });
 
   document.addEventListener('pointerdown', event => {
@@ -215,7 +262,7 @@
   /* 12A. VIEWER + SHARPNESS-AWARE ZOOM                                    */
   /* ====================================================================== */
   function pointInsideImage(clientX, clientY) {
-    return clientX >= x && clientX <= x + current.width * scale && clientY >= y && clientY <= y + current.height * scale;
+    return current && clientX >= x && clientX <= x + current.width * scale && clientY >= y && clientY <= y + current.height * scale;
   }
 
   function constrainPosition() {
@@ -236,7 +283,8 @@
     if (scale > homeScale * 1.08) requestFullResolution();
   }
 
-  function home() {
+  function homeView() {
+    if (!current || viewerShell.hidden) return;
     homeScale = Math.min(stage.clientWidth / current.width, stage.clientHeight / current.height);
     scale = homeScale;
     x = (stage.clientWidth - current.width * scale) / 2;
@@ -262,7 +310,7 @@
   /* 12B. FULL-RESOLUTION UPGRADE                                           */
   /* ====================================================================== */
   function requestFullResolution() {
-    if (fullRequested || fullReady) return;
+    if (!current || fullRequested || fullReady) return;
     fullRequested = true;
     const requestToken = loadToken;
     const requestedSpecies = speciesKey;
@@ -308,11 +356,13 @@
     gesture = null;
     tapCandidate = null;
     multiTouch = false;
+
     if (idleLoadHandle !== null) {
       if ('cancelIdleCallback' in window) cancelIdleCallback(idleLoadHandle);
       else clearTimeout(idleLoadHandle);
       idleLoadHandle = null;
     }
+
     hideInformation();
     setSpeciesMenu(false);
     infoSearch.value = '';
@@ -342,7 +392,7 @@
   subject.addEventListener('load', () => {
     if (source === 'preview' && !previewReady) {
       previewReady = true;
-      home();
+      homeView();
       loading.classList.add('hide');
       scheduleFullResolution();
       return;
@@ -350,7 +400,7 @@
     if (source === 'full' && !previewReady) {
       previewReady = true;
       fullReady = true;
-      home();
+      homeView();
       loading.classList.add('hide');
     }
   });
@@ -457,11 +507,12 @@
   let resizeTimer;
   window.addEventListener('resize', () => {
     clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(home, 100);
+    if (!viewerShell.hidden) resizeTimer = setTimeout(homeView, 100);
   });
 
   /* ====================================================================== */
   /* 14A. INITIALISE                                                        */
+  /* No creature is selected automatically: root navigation starts at home. */
   /* ====================================================================== */
-  switchSpecies('beetle');
+  routeFromHash();
 })();
