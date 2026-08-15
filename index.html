@@ -13,7 +13,7 @@
 #title b{display:block;font:600 21px/1.05 Georgia,serif}#title span{display:block;margin-top:3px;font-size:11px;opacity:.68}
 #controls{position:fixed;right:max(12px,env(safe-area-inset-right));bottom:max(13px,env(safe-area-inset-bottom));z-index:30;display:flex;align-items:center;gap:5px;padding:5px;border-radius:16px;background:#172018e8;box-shadow:0 4px 20px #0003}
 #controls button{height:38px;min-width:40px;border:0;border-radius:11px;padding:0 10px;background:transparent;color:#fff;font:600 20px/1 system-ui;touch-action:manipulation}
-#controls button:active{background:#ffffff22}#zoom{min-width:76px!important;font-size:12px!important}
+#controls button:active{background:#ffffff22}#zoom{min-width:40px!important;font-size:20px!important}
 #quality{position:fixed;right:max(16px,env(safe-area-inset-right));bottom:calc(max(13px,env(safe-area-inset-bottom)) + 55px);z-index:25;padding:4px 7px;border-radius:9px;background:#172018bd;color:#fff;font-size:9px;letter-spacing:.03em;opacity:0;transition:opacity .2s;pointer-events:none}
 #quality.show{opacity:1}
 .credit{position:fixed;left:max(12px,env(safe-area-inset-left));bottom:max(12px,env(safe-area-inset-bottom));z-index:20;font-size:10px;background:#f8faf6c9;padding:5px 8px;border-radius:10px;backdrop-filter:blur(8px);color:#253027}.credit a{color:inherit;text-decoration:none}.credit a:hover{text-decoration:underline}
@@ -25,7 +25,7 @@
 <body>
 <div id="stage" aria-label="High-resolution photograph of an English oak"><img id="tree" draggable="false" decoding="async" alt="A solitary mature English oak tree"></div>
 <div id="title"><b>English oak</b><span>Quercus robur · high-resolution zoom</span></div>
-<div id="controls"><button id="minus" aria-label="Zoom out">−</button><button id="zoom" aria-label="Reset zoom">100%</button><button id="plus" aria-label="Zoom in">+</button></div>
+<div id="controls"><button id="minus" aria-label="Zoom out">−</button><button id="zoom" aria-label="Reset view">↺</button><button id="plus" aria-label="Zoom in">+</button></div>
 <div id="quality">HD</div>
 <div class="credit"><a href="https://commons.wikimedia.org/wiki/File:Solitary_Quercus_robur.jpg" target="_blank" rel="noopener">Photo: Krzysztof Golik · CC BY-SA 4.0</a></div>
 <div id="loading"><div id="loadingText">Loading oak…</div><div id="error">The tree image did not load. Refresh to try again.</div></div>
@@ -34,15 +34,14 @@
 const PREVIEW='https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Solitary_Quercus_robur.jpg/1365px-Solitary_Quercus_robur.jpg';
 const FULL='https://upload.wikimedia.org/wikipedia/commons/8/8e/Solitary_Quercus_robur.jpg';
 const W=4000,H=6000;
-const stage=document.getElementById('stage'),tree=document.getElementById('tree'),zoomLabel=document.getElementById('zoom'),loading=document.getElementById('loading'),loadingText=document.getElementById('loadingText'),error=document.getElementById('error'),quality=document.getElementById('quality');
+const stage=document.getElementById('stage'),tree=document.getElementById('tree'),zoomReset=document.getElementById('zoom'),loading=document.getElementById('loading'),loadingText=document.getElementById('loadingText'),error=document.getElementById('error'),quality=document.getElementById('quality');
 let x=0,y=0,scale=1,homeScale=1,minScale=1,maxScale=30,previewReady=false,fullReady=false,fullRequested=false,source='preview';
 const pointers=new Map();let gesture=null;
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 const dist=(a,b)=>Math.hypot(b.x-a.x,b.y-a.y);
 const mid=(a,b)=>({x:(a.x+b.x)/2,y:(a.y+b.y)/2});
 function constrain(){const dw=W*scale,dh=H*scale;x=dw<=stage.clientWidth?(stage.clientWidth-dw)/2:clamp(x,stage.clientWidth-dw,0);y=dh<=stage.clientHeight?(stage.clientHeight-dh)/2:clamp(y,stage.clientHeight-dh,0)}
-function pct(){zoomLabel.textContent=Math.round(scale/homeScale*100)+'%'}
-function render(){constrain();tree.style.transform=`translate3d(${x}px,${y}px,0) scale(${scale})`;pct();if(scale/homeScale>=2.2)requestFull()}
+function render(){constrain();tree.style.transform=`translate3d(${x}px,${y}px,0) scale(${scale})`;if(scale/homeScale>=2.2)requestFull()}
 function home(){homeScale=Math.max(stage.clientWidth/W,stage.clientHeight/H);minScale=homeScale;maxScale=homeScale*30;scale=homeScale;x=(stage.clientWidth-W*scale)/2;y=(stage.clientHeight-H*scale)/2;render()}
 function zoomAt(px,py,factor){const next=clamp(scale*factor,minScale,maxScale);if(next===scale)return;const ix=(px-x)/scale,iy=(py-y)/scale;scale=next;x=px-ix*scale;y=py-iy*scale;render()}
 function requestFull(){if(fullRequested||fullReady)return;fullRequested=true;quality.textContent='HD loading…';quality.classList.add('show');const hi=new Image();hi.decoding='async';hi.onload=()=>{fullReady=true;source='full';tree.src=FULL;quality.textContent='HD';setTimeout(()=>quality.classList.remove('show'),1200)};hi.onerror=()=>{fullRequested=false;quality.textContent='preview';setTimeout(()=>quality.classList.remove('show'),1200)};hi.src=FULL}
@@ -52,7 +51,7 @@ stage.addEventListener('pointermove',e=>{if(!pointers.has(e.pointerId))return;po
 function release(e){pointers.delete(e.pointerId);if(pointers.size)begin();else{gesture=null;stage.classList.remove('grabbing')}}stage.addEventListener('pointerup',release);stage.addEventListener('pointercancel',release);
 stage.addEventListener('wheel',e=>{e.preventDefault();zoomAt(e.clientX,e.clientY,Math.exp(-e.deltaY*.0015))},{passive:false});
 stage.addEventListener('dblclick',e=>zoomAt(e.clientX,e.clientY,1.8));
-document.getElementById('plus').onclick=()=>zoomAt(stage.clientWidth/2,stage.clientHeight/2,1.5);document.getElementById('minus').onclick=()=>zoomAt(stage.clientWidth/2,stage.clientHeight/2,1/1.5);zoomLabel.onclick=home;
+document.getElementById('plus').onclick=()=>zoomAt(stage.clientWidth/2,stage.clientHeight/2,1.5);document.getElementById('minus').onclick=()=>zoomAt(stage.clientWidth/2,stage.clientHeight/2,1/1.5);zoomReset.onclick=home;
 let rt;window.addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(home,100)});
 tree.onload=()=>{if(!previewReady){previewReady=true;home();loading.classList.add('hide');setTimeout(()=>loading.remove(),450)}};
 tree.onerror=()=>{if(source==='preview'){source='full';tree.src=FULL}else{loadingText.style.display='none';error.style.display='block'}};
