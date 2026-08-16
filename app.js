@@ -1,9 +1,7 @@
 (() => {
   /* ====================================================================== */
   /* 10A. CREATURE DATA                                                     */
-  /* Every creature uses a high-resolution white-background specimen.       */
-  /* There are deliberately no anatomical hotspots: tap the image, then    */
-  /* explore anatomy and biology from the searchable information panel.     */
+  /* Every specimen uses a high-resolution white-background image.          */
   /* ====================================================================== */
   const CREATURES = {
     /* -------------------------------------------------------------------- */
@@ -83,6 +81,34 @@
         legs: { title: 'Legs and claws', text: 'Six sturdy jointed legs carry prominent spines and hooked claws for gripping vegetation and rough surfaces. At close range the legs look far more mechanical than they do to the naked eye, with sharply defined joints, hairs and claws.', sourceLabel: 'Wikimedia Commons · specimen page', sourceUrl: 'https://commons.wikimedia.org/wiki/File:Melolontha_melolontha_MHNT.jpg' },
         grubs: { title: 'Underground grubs', text: 'Cockchafer larvae are large white C-shaped grubs with brown heads and six legs. They live underground for three to four years and feed on plant roots. In large numbers they can damage grassland and crops, while also providing food for other animals.', sourceLabel: 'Natural History Museum · cockchafer guide', sourceUrl: 'https://www.nhm.ac.uk/discover/how-to-identify-cockchafer-may-bug.html' }
       }
+    },
+
+    /* -------------------------------------------------------------------- */
+    /* 10A-4. CICADA                                                        */
+    /* Dorsal museum specimen from Cayenne, French Guiana; 6483 × 3336.    */
+    /* -------------------------------------------------------------------- */
+    cicada: {
+      name: 'Cicada', scientific: 'Fidicina mannifera', meta: 'white-background specimen',
+      preview: 'https://commons.wikimedia.org/wiki/Special:FilePath/Fidicina_mannifera_MHNT_dos.jpg?width=1800',
+      full: 'https://commons.wikimedia.org/wiki/Special:FilePath/Fidicina_mannifera_MHNT_dos.jpg',
+      width: 6483, height: 3336, previewWidth: 1800,
+      credit: 'Photo: Didier Descouens · CC BY-SA 3.0',
+      creditUrl: 'https://commons.wikimedia.org/wiki/File:Fidicina_mannifera_MHNT_dos.jpg',
+      aria: 'High-resolution cicada photograph on a white background',
+      alt: 'Fidicina mannifera cicada, dorsal view on a white background', defaultInfo: 'overview',
+      nav: ['overview', 'range', 'life', 'sound', 'head', 'eyes', 'wings', 'mouthparts', 'legs', 'nymph'],
+      information: {
+        overview: { title: 'Cicada', text: 'Fidicina mannifera is a large tropical cicada. This dorsal museum specimen was collected in Cayenne, French Guiana. Its broad transparent wings, substantial body and widely spaced eyes make the cicada body plan especially clear at high magnification.', sourceLabel: 'Wikimedia Commons · specimen page', sourceUrl: 'https://commons.wikimedia.org/wiki/File:Fidicina_mannifera_MHNT_dos.jpg' },
+        range: { title: 'Range and locality', text: 'The specimen shown here comes from Cayenne in French Guiana. Fidicina is a Neotropical cicada group, part of the enormous cicada diversity of the Americas.', sourceLabel: 'Wikimedia Commons · specimen locality', sourceUrl: 'https://commons.wikimedia.org/wiki/File:Fidicina_mannifera_MHNT_dos.jpg' },
+        life: { title: 'Life cycle', text: 'Cicadas begin as eggs laid in plant tissue. Young nymphs drop to the ground and live underground, feeding on fluids from plant roots. Mature nymphs eventually climb to the surface, shed their old exoskeleton and emerge as winged adults.', sourceLabel: 'Smithsonian · cicada natural history', sourceUrl: 'https://naturalhistory.si.edu/education/teaching-resources/life-science/periodical-cicadas' },
+        sound: { title: 'How cicadas sing', text: 'Male cicadas make their famous calls with tymbals: ribbed membranes on the abdomen that snap inward and outward rapidly. Repeated clicks merge into the buzzing or pulsing song used to attract females. The sound is produced mechanically rather than by rubbing wings together.', sourceLabel: 'Smithsonian Science Education Center · cicada song', sourceUrl: 'https://ssec.si.edu/stemvisions-blog/love-air-cicadas' },
+        head: { title: 'Head', text: 'The head is broad, with large compound eyes set far apart. Between and around them sit smaller sensory structures and the short antennae. The wide head gives cicadas their characteristic alert, almost helmet-like appearance.', sourceLabel: 'University of Maryland Extension · cicada anatomy', sourceUrl: 'https://extension.umd.edu/resource/cicadas-maryland' },
+        eyes: { title: 'Eyes', text: 'The large compound eyes are among the most prominent structures on an adult cicada. Compound eyes contain many visual units and provide excellent sensitivity to movement and a broad field of view.', sourceLabel: 'University of Maryland Extension · cicada anatomy', sourceUrl: 'https://extension.umd.edu/resource/cicadas-maryland' },
+        wings: { title: 'Transparent wings', text: 'Adult cicadas carry two pairs of membranous wings with an intricate network of supporting veins. The wings are largely transparent, so at high zoom the branching venation becomes more visually dominant than the wing membrane itself.', sourceLabel: 'University of Maryland Extension · cicada anatomy', sourceUrl: 'https://extension.umd.edu/resource/cicadas-maryland' },
+        mouthparts: { title: 'Proboscis', text: 'Cicadas have piercing-sucking mouthparts forming a straw-like proboscis. Rather than chewing leaves, they use this structure to take fluids from plants.', sourceLabel: 'University of Maryland Extension · cicada anatomy', sourceUrl: 'https://extension.umd.edu/resource/cicadas-maryland' },
+        legs: { title: 'Legs', text: 'The adult has six jointed legs adapted for clinging to bark and vegetation. The immature nymph stage has especially powerful front legs for digging through soil before emergence.', sourceLabel: 'University of Maryland Extension · cicada life cycle', sourceUrl: 'https://extension.umd.edu/resource/cicadas-maryland' },
+        nymph: { title: 'Underground nymph', text: 'Cicada nymphs are wingless and spend their juvenile life underground. They feed around tree roots and have strong front legs specialised for digging. At the final emergence they climb a vertical surface and split the old skin to reveal the soft adult, whose wings then expand and harden.', sourceLabel: 'University of Maryland Extension · cicada life cycle', sourceUrl: 'https://extension.umd.edu/resource/cicadas-maryland' }
+      }
     }
   };
 
@@ -127,8 +153,6 @@
 
   /* ====================================================================== */
   /* 11A. HOME / VIEWER ROUTING                                             */
-  /* The root URL is the collection. Hashes create useful deep links and    */
-  /* allow the browser Back button to return naturally to the home page.    */
   /* ====================================================================== */
   function showCollection() {
     loadToken += 1;
@@ -151,10 +175,7 @@
   }
 
   function showViewer(key) {
-    if (!CREATURES[key]) {
-      showCollection();
-      return;
-    }
+    if (!CREATURES[key]) return showCollection();
     homeScreen.hidden = true;
     viewerShell.hidden = false;
     document.body.classList.remove('home-mode');
@@ -379,6 +400,7 @@
     speciesMenu.querySelectorAll('button[data-species]').forEach(button => {
       button.classList.toggle('active', button.dataset.species === speciesKey);
     });
+
     loading.classList.remove('hide');
     loadingText.style.display = '';
     error.style.display = 'none';
@@ -450,6 +472,7 @@
     if (!pointers.has(event.pointerId)) return;
     pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
     if (tapCandidate?.id === event.pointerId && Math.hypot(event.clientX - tapCandidate.x, event.clientY - tapCandidate.y) > 10) tapCandidate.moved = true;
+
     const points = [...pointers.values()];
     if (points.length === 1 && gesture?.type === 'pan') {
       x = gesture.x + points[0].x - gesture.pointerX;
@@ -512,7 +535,6 @@
 
   /* ====================================================================== */
   /* 14A. INITIALISE                                                        */
-  /* No creature is selected automatically: root navigation starts at home. */
   /* ====================================================================== */
   routeFromHash();
 })();
