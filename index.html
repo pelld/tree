@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Natural history close-up collection</title>
 <link rel="stylesheet" href="./styles.css?v=6">
-<link rel="stylesheet" href="./home-compact.css?v=4">
+<link rel="stylesheet" href="./home-compact.css?v=5">
 <script defer src="./app.js?v=6"></script>
 </head>
 
@@ -17,7 +17,7 @@
   <header class="homeHeader">
     <p class="homeKicker">Natural history · close up</p>
     <h1>Choose a specimen</h1>
-    <p class="homeIntro">Explore museum-quality insect photographs at their original detail. Zoom in, then tap the specimen for anatomy, behaviour and life history.</p>
+    <p class="homeIntro">Explore high-resolution natural-history photographs at their original detail. Zoom in, then tap the subject for anatomy, behaviour and life history.</p>
   </header>
 
   <section class="collectionGrid" aria-label="Specimen collection">
@@ -50,9 +50,14 @@
       <span class="specimenImageWrap"><img loading="lazy" src="https://commons.wikimedia.org/wiki/Special:FilePath/Calopteryx_virgo_meridionalis_MHNT.jpg?width=520" alt="Male Beautiful Demoiselle on a white background"></span>
       <span class="specimenCopy"><b>Beautiful demoiselle</b><i>Calopteryx virgo meridionalis</i><span>Damselfly · male · France</span></span>
     </button>
+
+    <button class="specimenCard" type="button" onclick="location.href='./sunbird.html'">
+      <span class="specimenImageWrap"><img loading="lazy" src="https://commons.wikimedia.org/wiki/Special:FilePath/Amethyst_sunbird,_Chalcomitra_amethystina,_male_at_Loodswaai,_Gauteng,_South_Africa._-_50613935926.jpg?width=520" alt="Male Amethyst sunbird on a white background"></span>
+      <span class="specimenCopy"><b>Amethyst sunbird</b><i>Chalcomitra amethystina</i><span>Bird · male · South Africa</span></span>
+    </button>
   </section>
 
-  <footer class="homeFooter">Six specimens · original-resolution zoom</footer>
+  <footer class="homeFooter">Seven specimens · original-resolution zoom</footer>
 </main>
 
 <!-- ======================================================================== -->
@@ -75,6 +80,7 @@
       <button type="button" role="menuitem" data-species="cicada"><b>Cicada</b><span><i>Fidicina mannifera</i></span></button>
       <button type="button" role="menuitem" onclick="location.href='./mantis.html'"><b>Praying mantis</b><span><i>Stagmatoptera supplicaria</i></span></button>
       <button type="button" role="menuitem" onclick="location.href='./damselfly.html'"><b>Beautiful demoiselle</b><span><i>Calopteryx virgo meridionalis</i></span></button>
+      <button type="button" role="menuitem" onclick="location.href='./sunbird.html'"><b>Amethyst sunbird</b><span><i>Chalcomitra amethystina</i></span></button>
     </div>
   </div>
 
@@ -87,7 +93,7 @@
     <p id="infoText"></p>
     <div id="infoTools">
       <label id="infoSearchLabel" for="infoSearch">Find a topic</label>
-      <input id="infoSearch" type="search" autocomplete="off" placeholder="Search: antennae, wings, life cycle…">
+      <input id="infoSearch" type="search" autocomplete="off" placeholder="Search: anatomy, wings, life cycle…">
     </div>
     <div id="infoNav" aria-label="More about this creature"></div>
     <a id="infoSource" href="#" target="_blank" rel="noopener">Source</a>
