@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Praying mantis — high-detail creature zoom</title>
+<link rel="stylesheet" href="./styles.css?v=6">
+<script defer src="./mantis.js?v=1"></script>
+</head>
+<body class="viewer-mode">
+<!-- ======================================================================== -->
+<!-- 20A. PRAYING MANTIS VIEWER                                               -->
+<!-- ======================================================================== -->
+<div id="viewerShell">
+  <div id="stage" aria-label="High-resolution praying mantis specimen">
+    <img id="subject" draggable="false" decoding="async" alt="">
+  </div>
+
+  <!-- ====================================================================== -->
+  <!-- 20B. VIEWER NAVIGATION                                                  -->
+  <!-- ====================================================================== -->
+  <button id="collectionButton" type="button" aria-label="Return to specimen collection">← Collection</button>
+
+  <div id="speciesPanel">
+    <button id="speciesButton" type="button" aria-expanded="false" aria-controls="speciesMenu">
+      <b id="speciesName">Praying mantis</b>
+      <span id="speciesMeta"><i>Stagmatoptera supplicaria</i> · wings open · male</span>
+    </button>
+
+    <div id="speciesMenu" role="menu" aria-hidden="true">
+      <button type="button" role="menuitem" data-href="./#beetle"><b>Harlequin beetle</b><span><i>Acrocinus longimanus</i></span></button>
+      <button type="button" role="menuitem" data-href="./#butterfly"><b>Blue morpho butterfly</b><span><i>Morpho helenor</i></span></button>
+      <button type="button" role="menuitem" data-href="./#cockchafer"><b>Common cockchafer</b><span><i>Melolontha melolontha</i></span></button>
+      <button type="button" role="menuitem" data-href="./#cicada"><b>Cicada</b><span><i>Fidicina mannifera</i></span></button>
+      <button type="button" role="menuitem" class="active" data-href="./mantis.html"><b>Praying mantis</b><span><i>Stagmatoptera supplicaria</i></span></button>
+    </div>
+  </div>
+
+  <!-- ====================================================================== -->
+  <!-- 20C. SEARCHABLE INFORMATION PANEL                                      -->
+  <!-- ====================================================================== -->
+  <aside id="infoCard" aria-live="polite" aria-hidden="true">
+    <button id="infoClose" type="button" aria-label="Close information">×</button>
+    <h2 id="infoTitle"></h2>
+    <p id="infoText"></p>
+    <div id="infoTools">
+      <label id="infoSearchLabel" for="infoSearch">Find a topic</label>
+      <input id="infoSearch" type="search" autocomplete="off" placeholder="Search: forelegs, eyes, wings, life cycle…">
+    </div>
+    <div id="infoNav" aria-label="More about this creature"></div>
+    <a id="infoSource" href="#" target="_blank" rel="noopener">Source</a>
+  </aside>
+
+  <!-- ====================================================================== -->
+  <!-- 20D. CREDIT + LOAD STATE                                               -->
+  <!-- ====================================================================== -->
+  <div class="credit"><a id="photoCredit" href="#" target="_blank" rel="noopener"></a></div>
+  <div id="loading"><div id="loadingText">Loading praying mantis…</div><div id="error">The image did not load. Refresh to try again.</div></div>
+</div>
+</body>
+</html>
