@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Amethyst sunbird — high-detail creature zoom</title>
+<link rel="stylesheet" href="./styles.css?v=6">
+<script defer src="./sunbird.js?v=1"></script>
+</head>
+<body class="viewer-mode">
+<!-- ======================================================================== -->
+<!-- 40A. AMETHYST SUNBIRD VIEWER                                             -->
+<!-- ======================================================================== -->
+<div id="viewerShell">
+  <div id="stage" aria-label="High-resolution Amethyst sunbird photograph">
+    <img id="subject" draggable="false" decoding="async" alt="">
+  </div>
+
+  <!-- ====================================================================== -->
+  <!-- 40B. VIEWER NAVIGATION                                                  -->
+  <!-- ====================================================================== -->
+  <button id="collectionButton" type="button" aria-label="Return to specimen collection">← Collection</button>
+
+  <div id="speciesPanel">
+    <button id="speciesButton" type="button" aria-expanded="false" aria-controls="speciesMenu">
+      <b id="speciesName">Amethyst sunbird</b>
+      <span id="speciesMeta"><i>Chalcomitra amethystina</i> · male</span>
+    </button>
+
+    <div id="speciesMenu" role="menu" aria-hidden="true">
+      <button type="button" role="menuitem" data-href="./#beetle"><b>Harlequin beetle</b><span><i>Acrocinus longimanus</i></span></button>
+      <button type="button" role="menuitem" data-href="./#butterfly"><b>Blue morpho butterfly</b><span><i>Morpho helenor</i></span></button>
+      <button type="button" role="menuitem" data-href="./#cockchafer"><b>Common cockchafer</b><span><i>Melolontha melolontha</i></span></button>
+      <button type="button" role="menuitem" data-href="./#cicada"><b>Cicada</b><span><i>Fidicina mannifera</i></span></button>
+      <button type="button" role="menuitem" data-href="./mantis.html"><b>Praying mantis</b><span><i>Stagmatoptera supplicaria</i></span></button>
+      <button type="button" role="menuitem" data-href="./damselfly.html"><b>Beautiful demoiselle</b><span><i>Calopteryx virgo meridionalis</i></span></button>
+      <button type="button" role="menuitem" class="active" data-href="./sunbird.html"><b>Amethyst sunbird</b><span><i>Chalcomitra amethystina</i></span></button>
+    </div>
+  </div>
+
+  <!-- ====================================================================== -->
+  <!-- 40C. SEARCHABLE INFORMATION PANEL                                      -->
+  <!-- ====================================================================== -->
+  <aside id="infoCard" aria-live="polite" aria-hidden="true">
+    <button id="infoClose" type="button" aria-label="Close information">×</button>
+    <h2 id="infoTitle"></h2>
+    <p id="infoText"></p>
+    <div id="infoTools">
+      <label id="infoSearchLabel" for="infoSearch">Find a topic</label>
+      <input id="infoSearch" type="search" autocomplete="off" placeholder="Search: bill, feathers, nectar, wings…">
+    </div>
+    <div id="infoNav" aria-label="More about this bird"></div>
+    <a id="infoSource" href="#" target="_blank" rel="noopener">Source</a>
+  </aside>
+
+  <!-- ====================================================================== -->
+  <!-- 40D. CREDIT + LOAD STATE                                               -->
+  <!-- ====================================================================== -->
+  <div class="credit"><a id="photoCredit" href="#" target="_blank" rel="noopener"></a></div>
+  <div id="loading"><div id="loadingText">Loading Amethyst sunbird…</div><div id="error">The image did not load. Refresh to try again.</div></div>
+</div>
+</body>
+</html>
