@@ -1,11 +1,10 @@
 /* ========================================================================== */
-/* 04A. FIVE-SPECIMEN DESKTOP GRID                                            */
-/* The collection now has five specimens, so wide screens use one balanced    */
-/* row rather than leaving a single card stranded on a second row.             */
+/* 04A. SIX-SPECIMEN DESKTOP GRID                                             */
+/* Six specimens sit naturally as two rows of three on wide screens.           */
 /* ========================================================================== */
 @media (min-width: 821px) {
-  .collectionGrid { grid-template-columns: repeat(5, minmax(0, 1fr)); }
-  .specimenCard { grid-template-rows: minmax(210px, 270px) auto; }
+  .collectionGrid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .specimenCard { grid-template-rows: minmax(220px, 300px) auto; }
 }
 
 /* ========================================================================== */
@@ -43,7 +42,7 @@
 
 /* ========================================================================== */
 /* 04C. PHONE-SIZED COLLECTION                                                */
-/* Five cards remain compact enough to scan quickly rather than becoming       */
+/* Six cards stay compact enough to scan quickly rather than becoming          */
 /* full-screen photographs.                                                    */
 /* ========================================================================== */
 @media (max-width: 650px) {
