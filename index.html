@@ -4,16 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Natural history close-up collection</title>
-<link rel="stylesheet" href="./styles.css?v=5">
-<link rel="stylesheet" href="./home-compact.css?v=1">
-<script defer src="./app.js?v=5"></script>
+<link rel="stylesheet" href="./styles.css?v=6">
+<link rel="stylesheet" href="./home-compact.css?v=2">
+<script defer src="./app.js?v=6"></script>
 </head>
 
 <body class="home-mode">
 <!-- ======================================================================== -->
 <!-- 02A. COLLECTION HOME                                                     -->
-<!-- The root page is now a genuine collection rather than auto-opening the    -->
-<!-- first specimen. Each card opens the same full-resolution viewer.          -->
 <!-- ======================================================================== -->
 <main id="homeScreen">
   <header class="homeHeader">
@@ -24,50 +22,34 @@
 
   <section class="collectionGrid" aria-label="Specimen collection">
     <button class="specimenCard" type="button" data-open-species="beetle">
-      <span class="specimenImageWrap">
-        <img loading="eager" src="https://commons.wikimedia.org/wiki/Special:FilePath/Acrocinus_longimanus_MHNT_femelle.jpg?width=520" alt="Female harlequin beetle on a white background">
-      </span>
-      <span class="specimenCopy">
-        <b>Harlequin beetle</b>
-        <i>Acrocinus longimanus</i>
-        <span>Longhorn beetle · female</span>
-      </span>
+      <span class="specimenImageWrap"><img loading="eager" src="https://commons.wikimedia.org/wiki/Special:FilePath/Acrocinus_longimanus_MHNT_femelle.jpg?width=520" alt="Female harlequin beetle on a white background"></span>
+      <span class="specimenCopy"><b>Harlequin beetle</b><i>Acrocinus longimanus</i><span>Longhorn beetle · female</span></span>
     </button>
 
     <button class="specimenCard" type="button" data-open-species="butterfly">
-      <span class="specimenImageWrap">
-        <img loading="lazy" src="https://commons.wikimedia.org/wiki/Special:FilePath/Morpho_helenor_helenor_MHNT_dos.jpg?width=520" alt="Blue morpho butterfly on a white background">
-      </span>
-      <span class="specimenCopy">
-        <b>Blue morpho butterfly</b>
-        <i>Morpho helenor</i>
-        <span>Structural blue · male</span>
-      </span>
+      <span class="specimenImageWrap"><img loading="lazy" src="https://commons.wikimedia.org/wiki/Special:FilePath/Morpho_helenor_helenor_MHNT_dos.jpg?width=520" alt="Blue morpho butterfly on a white background"></span>
+      <span class="specimenCopy"><b>Blue morpho butterfly</b><i>Morpho helenor</i><span>Structural blue · male</span></span>
     </button>
 
     <button class="specimenCard" type="button" data-open-species="cockchafer">
-      <span class="specimenImageWrap">
-        <img loading="lazy" src="https://commons.wikimedia.org/wiki/Special:FilePath/Melolontha_melolontha_MHNT.jpg?width=520" alt="Male common cockchafer on a white background">
-      </span>
-      <span class="specimenCopy">
-        <b>Common cockchafer</b>
-        <i>Melolontha melolontha</i>
-        <span>Scarab beetle · male</span>
-      </span>
+      <span class="specimenImageWrap"><img loading="lazy" src="https://commons.wikimedia.org/wiki/Special:FilePath/Melolontha_melolontha_MHNT.jpg?width=520" alt="Male common cockchafer on a white background"></span>
+      <span class="specimenCopy"><b>Common cockchafer</b><i>Melolontha melolontha</i><span>Scarab beetle · male</span></span>
+    </button>
+
+    <button class="specimenCard" type="button" data-open-species="cicada">
+      <span class="specimenImageWrap"><img loading="lazy" src="https://commons.wikimedia.org/wiki/Special:FilePath/Fidicina_mannifera_MHNT_dos.jpg?width=520" alt="Fidicina mannifera cicada on a white background"></span>
+      <span class="specimenCopy"><b>Cicada</b><i>Fidicina mannifera</i><span>True bug · French Guiana</span></span>
     </button>
   </section>
 
-  <footer class="homeFooter">Three specimens · original-resolution zoom</footer>
+  <footer class="homeFooter">Four specimens · original-resolution zoom</footer>
 </main>
 
 <!-- ======================================================================== -->
 <!-- 02B. HIGH-RESOLUTION VIEWER                                              -->
-<!-- Kept completely out of the way until a specimen is chosen.               -->
 <!-- ======================================================================== -->
 <div id="viewerShell" hidden>
-  <div id="stage" aria-label="High-resolution natural-history specimen">
-    <img id="subject" draggable="false" decoding="async" alt="">
-  </div>
+  <div id="stage" aria-label="High-resolution natural-history specimen"><img id="subject" draggable="false" decoding="async" alt=""></div>
 
   <!-- ====================================================================== -->
   <!-- 02C. VIEWER NAVIGATION                                                  -->
@@ -75,24 +57,12 @@
   <button id="collectionButton" type="button" aria-label="Return to specimen collection">← Collection</button>
 
   <div id="speciesPanel">
-    <button id="speciesButton" type="button" aria-expanded="false" aria-controls="speciesMenu">
-      <b id="speciesName"></b>
-      <span id="speciesMeta"></span>
-    </button>
-
+    <button id="speciesButton" type="button" aria-expanded="false" aria-controls="speciesMenu"><b id="speciesName"></b><span id="speciesMeta"></span></button>
     <div id="speciesMenu" role="menu" aria-hidden="true">
-      <button type="button" role="menuitem" data-species="beetle">
-        <b>Harlequin beetle</b>
-        <span><i>Acrocinus longimanus</i></span>
-      </button>
-      <button type="button" role="menuitem" data-species="butterfly">
-        <b>Blue morpho butterfly</b>
-        <span><i>Morpho helenor</i></span>
-      </button>
-      <button type="button" role="menuitem" data-species="cockchafer">
-        <b>Common cockchafer</b>
-        <span><i>Melolontha melolontha</i></span>
-      </button>
+      <button type="button" role="menuitem" data-species="beetle"><b>Harlequin beetle</b><span><i>Acrocinus longimanus</i></span></button>
+      <button type="button" role="menuitem" data-species="butterfly"><b>Blue morpho butterfly</b><span><i>Morpho helenor</i></span></button>
+      <button type="button" role="menuitem" data-species="cockchafer"><b>Common cockchafer</b><span><i>Melolontha melolontha</i></span></button>
+      <button type="button" role="menuitem" data-species="cicada"><b>Cicada</b><span><i>Fidicina mannifera</i></span></button>
     </div>
   </div>
 
@@ -103,12 +73,10 @@
     <button id="infoClose" type="button" aria-label="Close information">×</button>
     <h2 id="infoTitle"></h2>
     <p id="infoText"></p>
-
     <div id="infoTools">
       <label id="infoSearchLabel" for="infoSearch">Find a topic</label>
       <input id="infoSearch" type="search" autocomplete="off" placeholder="Search: antennae, wings, life cycle…">
     </div>
-
     <div id="infoNav" aria-label="More about this creature"></div>
     <a id="infoSource" href="#" target="_blank" rel="noopener">Source</a>
   </aside>
@@ -116,14 +84,8 @@
   <!-- ====================================================================== -->
   <!-- 02E. CREDIT + LOAD STATE                                               -->
   <!-- ====================================================================== -->
-  <div class="credit">
-    <a id="photoCredit" href="#" target="_blank" rel="noopener"></a>
-  </div>
-
-  <div id="loading">
-    <div id="loadingText">Loading specimen…</div>
-    <div id="error">The image did not load. Refresh to try again.</div>
-  </div>
+  <div class="credit"><a id="photoCredit" href="#" target="_blank" rel="noopener"></a></div>
+  <div id="loading"><div id="loadingText">Loading specimen…</div><div id="error">The image did not load. Refresh to try again.</div></div>
 </div>
 </body>
 </html>
